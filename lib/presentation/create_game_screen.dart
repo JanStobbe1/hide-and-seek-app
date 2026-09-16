@@ -234,73 +234,76 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
         ],
       );
 
-  Widget _buildStartAndIntroduction() => Column(
-        children: [
-          RadioListTile<StartCondition>(
-            value: StartCondition.participantCount,
-            groupValue: condition,
-            onChanged: (value) => setState(() => condition = value!),
-            title: const Text('Start bij genoeg deelnemers'),
-            subtitle: Text('Wanneer $participantThreshold spelers meedoen'),
-          ),
-          if (condition == StartCondition.participantCount)
-            _SettingSlider(
-              label: 'Benodigde deelnemers',
-              value: participantThreshold.toDouble(),
-              min: 2,
-              max: players.toDouble(),
-              divisions: players - 2,
-              suffix: ' spelers',
-              onChanged: (value) =>
-                  setState(() => participantThreshold = value.round()),
+  Widget _buildStartAndIntroduction() => RadioGroup<StartCondition>(
+        groupValue: condition,
+        onChanged: (value) {
+          if (value == null) return;
+          setState(() => condition = value);
+        },
+        child: Column(
+          children: [
+            RadioListTile<StartCondition>(
+              value: StartCondition.participantCount,
+              title: const Text('Start bij genoeg deelnemers'),
+              subtitle: Text('Wanneer $participantThreshold spelers meedoen'),
             ),
-          RadioListTile<StartCondition>(
-            value: StartCondition.scheduled,
-            groupValue: condition,
-            onChanged: (value) => setState(() => condition = value!),
-            title: const Text('Start op datum en tijd'),
-            subtitle: Text(_formatScheduledStart(selectedStart)),
-          ),
-          if (condition == StartCondition.scheduled)
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: _pickDate,
-                    icon: const Icon(Icons.calendar_month),
-                    label: const Text('Kies datum'),
+            if (condition == StartCondition.participantCount)
+              _SettingSlider(
+                label: 'Benodigde deelnemers',
+                value: participantThreshold.toDouble(),
+                min: 2,
+                max: players.toDouble(),
+                divisions: players - 2,
+                suffix: ' spelers',
+                onChanged: (value) =>
+                    setState(() => participantThreshold = value.round()),
+              ),
+            RadioListTile<StartCondition>(
+              value: StartCondition.scheduled,
+              title: const Text('Start op datum en tijd'),
+              subtitle: Text(_formatScheduledStart(selectedStart)),
+            ),
+            if (condition == StartCondition.scheduled)
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _pickDate,
+                      icon: const Icon(Icons.calendar_month),
+                      label: const Text('Kies datum'),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: _pickTime,
-                    icon: const Icon(Icons.schedule),
-                    label: const Text('Kies tijd'),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _pickTime,
+                      icon: const Icon(Icons.schedule),
+                      label: const Text('Kies tijd'),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: intro,
+              maxLines: 5,
+              decoration: const InputDecoration(
+                labelText: 'Spelintroductie',
+                hintText: 'Vertel spelers wat ze kunnen verwachten…',
+              ),
             ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: intro,
-            maxLines: 5,
-            decoration: const InputDecoration(
-              labelText: 'Spelintroductie',
-              hintText: 'Vertel spelers wat ze kunnen verwachten…',
+            const SizedBox(height: 10),
+            OutlinedButton.icon(
+              onPressed: () => setState(() {
+                intro.text = 'Durf jij je te verstoppen in Almere? Slimme '
+                    'zoekers, verrassende hints en een spannend zoekgebied '
+                    'wachten op je. Blijf uit zicht en speel voor de eer!';
+              }),
+              icon: const Icon(Icons.auto_awesome),
+              label: const Text('Genereer introductie met AI'),
             ),
-          ),
-          const SizedBox(height: 10),
-          OutlinedButton.icon(
-            onPressed: () => setState(() {
-              intro.text = 'Durf jij je te verstoppen in Almere? Slimme '
-                  'zoekers, verrassende hints en een spannend zoekgebied '
-                  'wachten op je. Blijf uit zicht en speel voor de eer!';
-            }),
-            icon: const Icon(Icons.auto_awesome),
-            label: const Text('Genereer introductie met AI'),
-          ),
-        ],
+          ],
+        ),
       );
 
   Future<void> _pickDate() async {

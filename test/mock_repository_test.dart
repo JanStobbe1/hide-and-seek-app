@@ -23,14 +23,14 @@ void main() {
       neighbourhood: 'Centrum',
       specificArea: 'Grote Markt',
     );
-    final game = Game(
+    const game = Game(
       id: 'created',
       name: 'Nieuw spel',
       organizer: 'Arie',
       description: 'Test',
       area: area,
       status: GameStatus.available,
-      duration: const Duration(hours: 1),
+      duration: Duration(hours: 1),
       entryFee: 0,
       participants: 1,
       maxParticipants: 12,

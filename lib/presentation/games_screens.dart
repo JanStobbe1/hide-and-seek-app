@@ -50,7 +50,7 @@ class _AvailableGamesScreenState extends State<AvailableGamesScreen> {
         const Text('Ontdek een avontuur bij jou in de buurt.'),
         const SizedBox(height: 16),
         DropdownButtonFormField<String>(
-          value: sort,
+          initialValue: sort,
           decoration: const InputDecoration(
             labelText: 'Sorteer op',
             prefixIcon: Icon(Icons.sort),

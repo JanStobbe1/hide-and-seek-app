@@ -26,12 +26,12 @@ class MockGameRepository implements GameRepository {
   @override
   void reset() {
     _joined.clear();
-    final start = DateTime(2026, 8, 25, 16);
+    final start = DateTime(2026, 10, 25, 16);
     _available = [
       Game(
         id: 'epic',
         name: 'MostEpicGameEver',
-        organizer: 'Sanne',
+        organizer: 'Jan',
         description:
             'Een avontuurlijk verstopspel in de bossen van de Utrechtse Heuvelrug.',
         area: const SearchArea(

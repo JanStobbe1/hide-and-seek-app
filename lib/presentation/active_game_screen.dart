@@ -181,7 +181,7 @@ class ActiveGameScreen extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             const Text('Overlevingstijd: 1 uur en 42 minuten'),
-            const Text('Ontvangen: 420 punten'),
+            const Text('Ontvangen: 100 punten'),
             const Text('Rank: Beginner • 54% naar Avonturier'),
             const SizedBox(height: 16),
             FilledButton(

@@ -33,7 +33,9 @@ class ActiveGameScreen extends StatelessWidget {
                   const SectionTitle('Zoekgebied'),
                   const MapPlaceholder(),
                   const SectionTitle('Jouw acties'),
-                  _GameActions(onNotice: (message) => _notice(context, message)),
+                  _GameActions(
+                    onNotice: (message) => _notice(context, message),
+                  ),
                   const SizedBox(height: 18),
                   FilledButton.icon(
                     onPressed: state.gameFinished
@@ -121,15 +123,15 @@ class ActiveGameScreen extends StatelessWidget {
   }
 
   void _showHiderWarning(BuildContext context) {
+    final warning = state.activeGame.invisibilityAvailable
+        ? _invisibilityAvailableText
+        : _invisibilityUsedText;
     showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         icon: const Icon(Icons.warning_amber, size: 44),
         title: const Text('Let op!'),
-        content: Text(
-          'Zoeker Arie zit binnen 5 meter van jou.\n\n'
-          '${state.activeGame.invisibilityAvailable ? _invisibilityAvailableText : _invisibilityUsedText}',
-        ),
+        content: Text('Zoeker Arie zit binnen 5 meter van jou.\n\n$warning'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
@@ -300,7 +302,8 @@ class _CountdownCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             LinearProgressIndicator(
-              value: state.activeGame.playersFound / state.activeGame.totalPlayers,
+              value:
+                  state.activeGame.playersFound / state.activeGame.totalPlayers,
               minHeight: 9,
               borderRadius: BorderRadius.circular(8),
             ),

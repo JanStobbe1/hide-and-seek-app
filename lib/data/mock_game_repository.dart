@@ -51,8 +51,20 @@ class MockGameRepository implements GameRepository {
         scheduledStart: start,
       ),
       _game('wats', 'Watskeburt', 2.4, 12, start.add(const Duration(days: 2))),
-      _game('verst', 'Verstoppertje', 5.8, 8, start.add(const Duration(days: 1))),
-      _game('gadget', 'Inspector Gadget', 12, 16, start.add(const Duration(hours: 5))),
+      _game(
+        'verst',
+        'Verstoppertje',
+        5.8,
+        8,
+        start.add(const Duration(days: 1)),
+      ),
+      _game(
+        'gadget',
+        'Inspector Gadget',
+        12,
+        16,
+        start.add(const Duration(hours: 5)),
+      ),
       _game('test', 'Test123', 1.2, 4, start.add(const Duration(days: 4))),
     ];
   }

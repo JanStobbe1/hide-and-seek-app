@@ -9,7 +9,10 @@ void main() {
       expect(state.playerFound().playersFound, 6);
     });
     test('cannot find a player after completion', () {
-      const state = ActiveGameState(status: GameStatus.completed, playersFound: 5);
+      const state = ActiveGameState(
+        status: GameStatus.completed,
+        playersFound: 5,
+      );
       expect(state.playerFound().playersFound, 5);
     });
     test('finish transitions an active game to completed', () {

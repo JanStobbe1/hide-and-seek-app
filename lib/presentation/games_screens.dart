@@ -56,7 +56,9 @@ class _AvailableGamesScreenState extends State<AvailableGamesScreen> {
             prefixIcon: Icon(Icons.sort),
           ),
           items: ['Afstand', 'Alfabetisch', 'Starttijd', 'Deelnemers']
-              .map((value) => DropdownMenuItem(value: value, child: Text(value)))
+              .map(
+                (value) => DropdownMenuItem(value: value, child: Text(value)),
+              )
               .toList(),
           onChanged: (value) => setState(() => sort = value!),
         ),
@@ -159,7 +161,9 @@ class GameDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final joined = state.repository.joinedGames.any((item) => item.id == game.id);
+    final joined = state.repository.joinedGames.any(
+      (item) => item.id == game.id,
+    );
     return Scaffold(
       appBar: AppBar(title: Text(game.name)),
       body: Center(
@@ -203,7 +207,10 @@ class GameDetailScreen extends StatelessWidget {
                     .headlineMedium
                     ?.copyWith(fontWeight: FontWeight.w900),
               ),
-              Text(game.description, style: Theme.of(context).textTheme.bodyLarge),
+              Text(
+                game.description,
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
               const SectionTitle('Spelinformatie'),
               _Info(Icons.person, 'Organisator', game.organizer),
               _Info(Icons.schedule, 'Start & einde', _dateRange(game)),
@@ -233,7 +240,8 @@ class GameDetailScreen extends StatelessWidget {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text(
-                              'Je doet mee! Het spel staat nu bij Mijn spellen.',
+                              'Je doet mee! Het spel staat nu bij '
+                              'Mijn spellen.',
                             ),
                           ),
                         );
@@ -369,7 +377,8 @@ class CompletedGamesScreen extends StatelessWidget {
                 child: ListTile(
                   leading: const CircleAvatar(child: Icon(Icons.emoji_events)),
                   title: Text(
-                    'Game X • ${state.activeGame.playersFound} spelers gevonden',
+                    'Game X • ${state.activeGame.playersFound} '
+                    'spelers gevonden',
                   ),
                   subtitle: const Text('840 punten • demo-beloning € 4,50'),
                 ),

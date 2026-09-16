@@ -107,8 +107,9 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
                     intro: intro.text,
                     area: selectedArea,
                     startCondition: condition,
-                    scheduledStart:
-                        condition == StartCondition.scheduled ? selectedStart : null,
+                    scheduledStart: condition == StartCondition.scheduled
+                        ? selectedStart
+                        : null,
                     participantThreshold:
                         condition == StartCondition.participantCount
                             ? participantThreshold
@@ -121,7 +122,8 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
         ),
       );
 
-  Widget _buildControls(BuildContext context, ControlsDetails details) => Padding(
+  Widget _buildControls(BuildContext context, ControlsDetails details) =>
+      Padding(
         padding: const EdgeInsets.only(top: 20),
         child: Row(
           children: [
@@ -478,7 +480,8 @@ class _Review extends StatelessWidget {
         _ReviewRow(
           label: 'Zoekgebied',
           value:
-              '${area.country} • ${area.province} • ${area.city} • ${area.neighbourhood}',
+              '${area.country} • ${area.province} • ${area.city} • '
+              '${area.neighbourhood}',
         ),
         _ReviewRow(
           label: 'Mechanieken',
@@ -504,7 +507,8 @@ class _Review extends StatelessWidget {
                   '€ ${money.platformFee.toStringAsFixed(2)}',
                 ),
                 Text(
-                  'Getoonde prijzenpot: € ${money.prizePool.toStringAsFixed(2)}',
+                  'Getoonde prijzenpot: '
+                  '€ ${money.prizePool.toStringAsFixed(2)}',
                   style: const TextStyle(fontWeight: FontWeight.w800),
                 ),
                 const Text(

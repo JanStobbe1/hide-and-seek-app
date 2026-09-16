@@ -44,6 +44,9 @@ void main() {
     expect(repository.availableGames.last.area.city, 'Mechelen');
     expect(repository.availableGames.last.participantThreshold, 6);
     repository.reset();
-    expect(repository.availableGames.any((item) => item.id == 'created'), isFalse);
+    expect(
+      repository.availableGames.any((item) => item.id == 'created'),
+      isFalse,
+    );
   });
 }

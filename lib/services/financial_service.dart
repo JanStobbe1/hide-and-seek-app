@@ -13,6 +13,10 @@ class FinancialService {
     }
     final gross = players * entryFee;
     final fee = gross * platformFeeRate;
-    return FinancialSummary(grossPool: gross, platformFee: fee, prizePool: gross - fee);
+    return FinancialSummary(
+      grossPool: gross,
+      platformFee: fee,
+      prizePool: gross - fee,
+    );
   }
 }

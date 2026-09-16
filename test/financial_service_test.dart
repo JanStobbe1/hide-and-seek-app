@@ -4,7 +4,10 @@ import 'package:verstobbertje/services/financial_service.dart';
 void main() {
   group('FinancialService', () {
     test('calculates gross pool, platform fee and displayed prize pool', () {
-      final result = const FinancialService().calculate(players: 10, entryFee: 10);
+      final result = const FinancialService().calculate(
+        players: 10,
+        entryFee: 10,
+      );
       expect(result.grossPool, 100);
       expect(result.platformFee, 10);
       expect(result.prizePool, 90);

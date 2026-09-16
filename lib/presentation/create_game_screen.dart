@@ -88,8 +88,7 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
               onStepTapped: (value) => setState(() => step = value),
               onStepContinue:
                   step == 3 ? _publish : () => setState(() => step++),
-              onStepCancel:
-                  step == 0 ? null : () => setState(() => step--),
+              onStepCancel: step == 0 ? null : () => setState(() => step--),
               controlsBuilder: _buildControls,
               steps: [
                 Step(
@@ -485,8 +484,7 @@ class _Review extends StatelessWidget {
         _ReviewRow(label: 'Start', value: startLabel),
         _ReviewRow(
           label: 'Zoekgebied',
-          value:
-              '${area.country} • ${area.province} • ${area.city} • '
+          value: '${area.country} • ${area.province} • ${area.city} • '
               '${area.neighbourhood}',
         ),
         _ReviewRow(

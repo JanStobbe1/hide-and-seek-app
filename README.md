@@ -72,11 +72,11 @@ The supplied primary scenario assigns Arie the seeker role. A hider warning/resu
 
 ### Create a game
 
-Choose **Nieuw spel**, adjust the prefilled Test123 settings, search area, start condition and introduction. The “AI” button inserts fixed local copy. Review the illustrative pool, publish, then open **Ontdekken** to see the locally added game.
+Choose **Nieuw spel**, adjust the prefilled Test123 settings and enter one or more mock countries, provinces, cities and neighbourhoods. Select either a configurable participant threshold or an editable mock date/time, then edit the introduction. The “AI” button inserts fixed local copy. Review the illustrative pool, publish, then open **Ontdekken** to see the locally added game with its selected area and start condition.
 
 ### Reset
 
-Go to **Profiel → Demo beheren → Reset demo data**. This restores deterministic games, join state, active-game progress and statistics. Privacy settings are local session state; restarting the app also restores all initial data.
+Go to **Profiel → Demo beheren → Reset demo data**. This restores deterministic games, join state, active-game progress, statistics and privacy preferences. All settings remain local session state; restarting the app also restores the initial data.
 
 ## Mocked functionality
 

@@ -5,7 +5,8 @@ import 'domain/game_engine.dart';
 import 'domain/models.dart';
 
 class AppState extends ChangeNotifier {
-  AppState({MockGameRepository? repository}) : repository = repository ?? MockGameRepository();
+  AppState({MockGameRepository? repository})
+      : repository = repository ?? MockGameRepository();
   final MockGameRepository repository;
   ActiveGameState activeGame = const ActiveGameState();
   bool gameFinished = false;
@@ -20,12 +21,39 @@ class AppState extends ChangeNotifier {
     'Meld deelname aan eerdere vrienden': true,
   };
 
-  void join(String id) { repository.join(id); notifyListeners(); }
-  void publish(Game game) { repository.publish(game); notifyListeners(); }
-  void foundPlayer() { activeGame = activeGame.playerFound(); notifyListeners(); }
-  void useInvisibility() { activeGame = activeGame.useInvisibility(); notifyListeners(); }
-  void finishGame() { activeGame = activeGame.finish(); gameFinished = true; gamesPlayed++; notifyListeners(); }
-  void setPrivacy(String key, bool value) { privacy[key] = value; notifyListeners(); }
+  void join(String id) {
+    repository.join(id);
+    notifyListeners();
+  }
+
+  void publish(Game game) {
+    repository.publish(game);
+    notifyListeners();
+  }
+
+  void foundPlayer() {
+    activeGame = activeGame.playerFound();
+    notifyListeners();
+  }
+
+  void useInvisibility() {
+    activeGame = activeGame.useInvisibility();
+    notifyListeners();
+  }
+
+  void finishGame() {
+    if (activeGame.status == GameStatus.completed) return;
+    activeGame = activeGame.finish();
+    gameFinished = true;
+    gamesPlayed++;
+    notifyListeners();
+  }
+
+  void setPrivacy(String key, bool value) {
+    privacy[key] = value;
+    notifyListeners();
+  }
+
   void reset() {
     repository.reset();
     activeGame = const ActiveGameState();

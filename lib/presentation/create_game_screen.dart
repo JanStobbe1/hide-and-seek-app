@@ -63,6 +63,20 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
         scheduledTime.minute,
       );
 
+  DateTime? get selectedScheduledStart {
+    if (condition == StartCondition.scheduled) {
+      return selectedStart;
+    }
+    return null;
+  }
+
+  int? get selectedParticipantThreshold {
+    if (condition == StartCondition.participantCount) {
+      return participantThreshold;
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(title: const Text('Nieuw spel')),
@@ -107,13 +121,8 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
                     intro: intro.text,
                     area: selectedArea,
                     startCondition: condition,
-                    scheduledStart: condition == StartCondition.scheduled
-                        ? selectedStart
-                        : null,
-                    participantThreshold:
-                        condition == StartCondition.participantCount
-                            ? participantThreshold
-                            : null,
+                    scheduledStart: selectedScheduledStart,
+                    participantThreshold: selectedParticipantThreshold,
                   ),
                 ),
               ],
@@ -333,11 +342,8 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
         maxParticipants: players,
         distanceKm: 1.2,
         startCondition: condition,
-        scheduledStart:
-            condition == StartCondition.scheduled ? selectedStart : null,
-        participantThreshold: condition == StartCondition.participantCount
-            ? participantThreshold
-            : null,
+        scheduledStart: selectedScheduledStart,
+        participantThreshold: selectedParticipantThreshold,
         isPublic: isPublic,
         rules: GameRules(
           hintsEnabled: hints,

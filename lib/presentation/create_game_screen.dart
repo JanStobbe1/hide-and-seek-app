@@ -333,9 +333,8 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
         maxParticipants: players,
         distanceKm: 1.2,
         startCondition: condition,
-        scheduledStart: condition == StartCondition.scheduled
-            ? selectedStart
-            : null,
+        scheduledStart:
+            condition == StartCondition.scheduled ? selectedStart : null,
         participantThreshold: condition == StartCondition.participantCount
             ? participantThreshold
             : null,

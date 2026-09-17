@@ -1,4 +1,3 @@
-
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -8,20 +7,11 @@ import '../domain/models.dart';
 import 'widgets.dart';
 
 class ActiveGameScreen extends StatefulWidget {
-
-import 'package:flutter/material.dart';
-
-import '../app_state.dart';
-import 'widgets.dart';
-
-class ActiveGameScreen extends StatelessWidget {
-
   const ActiveGameScreen({required this.state, super.key});
 
   final AppState state;
 
   @override
-
   State<ActiveGameScreen> createState() => _ActiveGameScreenState();
 }
 
@@ -49,7 +39,6 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
   }
 
   @override
-
   Widget build(BuildContext context) => ListenableBuilder(
         listenable: state,
         builder: (context, _) => Scaffold(
@@ -72,11 +61,7 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
                   const SizedBox(height: 12),
                   _CountdownCard(state: state),
                   const SectionTitle('Zoekgebied'),
-
                   MapPlaceholder(playerMarker: state.playerMarker),
-
-                  const MapPlaceholder(),
-
                   const SectionTitle('Jouw acties'),
                   _GameActions(
                     onNotice: (message) => _notice(context, message),
@@ -171,23 +156,18 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
     final warning = state.activeGame.invisibilityAvailable
         ? _invisibilityAvailableText
         : _invisibilityUsedText;
-
     final hiderValue = state.playerValue(PlayerRole.hider);
-
     showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         icon: const Icon(Icons.warning_amber, size: 44),
         title: const Text('Let op!'),
-
         content: Text(
           'Zoeker ${state.displayName} zit binnen 5 meter van jou.\n\n'
           'Omdat er ${state.activeGame.playersFound} spelers zijn gevonden '
           'ben je € ${hiderValue.toStringAsFixed(2).replaceAll('.', ',')} '
           'waard (demo).\n\n$warning',
         ),
-        content: Text('Zoeker Arie zit binnen 5 meter van jou.\n\n$warning'),
-
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
@@ -265,15 +245,9 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Icon(Icons.emoji_events, color: Color(0xffd99d18), size: 64),
-
             Text(
               'Sterk gezocht, ${state.displayName}!',
               style: const TextStyle(fontSize: 25, fontWeight: FontWeight.w900),
-
-            const Text(
-              'Sterk gezocht, Arie!',
-              style: TextStyle(fontSize: 25, fontWeight: FontWeight.w900),
-
             ),
             Text(
               '${state.activeGame.playersFound} spelers gevonden • 840 punten',
@@ -328,7 +302,6 @@ class _CountdownCard extends StatelessWidget {
   final AppState state;
 
   @override
-
   Widget build(BuildContext context) {
     final remaining = state.activeGame.countdown.remaining;
     final hours = remaining.inHours;
@@ -395,52 +368,6 @@ class _CountdownCard extends StatelessWidget {
       ),
     );
   }
-
-  Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: const Color(0xff223f31),
-          borderRadius: BorderRadius.circular(24),
-        ),
-        child: Column(
-          children: [
-            const Text(
-              'RESTERENDE TIJD',
-              style: TextStyle(
-                color: Colors.white70,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 12),
-            const Row(
-              children: [
-                _Time('00', 'dagen'),
-                _Time('00', 'uren'),
-                _Time('26', 'minuten'),
-                _Time('30', 'seconden'),
-              ],
-            ),
-            const Divider(color: Colors.white24, height: 28),
-            Text(
-              '${state.activeGame.playersFound} van de '
-              '${state.activeGame.totalPlayers} gevonden',
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w900,
-                fontSize: 20,
-              ),
-            ),
-            const SizedBox(height: 8),
-            LinearProgressIndicator(
-              value:
-                  state.activeGame.playersFound / state.activeGame.totalPlayers,
-              minHeight: 9,
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ],
-        ),
-      );
-
 }
 
 class _GameActions extends StatelessWidget {
@@ -473,32 +400,5 @@ class _GameActions extends StatelessWidget {
             ),
           ),
         ],
-      );
-}
-
-class _Time extends StatelessWidget {
-  const _Time(this.value, this.label);
-
-  final String value;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) => Expanded(
-        child: Column(
-          children: [
-            Text(
-              value,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 27,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-            Text(
-              label,
-              style: const TextStyle(color: Colors.white60, fontSize: 11),
-            ),
-          ],
-        ),
       );
 }

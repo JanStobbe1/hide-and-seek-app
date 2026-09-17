@@ -40,64 +40,65 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
 
   @override
   Widget build(BuildContext context) => ListenableBuilder(
-    listenable: state,
-    builder: (context, _) => Scaffold(
-      appBar: AppBar(
-        title: const Text('Game X'),
-        actions: const [
-          Padding(padding: EdgeInsets.all(12), child: DemoBadge()),
-        ],
-      ),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 760),
-          child: ListView(
-            padding: const EdgeInsets.all(20),
-            children: [
-              _StatusRow(finished: state.gameFinished),
-              const SizedBox(height: 12),
-              _CountdownCard(state: state),
-              const SectionTitle('Zoekgebied'),
-              MapPlaceholder(playerMarker: state.playerMarker),
-              const SectionTitle('Jouw acties'),
-              _GameActions(onNotice: (message) => _notice(context, message)),
-              const SizedBox(height: 18),
-              FilledButton.icon(
-                onPressed: state.gameFinished
-                    ? null
-                    : () => _showProximity(context),
-                icon: const Icon(Icons.sensors),
-                label: const Text('Simuleer speler binnen 5 meter'),
-              ),
-              const SizedBox(height: 10),
-              OutlinedButton.icon(
-                onPressed: state.gameFinished
-                    ? null
-                    : () => _showHiderWarning(context),
-                icon: const Icon(Icons.visibility_off),
-                label: const Text('Bekijk hider-scenario'),
-              ),
-              TextButton(
-                onPressed: () => _showHiderResult(context),
-                child: const Text('Bekijk hider-resultaat'),
-              ),
-              const SizedBox(height: 10),
-              TextButton(
-                onPressed: state.gameFinished
-                    ? () => _showSeekerResult(context)
-                    : () => _finish(context),
-                child: Text(
-                  state.gameFinished
-                      ? 'Bekijk zoeker-resultaat'
-                      : 'Beëindig demo-spel',
-                ),
-              ),
+        listenable: state,
+        builder: (context, _) => Scaffold(
+          appBar: AppBar(
+            title: const Text('Game X'),
+            actions: const [
+              Padding(padding: EdgeInsets.all(12), child: DemoBadge()),
             ],
           ),
+          body: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 760),
+              child: ListView(
+                padding: const EdgeInsets.all(20),
+                children: [
+                  _StatusRow(finished: state.gameFinished),
+                  const SizedBox(height: 12),
+                  _CountdownCard(state: state),
+                  const SectionTitle('Zoekgebied'),
+                  MapPlaceholder(playerMarker: state.playerMarker),
+                  const SectionTitle('Jouw acties'),
+                  _GameActions(
+                      onNotice: (message) => _notice(context, message)),
+                  const SizedBox(height: 18),
+                  FilledButton.icon(
+                    onPressed: state.gameFinished
+                        ? null
+                        : () => _showProximity(context),
+                    icon: const Icon(Icons.sensors),
+                    label: const Text('Simuleer speler binnen 5 meter'),
+                  ),
+                  const SizedBox(height: 10),
+                  OutlinedButton.icon(
+                    onPressed: state.gameFinished
+                        ? null
+                        : () => _showHiderWarning(context),
+                    icon: const Icon(Icons.visibility_off),
+                    label: const Text('Bekijk hider-scenario'),
+                  ),
+                  TextButton(
+                    onPressed: () => _showHiderResult(context),
+                    child: const Text('Bekijk hider-resultaat'),
+                  ),
+                  const SizedBox(height: 10),
+                  TextButton(
+                    onPressed: state.gameFinished
+                        ? () => _showSeekerResult(context)
+                        : () => _finish(context),
+                    child: Text(
+                      state.gameFinished
+                          ? 'Bekijk zoeker-resultaat'
+                          : 'Beëindig demo-spel',
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
-      ),
-    ),
-  );
+      );
 
   void _notice(BuildContext context, String text) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
@@ -275,15 +276,16 @@ class _StatusRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Row(
-    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    children: [
-      const Chip(avatar: Icon(Icons.person_search), label: Text('ROL: ZOEKER')),
-      Chip(
-        avatar: const Icon(Icons.circle, size: 12),
-        label: Text(finished ? 'AFGEROND' : 'SPEL ACTIEF'),
-      ),
-    ],
-  );
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Chip(
+              avatar: Icon(Icons.person_search), label: Text('ROL: ZOEKER')),
+          Chip(
+            avatar: const Icon(Icons.circle, size: 12),
+            label: Text(finished ? 'AFGEROND' : 'SPEL ACTIEF'),
+          ),
+        ],
+      );
 }
 
 class _CountdownCard extends StatelessWidget {
@@ -366,27 +368,27 @@ class _GameActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Wrap(
-    spacing: 10,
-    runSpacing: 10,
-    children: [
-      ActionChip(
-        avatar: const Icon(Icons.visibility),
-        label: const Text('2 zichtbare verstoppers'),
-        onPressed: () {},
-      ),
-      ActionChip(
-        avatar: const Icon(Icons.lightbulb),
-        label: const Text('Koop hint (demo)'),
-        onPressed: () => onNotice(
-          'Hint ontgrendeld: kijk bij de grote eik. Geen echte betaling.',
-        ),
-      ),
-      ActionChip(
-        avatar: const Icon(Icons.quiz),
-        label: const Text('Beantwoord vraag'),
-        onPressed: () =>
-            onNotice('Goed! Amsterdam is de hoofdstad van Nederland.'),
-      ),
-    ],
-  );
+        spacing: 10,
+        runSpacing: 10,
+        children: [
+          ActionChip(
+            avatar: const Icon(Icons.visibility),
+            label: const Text('2 zichtbare verstoppers'),
+            onPressed: () {},
+          ),
+          ActionChip(
+            avatar: const Icon(Icons.lightbulb),
+            label: const Text('Koop hint (demo)'),
+            onPressed: () => onNotice(
+              'Hint ontgrendeld: kijk bij de grote eik. Geen echte betaling.',
+            ),
+          ),
+          ActionChip(
+            avatar: const Icon(Icons.quiz),
+            label: const Text('Beantwoord vraag'),
+            onPressed: () =>
+                onNotice('Goed! Amsterdam is de hoofdstad van Nederland.'),
+          ),
+        ],
+      );
 }

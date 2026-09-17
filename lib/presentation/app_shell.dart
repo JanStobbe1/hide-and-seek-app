@@ -45,102 +45,102 @@ class _AppShellState extends State<AppShell> {
 
   @override
   Widget build(BuildContext context) => ListenableBuilder(
-    listenable: widget.state,
-    builder: (context, _) => LayoutBuilder(
-      builder: (context, constraints) {
-        final pages = [
-          HomeScreen(
-            state: widget.state,
-            onNavigate: (value) => setState(() => index = value),
-            onCreate: _create,
-          ),
-          MyGamesScreen(state: widget.state),
-          AvailableGamesScreen(state: widget.state),
-          CompletedGamesScreen(state: widget.state),
-          ProfileScreen(state: widget.state),
-        ];
-        final content = SafeArea(
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 980),
-              child: pages[index],
-            ),
-          ),
-        );
-        return constraints.maxWidth >= 800
-            ? _buildWideLayout(content)
-            : _buildMobileLayout(content);
-      },
-    ),
-  );
+        listenable: widget.state,
+        builder: (context, _) => LayoutBuilder(
+          builder: (context, constraints) {
+            final pages = [
+              HomeScreen(
+                state: widget.state,
+                onNavigate: (value) => setState(() => index = value),
+                onCreate: _create,
+              ),
+              MyGamesScreen(state: widget.state),
+              AvailableGamesScreen(state: widget.state),
+              CompletedGamesScreen(state: widget.state),
+              ProfileScreen(state: widget.state),
+            ];
+            final content = SafeArea(
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 980),
+                  child: pages[index],
+                ),
+              ),
+            );
+            return constraints.maxWidth >= 800
+                ? _buildWideLayout(content)
+                : _buildMobileLayout(content);
+          },
+        ),
+      );
 
   Widget _buildWideLayout(Widget content) => Scaffold(
-    body: Row(
-      children: [
-        NavigationRail(
-          selectedIndex: index,
-          onDestinationSelected: (value) => setState(() => index = value),
-          labelType: NavigationRailLabelType.all,
-          leading: const Padding(
-            padding: EdgeInsets.symmetric(vertical: 18),
-            child: Column(
-              children: [
-                CircleAvatar(child: Icon(Icons.location_searching)),
-                SizedBox(height: 8),
-                DemoBadge(),
-              ],
-            ),
-          ),
-          destinations: destinations
-              .map(
-                (destination) => NavigationRailDestination(
-                  icon: destination.icon,
-                  selectedIcon: destination.selectedIcon,
-                  label: Text(destination.label),
+        body: Row(
+          children: [
+            NavigationRail(
+              selectedIndex: index,
+              onDestinationSelected: (value) => setState(() => index = value),
+              labelType: NavigationRailLabelType.all,
+              leading: const Padding(
+                padding: EdgeInsets.symmetric(vertical: 18),
+                child: Column(
+                  children: [
+                    CircleAvatar(child: Icon(Icons.location_searching)),
+                    SizedBox(height: 8),
+                    DemoBadge(),
+                  ],
                 ),
-              )
-              .toList(),
+              ),
+              destinations: destinations
+                  .map(
+                    (destination) => NavigationRailDestination(
+                      icon: destination.icon,
+                      selectedIcon: destination.selectedIcon,
+                      label: Text(destination.label),
+                    ),
+                  )
+                  .toList(),
+            ),
+            const VerticalDivider(width: 1),
+            Expanded(child: content),
+          ],
         ),
-        const VerticalDivider(width: 1),
-        Expanded(child: content),
-      ],
-    ),
-    floatingActionButton: index == 0
-        ? FloatingActionButton.extended(
-            onPressed: _create,
-            icon: const Icon(Icons.add),
-            label: const Text('Nieuw spel'),
-          )
-        : null,
-  );
+        floatingActionButton: index == 0
+            ? FloatingActionButton.extended(
+                onPressed: _create,
+                icon: const Icon(Icons.add),
+                label: const Text('Nieuw spel'),
+              )
+            : null,
+      );
 
   Widget _buildMobileLayout(Widget content) => Scaffold(
-    appBar: AppBar(
-      title: const Text(
-        AppConfig.appName,
-        style: TextStyle(fontWeight: FontWeight.w900),
-      ),
-      actions: const [
-        Padding(
-          padding: EdgeInsets.only(right: 12),
-          child: Center(child: DemoBadge()),
+        appBar: AppBar(
+          title: const Text(
+            AppConfig.appName,
+            style: TextStyle(fontWeight: FontWeight.w900),
+          ),
+          actions: const [
+            Padding(
+              padding: EdgeInsets.only(right: 12),
+              child: Center(child: DemoBadge()),
+            ),
+          ],
         ),
-      ],
-    ),
-    body: content,
-    bottomNavigationBar: NavigationBar(
-      selectedIndex: index,
-      onDestinationSelected: (value) => setState(() => index = value),
-      destinations: destinations,
-    ),
-    floatingActionButton: index == 0
-        ? FloatingActionButton(
-            onPressed: _create,
-            tooltip: 'Nieuw spel',
-            child: const Icon(Icons.add),
-          )
-        : null,
-  );
+        body: content,
+        bottomNavigationBar: NavigationBar(
+          selectedIndex: index,
+          onDestinationSelected: (value) => setState(() => index = value),
+          destinations: destinations,
+        ),
+        floatingActionButton: index == 0
+            ? FloatingActionButton(
+                onPressed: _create,
+                tooltip: 'Nieuw spel',
+                child: const Icon(Icons.add),
+              )
+            : null,
+      );
 
   void _create() {
     Navigator.of(context).push(

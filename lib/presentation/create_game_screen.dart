@@ -52,20 +52,20 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
   }
 
   SearchArea get selectedArea => SearchArea(
-    country: location.country ?? 'Nederland',
-    province: location.province ?? 'Alle',
-    city: location.city ?? 'Alle',
-    neighbourhood: location.neighbourhood ?? 'Alle',
-    specificArea: specificArea.text.trim(),
-  );
+        country: location.country ?? 'Nederland',
+        province: location.province ?? 'Alle',
+        city: location.city ?? 'Alle',
+        neighbourhood: location.neighbourhood ?? 'Alle',
+        specificArea: specificArea.text.trim(),
+      );
 
   DateTime get selectedStart => DateTime(
-    scheduledDate.year,
-    scheduledDate.month,
-    scheduledDate.day,
-    scheduledTime.hour,
-    scheduledTime.minute,
-  );
+        scheduledDate.year,
+        scheduledDate.month,
+        scheduledDate.day,
+        scheduledTime.hour,
+        scheduledTime.minute,
+      );
 
   DateTime? get selectedScheduledStart {
     if (condition == StartCondition.scheduled) {
@@ -83,55 +83,56 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Nieuw spel')),
-    body: Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 760),
-        child: Stepper(
-          currentStep: step,
-          onStepTapped: (value) => setState(() => step = value),
-          onStepContinue: step == 3 ? _publish : () => setState(() => step++),
-          onStepCancel: step == 0 ? null : () => setState(() => step--),
-          controlsBuilder: _buildControls,
-          steps: [
-            Step(
-              title: const Text('Basis'),
-              isActive: step >= 0,
-              content: _buildBasics(),
+        appBar: AppBar(title: const Text('Nieuw spel')),
+        body: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 760),
+            child: Stepper(
+              currentStep: step,
+              onStepTapped: (value) => setState(() => step = value),
+              onStepContinue:
+                  step == 3 ? _publish : () => setState(() => step++),
+              onStepCancel: step == 0 ? null : () => setState(() => step--),
+              controlsBuilder: _buildControls,
+              steps: [
+                Step(
+                  title: const Text('Basis'),
+                  isActive: step >= 0,
+                  content: _buildBasics(),
+                ),
+                Step(
+                  title: const Text('Zoekgebied'),
+                  isActive: step >= 1,
+                  content: _buildSearchArea(),
+                ),
+                Step(
+                  title: const Text('Start & introductie'),
+                  isActive: step >= 2,
+                  content: _buildStartAndIntroduction(),
+                ),
+                Step(
+                  title: const Text('Controleren'),
+                  isActive: step >= 3,
+                  content: _Review(
+                    name: name.text,
+                    isPublic: isPublic,
+                    duration: duration,
+                    entry: entry,
+                    players: players,
+                    hints: hints,
+                    questions: questions,
+                    intro: intro.text,
+                    area: selectedArea,
+                    startCondition: condition,
+                    scheduledStart: selectedScheduledStart,
+                    participantThreshold: selectedParticipantThreshold,
+                  ),
+                ),
+              ],
             ),
-            Step(
-              title: const Text('Zoekgebied'),
-              isActive: step >= 1,
-              content: _buildSearchArea(),
-            ),
-            Step(
-              title: const Text('Start & introductie'),
-              isActive: step >= 2,
-              content: _buildStartAndIntroduction(),
-            ),
-            Step(
-              title: const Text('Controleren'),
-              isActive: step >= 3,
-              content: _Review(
-                name: name.text,
-                isPublic: isPublic,
-                duration: duration,
-                entry: entry,
-                players: players,
-                hints: hints,
-                questions: questions,
-                intro: intro.text,
-                area: selectedArea,
-                startCondition: condition,
-                scheduledStart: selectedScheduledStart,
-                participantThreshold: selectedParticipantThreshold,
-              ),
-            ),
-          ],
+          ),
         ),
-      ),
-    ),
-  );
+      );
 
   Widget _buildControls(BuildContext context, ControlsDetails details) =>
       Padding(
@@ -156,202 +157,202 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
       );
 
   Widget _buildBasics() => Column(
-    children: [
-      TextField(
-        controller: name,
-        decoration: const InputDecoration(
-          labelText: 'Naam van het spel',
-          floatingLabelBehavior: FloatingLabelBehavior.always,
-          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-        ),
-      ),
-      const SizedBox(height: 12),
-      SwitchListTile(
-        contentPadding: EdgeInsets.zero,
-        title: Text(isPublic ? 'Openbaar spel' : 'Privéspel'),
-        subtitle: const Text('Wie kan dit spel ontdekken?'),
-        value: isPublic,
-        onChanged: (value) => setState(() => isPublic = value),
-      ),
-      _SettingSlider(
-        label: 'Duur',
-        value: duration.toDouble(),
-        min: 30,
-        max: 360,
-        divisions: 11,
-        suffix: ' minuten',
-        onChanged: (value) => setState(() => duration = value.round()),
-      ),
-      _SettingSlider(
-        label: 'Demo-inleg',
-        value: entry,
-        min: 0,
-        max: 25,
-        divisions: 25,
-        suffix: ' euro',
-        onChanged: (value) => setState(() => entry = value),
-      ),
-      _SettingSlider(
-        label: 'Maximum deelnemers',
-        value: players.toDouble(),
-        min: 6,
-        max: 60,
-        divisions: 9,
-        suffix: ' spelers',
-        onChanged: (value) => setState(() {
-          players = value.round();
-          if (participantThreshold > players) {
-            participantThreshold = players;
-          }
-        }),
-      ),
-      SwitchListTile(
-        contentPadding: EdgeInsets.zero,
-        title: const Text('Hints kunnen worden gekocht'),
-        value: hints,
-        onChanged: (value) => setState(() => hints = value),
-      ),
-      SwitchListTile(
-        contentPadding: EdgeInsets.zero,
-        title: const Text('Vragen kunnen worden beantwoord'),
-        value: questions,
-        onChanged: (value) => setState(() => questions = value),
-      ),
-    ],
-  );
+        children: [
+          TextField(
+            controller: name,
+            decoration: const InputDecoration(
+              labelText: 'Naam van het spel',
+              floatingLabelBehavior: FloatingLabelBehavior.always,
+              contentPadding:
+                  EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+            ),
+          ),
+          const SizedBox(height: 12),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text(isPublic ? 'Openbaar spel' : 'Privéspel'),
+            subtitle: const Text('Wie kan dit spel ontdekken?'),
+            value: isPublic,
+            onChanged: (value) => setState(() => isPublic = value),
+          ),
+          _SettingSlider(
+            label: 'Duur',
+            value: duration.toDouble(),
+            min: 30,
+            max: 360,
+            divisions: 11,
+            suffix: ' minuten',
+            onChanged: (value) => setState(() => duration = value.round()),
+          ),
+          _SettingSlider(
+            label: 'Demo-inleg',
+            value: entry,
+            min: 0,
+            max: 25,
+            divisions: 25,
+            suffix: ' euro',
+            onChanged: (value) => setState(() => entry = value),
+          ),
+          _SettingSlider(
+            label: 'Maximum deelnemers',
+            value: players.toDouble(),
+            min: 6,
+            max: 60,
+            divisions: 9,
+            suffix: ' spelers',
+            onChanged: (value) => setState(() {
+              players = value.round();
+              if (participantThreshold > players) {
+                participantThreshold = players;
+              }
+            }),
+          ),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Hints kunnen worden gekocht'),
+            value: hints,
+            onChanged: (value) => setState(() => hints = value),
+          ),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Vragen kunnen worden beantwoord'),
+            value: questions,
+            onChanged: (value) => setState(() => questions = value),
+          ),
+        ],
+      );
 
   Widget _buildSearchArea() => Column(
-    children: [
-      _LocationAutocomplete(
-        label: 'Land(en)',
-        value: location.country,
-        options: locations.countries,
-        onSelected: (value) {
-          setState(() => location = location.selectCountry(value));
-        },
-      ),
-      _LocationAutocomplete(
-        label: 'Provincie(s)',
-        value: location.province,
-        options: location.country == null
-            ? const []
-            : locations.provincesFor(location.country!),
-        enabled: location.country != null,
-        onSelected: (value) {
-          setState(() => location = location.selectProvince(value));
-        },
-      ),
-      _LocationAutocomplete(
-        label: 'Stad/steden',
-        value: location.city,
-        options: location.country == null || location.province == null
-            ? const []
-            : locations.citiesFor(location.country!, location.province!),
-        enabled: location.province != null && location.province != 'Alle',
-        onSelected: (value) {
-          setState(() => location = location.selectCity(value));
-        },
-      ),
-      _LocationAutocomplete(
-        label: 'Wijk(en)',
-        value: location.neighbourhood,
-        options:
-            location.country == null ||
-                location.province == null ||
-                location.city == null
-            ? const []
-            : locations.neighbourhoodsFor(
-                location.country!,
-                location.province!,
-                location.city!,
-              ),
-        enabled: location.city != null && location.city != 'Alle',
-        onSelected: (value) {
-          setState(() => location = location.selectNeighbourhood(value));
-        },
-      ),
-      _AreaField(label: 'Specifiek gebied', controller: specificArea),
-      const SizedBox(height: 4),
-      const MapPlaceholder(height: 190),
-      const Padding(
-        padding: EdgeInsets.all(8),
-        child: Text(
-          'Mockselectie: meerdere gebieden kun je met komma’s invoeren. '
-          'Later vervangbaar door een echte kaartservice.',
-          style: TextStyle(fontSize: 12),
-          textAlign: TextAlign.center,
-        ),
-      ),
-    ],
-  );
+        children: [
+          _LocationAutocomplete(
+            label: 'Land(en)',
+            value: location.country,
+            options: locations.countries,
+            onSelected: (value) {
+              setState(() => location = location.selectCountry(value));
+            },
+          ),
+          _LocationAutocomplete(
+            label: 'Provincie(s)',
+            value: location.province,
+            options: location.country == null
+                ? const []
+                : locations.provincesFor(location.country!),
+            enabled: location.country != null,
+            onSelected: (value) {
+              setState(() => location = location.selectProvince(value));
+            },
+          ),
+          _LocationAutocomplete(
+            label: 'Stad/steden',
+            value: location.city,
+            options: location.country == null || location.province == null
+                ? const []
+                : locations.citiesFor(location.country!, location.province!),
+            enabled: location.province != null && location.province != 'Alle',
+            onSelected: (value) {
+              setState(() => location = location.selectCity(value));
+            },
+          ),
+          _LocationAutocomplete(
+            label: 'Wijk(en)',
+            value: location.neighbourhood,
+            options: location.country == null ||
+                    location.province == null ||
+                    location.city == null
+                ? const []
+                : locations.neighbourhoodsFor(
+                    location.country!,
+                    location.province!,
+                    location.city!,
+                  ),
+            enabled: location.city != null && location.city != 'Alle',
+            onSelected: (value) {
+              setState(() => location = location.selectNeighbourhood(value));
+            },
+          ),
+          _AreaField(label: 'Specifiek gebied', controller: specificArea),
+          const SizedBox(height: 4),
+          const MapPlaceholder(height: 190),
+          const Padding(
+            padding: EdgeInsets.all(8),
+            child: Text(
+              'Mockselectie: meerdere gebieden kun je met komma’s invoeren. '
+              'Later vervangbaar door een echte kaartservice.',
+              style: TextStyle(fontSize: 12),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ],
+      );
 
   Widget _buildStartAndIntroduction() => RadioGroup<StartCondition>(
-    groupValue: condition,
-    onChanged: (value) {
-      if (value == null) return;
-      setState(() => condition = value);
-    },
-    child: Column(
-      children: [
-        RadioListTile<StartCondition>(
-          value: StartCondition.participantCount,
-          title: const Text('Start bij genoeg deelnemers'),
-          subtitle: Text('Wanneer $participantThreshold spelers meedoen'),
-        ),
-        if (condition == StartCondition.participantCount)
-          _SettingSlider(
-            label: 'Benodigde deelnemers',
-            value: participantThreshold.toDouble(),
-            min: 2,
-            max: players.toDouble(),
-            divisions: players - 2,
-            suffix: ' spelers',
-            onChanged: (value) =>
-                setState(() => participantThreshold = value.round()),
-          ),
-        RadioListTile<StartCondition>(
-          value: StartCondition.scheduled,
-          title: const Text('Start op datum en tijd'),
-          subtitle: Text(_formatScheduledStart(selectedStart)),
-        ),
-        if (condition == StartCondition.scheduled)
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: _pickDate,
-                  icon: const Icon(Icons.calendar_month),
-                  label: const Text('Kies datum'),
-                ),
+        groupValue: condition,
+        onChanged: (value) {
+          if (value == null) return;
+          setState(() => condition = value);
+        },
+        child: Column(
+          children: [
+            RadioListTile<StartCondition>(
+              value: StartCondition.participantCount,
+              title: const Text('Start bij genoeg deelnemers'),
+              subtitle: Text('Wanneer $participantThreshold spelers meedoen'),
+            ),
+            if (condition == StartCondition.participantCount)
+              _SettingSlider(
+                label: 'Benodigde deelnemers',
+                value: participantThreshold.toDouble(),
+                min: 2,
+                max: players.toDouble(),
+                divisions: players - 2,
+                suffix: ' spelers',
+                onChanged: (value) =>
+                    setState(() => participantThreshold = value.round()),
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: _pickTime,
-                  icon: const Icon(Icons.schedule),
-                  label: const Text('Kies tijd'),
-                ),
+            RadioListTile<StartCondition>(
+              value: StartCondition.scheduled,
+              title: const Text('Start op datum en tijd'),
+              subtitle: Text(_formatScheduledStart(selectedStart)),
+            ),
+            if (condition == StartCondition.scheduled)
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _pickDate,
+                      icon: const Icon(Icons.calendar_month),
+                      label: const Text('Kies datum'),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _pickTime,
+                      icon: const Icon(Icons.schedule),
+                      label: const Text('Kies tijd'),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        const SizedBox(height: 16),
-        TextField(
-          controller: intro,
-          maxLines: 5,
-          decoration: const InputDecoration(
-            labelText: 'Spelintroductie',
-            hintText: 'Vertel spelers wat ze kunnen verwachten…',
-          ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: intro,
+              maxLines: 5,
+              decoration: const InputDecoration(
+                labelText: 'Spelintroductie',
+                hintText: 'Vertel spelers wat ze kunnen verwachten…',
+              ),
+            ),
+            const SizedBox(height: 10),
+            OutlinedButton.icon(
+              onPressed: _generateIntroduction,
+              icon: const Icon(Icons.auto_awesome),
+              label: const Text('Genereer introductie met AI (demo)'),
+            ),
+          ],
         ),
-        const SizedBox(height: 10),
-        OutlinedButton.icon(
-          onPressed: _generateIntroduction,
-          icon: const Icon(Icons.auto_awesome),
-          label: const Text('Genereer introductie met AI (demo)'),
-        ),
-      ],
-    ),
-  );
+      );
 
   void _generateIntroduction() {
     final selectedCity =
@@ -458,21 +459,21 @@ class _SettingSlider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        '$label: ${value.round()}$suffix',
-        style: const TextStyle(fontWeight: FontWeight.w700),
-      ),
-      Slider(
-        value: value,
-        min: min,
-        max: max,
-        divisions: divisions,
-        onChanged: onChanged,
-      ),
-    ],
-  );
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '$label: ${value.round()}$suffix',
+            style: const TextStyle(fontWeight: FontWeight.w700),
+          ),
+          Slider(
+            value: value,
+            min: min,
+            max: max,
+            divisions: divisions,
+            onChanged: onChanged,
+          ),
+        ],
+      );
 }
 
 class _AreaField extends StatelessWidget {
@@ -483,15 +484,15 @@ class _AreaField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: 12),
-    child: TextField(
-      controller: controller,
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: const Icon(Icons.location_on_outlined),
-      ),
-    ),
-  );
+        padding: const EdgeInsets.only(bottom: 12),
+        child: TextField(
+          controller: controller,
+          decoration: InputDecoration(
+            labelText: label,
+            prefixIcon: const Icon(Icons.location_on_outlined),
+          ),
+        ),
+      );
 }
 
 class _LocationAutocomplete extends StatelessWidget {
@@ -511,17 +512,18 @@ class _LocationAutocomplete extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: 12),
-    child: Autocomplete<String>(
-      key: ValueKey('$label-$value-$enabled'),
-      initialValue: TextEditingValue(text: value ?? ''),
-      optionsBuilder: (text) {
-        if (!enabled) return const Iterable<String>.empty();
-        return filterLocationOptions(options, text.text);
-      },
-      onSelected: onSelected,
-      fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) =>
-          TextFormField(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: Autocomplete<String>(
+          key: ValueKey('$label-$value-$enabled'),
+          initialValue: TextEditingValue(text: value ?? ''),
+          optionsBuilder: (text) {
+            if (!enabled) return const Iterable<String>.empty();
+            return filterLocationOptions(options, text.text);
+          },
+          onSelected: onSelected,
+          fieldViewBuilder:
+              (context, controller, focusNode, onFieldSubmitted) =>
+                  TextFormField(
             controller: controller,
             focusNode: focusNode,
             enabled: enabled,
@@ -538,8 +540,8 @@ class _LocationAutocomplete extends StatelessWidget {
               ),
             ),
           ),
-    ),
-  );
+        ),
+      );
 }
 
 class _Review extends StatelessWidget {
@@ -585,7 +587,9 @@ class _Review extends StatelessWidget {
       children: [
         Text(
           name,
-          style: Theme.of(context).textTheme.headlineSmall
+          style: Theme.of(context)
+              .textTheme
+              .headlineSmall
               ?.copyWith(fontWeight: FontWeight.w900),
         ),
         Text(isPublic ? 'Openbaar' : 'Privé'),
@@ -595,8 +599,7 @@ class _Review extends StatelessWidget {
         _ReviewRow(label: 'Start', value: startLabel),
         _ReviewRow(
           label: 'Zoekgebied',
-          value:
-              '${area.country} • ${area.province} • ${area.city} • '
+          value: '${area.country} • ${area.province} • ${area.city} • '
               '${area.neighbourhood}',
         ),
         _ReviewRow(
@@ -649,18 +652,18 @@ class _ReviewRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ListTile(
-    contentPadding: EdgeInsets.zero,
-    leading: const Icon(Icons.check_circle_outline),
-    title: Text(label),
-    trailing: SizedBox(
-      width: 240,
-      child: Text(
-        value,
-        textAlign: TextAlign.end,
-        style: const TextStyle(fontWeight: FontWeight.w700),
-      ),
-    ),
-  );
+        contentPadding: EdgeInsets.zero,
+        leading: const Icon(Icons.check_circle_outline),
+        title: Text(label),
+        trailing: SizedBox(
+          width: 240,
+          child: Text(
+            value,
+            textAlign: TextAlign.end,
+            style: const TextStyle(fontWeight: FontWeight.w700),
+          ),
+        ),
+      );
 }
 
 String _formatScheduledStart(DateTime value) {

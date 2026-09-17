@@ -33,9 +33,8 @@ class DemoIntroductionService implements IntroductionService {
       if (request.hintsEnabled) 'slimme hints',
       if (request.questionsEnabled) 'uitdagende vragen',
     ];
-    final extras = mechanics.isEmpty
-        ? 'pure verstopactie'
-        : mechanics.join(' en ');
+    final extras =
+        mechanics.isEmpty ? 'pure verstopactie' : mechanics.join(' en ');
     final variants = [
       'Welkom bij ${request.gameName}! Verken ${request.city} tijdens een '
           'spannend spel van ${request.durationMinutes} minuten met maximaal '

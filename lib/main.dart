@@ -19,12 +19,12 @@ class _HideAndSeekAppState extends State<HideAndSeekApp> {
 
   @override
   Widget build(BuildContext context) => ListenableBuilder(
-    listenable: state,
-    builder: (context, _) => MaterialApp(
-      title: AppConfig.appName,
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.build(state.themePreference),
-      home: AppShell(state: state),
-    ),
-  );
+        listenable: state,
+        builder: (context, _) => MaterialApp(
+          title: AppConfig.appName,
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.build(state.themePreference),
+          home: AppShell(state: state),
+        ),
+      );
 }

@@ -3,7 +3,7 @@ import '../domain/models.dart';
 
 class FinancialService {
   const FinancialService({this.platformFeeRate = AppConfig.platformFeeRate})
-    : assert(platformFeeRate >= 0 && platformFeeRate <= 1);
+      : assert(platformFeeRate >= 0 && platformFeeRate <= 1);
   final double platformFeeRate;
 
   FinancialSummary calculate({required int players, required double entryFee}) {

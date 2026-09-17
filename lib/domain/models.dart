@@ -72,15 +72,15 @@ class Game {
     this.participantThreshold,
     this.isPublic = true,
     this.rules = const GameRules(),
-  }) : assert(
-         startCondition != StartCondition.scheduled || scheduledStart != null,
-         'A scheduled game requires a start date.',
-       ),
-       assert(
-         startCondition != StartCondition.participantCount ||
-             (participantThreshold != null && participantThreshold > 0),
-         'A participant-start game requires a positive threshold.',
-       );
+  })  : assert(
+          startCondition != StartCondition.scheduled || scheduledStart != null,
+          'A scheduled game requires a start date.',
+        ),
+        assert(
+          startCondition != StartCondition.participantCount ||
+              (participantThreshold != null && participantThreshold > 0),
+          'A participant-start game requires a positive threshold.',
+        );
 
   final String id;
   final String name;
@@ -102,23 +102,23 @@ class Game {
   DateTime? get scheduledEnd => scheduledStart?.add(duration);
 
   Game copyWith({GameStatus? status, int? participants}) => Game(
-    id: id,
-    name: name,
-    organizer: organizer,
-    description: description,
-    area: area,
-    status: status ?? this.status,
-    duration: duration,
-    entryFee: entryFee,
-    participants: participants ?? this.participants,
-    maxParticipants: maxParticipants,
-    distanceKm: distanceKm,
-    startCondition: startCondition,
-    scheduledStart: scheduledStart,
-    participantThreshold: participantThreshold,
-    isPublic: isPublic,
-    rules: rules,
-  );
+        id: id,
+        name: name,
+        organizer: organizer,
+        description: description,
+        area: area,
+        status: status ?? this.status,
+        duration: duration,
+        entryFee: entryFee,
+        participants: participants ?? this.participants,
+        maxParticipants: maxParticipants,
+        distanceKm: distanceKm,
+        startCondition: startCondition,
+        scheduledStart: scheduledStart,
+        participantThreshold: participantThreshold,
+        isPublic: isPublic,
+        rules: rules,
+      );
 }
 
 class GameParticipant {

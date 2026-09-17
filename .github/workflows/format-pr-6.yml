@@ -1,0 +1,41 @@
+name: Format PR 6
+
+on:
+  push:
+    branches:
+      - codex/build-mobile-first-hide-and-seek-prototype-s440hw
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: codex/build-mobile-first-hide-and-seek-prototype-s440hw
+          fetch-depth: 0
+
+      - name: Set up stable Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Apply Dart formatting
+        run: dart format .
+
+      - name: Commit formatting changes
+        run: |
+          if git diff --quiet; then
+            echo "No formatting changes required."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- '*.dart'
+          git commit -m "Apply Dart formatting after merge repair"
+          git push origin HEAD:codex/build-mobile-first-hide-and-seek-prototype-s440hw

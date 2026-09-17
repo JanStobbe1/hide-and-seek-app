@@ -175,11 +175,16 @@ class GameDetailScreen extends StatelessWidget {
               Container(
                 height: 180,
                 decoration: BoxDecoration(
+
                   gradient: LinearGradient(
                     colors: [
                       Theme.of(context).colorScheme.primary,
                       Theme.of(context).colorScheme.secondary,
                     ],
+
+                  gradient: const LinearGradient(
+                    colors: [Color(0xff224934), Color(0xff8aae68)],
+
                   ),
                   borderRadius: BorderRadius.circular(28),
                 ),

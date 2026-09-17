@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../app_state.dart';
+
 import '../config/app_theme.dart';
 import '../domain/profile_models.dart';
+
 import 'widgets.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -16,6 +18,7 @@ class ProfileScreen extends StatelessWidget {
         children: [
           Row(
             children: [
+
               CircleAvatar(
                 radius: 38,
                 child: Text(
@@ -24,6 +27,13 @@ class ProfileScreen extends StatelessWidget {
                     fontSize: 30,
                     fontWeight: FontWeight.w900,
                   ),
+
+              const CircleAvatar(
+                radius: 38,
+                child: Text(
+                  'A',
+                  style: TextStyle(fontSize: 30, fontWeight: FontWeight.w900),
+
                 ),
               ),
               const SizedBox(width: 16),
@@ -32,7 +42,11 @@ class ProfileScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
+
                       state.displayName,
+
+                      'Arie',
+
                       style: Theme.of(context)
                           .textTheme
                           .headlineSmall
@@ -40,6 +54,7 @@ class ProfileScreen extends StatelessWidget {
                     ),
                     const Text('38 jaar • Almere'),
                     const Chip(label: Text('Beginner')),
+
                     Wrap(
                       spacing: 8,
                       children: [
@@ -55,6 +70,7 @@ class ProfileScreen extends StatelessWidget {
                         ),
                       ],
                     ),
+
                   ],
                 ),
               ),
@@ -64,6 +80,7 @@ class ProfileScreen extends StatelessWidget {
           Card(
             child: Padding(
               padding: const EdgeInsets.all(20),
+
               child: Wrap(
                 alignment: WrapAlignment.spaceAround,
                 runSpacing: 16,
@@ -141,6 +158,18 @@ class ProfileScreen extends StatelessWidget {
               style: TextStyle(fontSize: 12),
             ),
           ),
+
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _ProfileMetric('${state.gamesPlayed}', 'gespeeld'),
+                  _ProfileMetric('${state.wins}', 'gewonnen'),
+                  const _ProfileMetric('3', 'vrienden'),
+                ],
+              ),
+            ),
+          ),
+
           const SectionTitle('Demo financiën'),
           const Card(
             child: Column(
@@ -187,6 +216,7 @@ class ProfileScreen extends StatelessWidget {
           ),
         ],
       );
+
 
   void _editName(BuildContext context) {
     final controller = TextEditingController(text: state.displayName);
@@ -257,6 +287,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
+
   void _confirmReset(BuildContext context) {
     showDialog<void>(
       context: context,
@@ -285,6 +316,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 }
+
 
 class FriendsScreen extends StatelessWidget {
   const FriendsScreen({required this.friends, super.key});
@@ -341,6 +373,7 @@ String _markerLabel(PlayerMarker marker) => switch (marker) {
   PlayerMarker.explorer => 'Ontdekker',
 };
 
+
 class _ProfileMetric extends StatelessWidget {
   const _ProfileMetric(this.value, this.label);
 
@@ -348,6 +381,7 @@ class _ProfileMetric extends StatelessWidget {
   final String label;
 
   @override
+
   Widget build(BuildContext context) => SizedBox(
         width: 110,
         child: Column(
@@ -362,5 +396,15 @@ class _ProfileMetric extends StatelessWidget {
             Text(label),
           ],
         ),
+
+  Widget build(BuildContext context) => Column(
+        children: [
+          Text(
+            value,
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
+          ),
+          Text(label),
+        ],
+
       );
 }

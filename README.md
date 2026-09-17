@@ -6,7 +6,9 @@ Verstobbertje is the provisional name for a mobile-first, location-based hide-an
 
 ## Prototype scope
 
+
 The prototype includes Home, Nieuw spel, Ik speel al mee met, Beschikbare spellen, Afgeronde spellen and Persoonlijke omgeving. It demonstrates game discovery and sorting, hierarchical local location selection, varied configuration-aware introduction copy, local joining/publishing, a countdown-driven active seeker experience, proximity and hider simulations, results, friends, profile customization, financial demo data and local privacy preferences.
+
 
 Everything runs in **DEMO MODE**. There is no login, backend, Firebase, GPS, map provider, AI service, wallet, external sharing or payment. Monetary values are explicitly illustrative.
 
@@ -81,10 +83,13 @@ Go to **Profiel → Demo beheren → Reset demo data**. This restores determinis
 ## Mocked functionality
 
 - identity and profile; all users and social relationships;
+
 - map geometry, proximity, real location and visible-player indicators;
+
 - game joins, creation, publishing, hints, questions, sharing and AI introduction;
 - balances, entry fees, platform fee, prize pool and results;
 - privacy persistence and all notifications.
+
 
 The countdown itself now runs locally from the configured demo duration. Player
 values use centralized `DemoPlayerValueRules`: seekers gain value for finds and

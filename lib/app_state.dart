@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import 'data/mock_game_repository.dart';
+
 import 'domain/countdown.dart';
 import 'domain/game_engine.dart';
 import 'domain/models.dart';
@@ -52,6 +53,19 @@ class AppState extends ChangeNotifier {
       points: 760,
     ),
   ];
+  
+import 'domain/game_engine.dart';
+import 'domain/models.dart';
+
+class AppState extends ChangeNotifier {
+  AppState({MockGameRepository? repository})
+      : repository = repository ?? MockGameRepository();
+  final MockGameRepository repository;
+  ActiveGameState activeGame = const ActiveGameState();
+  bool gameFinished = false;
+  int gamesPlayed = 5;
+  int wins = 3;
+
   final Map<String, bool> privacy = {
     'Deel mijn naam': true,
     'Deel mijn leeftijd': false,
@@ -80,6 +94,7 @@ class AppState extends ChangeNotifier {
     activeGame = activeGame.useInvisibility();
     notifyListeners();
   }
+
 
   void tickActiveGame([Duration amount = const Duration(seconds: 1)]) {
     final next = activeGame.tick(amount);
@@ -143,6 +158,7 @@ class AppState extends ChangeNotifier {
 
   void reset() {
     repository.reset();
+
     activeGame = ActiveGameState(
       countdown: GameCountdown.start(activeGameDuration),
     );
@@ -155,6 +171,12 @@ class AppState extends ChangeNotifier {
     profileAvatar = 'A';
     themePreference = ThemePreference.forest;
     playerMarker = PlayerMarker.ghost;
+
+    activeGame = const ActiveGameState();
+    gameFinished = false;
+    gamesPlayed = 5;
+    wins = 3;
+
     privacy
       ..['Deel mijn naam'] = true
       ..['Deel mijn leeftijd'] = false

@@ -1,0 +1,44 @@
+name: Format PR 6
+
+on:
+  push:
+    branches:
+      - codex/build-mobile-first-hide-and-seek-prototype-s440hw
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: codex/build-mobile-first-hide-and-seek-prototype-s440hw
+          fetch-depth: 0
+
+      - name: Set up stable Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Apply Dart formatting
+        run: dart format .
+
+      - name: Commit all formatted app and test files
+        run: |
+          if git diff --quiet -- lib test; then
+            echo "No formatting changes required in lib/ or test/."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add lib test
+          git commit -m "Apply complete Dart formatting"
+          git push origin HEAD:codex/build-mobile-first-hide-and-seek-prototype-s440hw

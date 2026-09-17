@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../app_state.dart';
-
 import '../domain/models.dart';
-
 import 'active_game_screen.dart';
 import 'widgets.dart';
 
@@ -24,11 +22,7 @@ class HomeScreen extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(20, 18, 20, 110),
         children: [
           Text(
-
             'Hoi ${state.displayName} 👋',
-
-            'Hoi Arie 👋',
-
             style: Theme.of(context)
                 .textTheme
                 .headlineMedium
@@ -87,11 +81,7 @@ class HomeScreen extends StatelessWidget {
                 children: [
                   _Metric('${state.gamesPlayed}', 'gespeeld'),
                   _Metric('${state.wins}', 'gewonnen'),
-
                   _Metric('${state.friends.length}', 'vrienden'),
-
-                  const _Metric('3', 'vrienden'),
-
                 ],
               ),
             ),
@@ -106,7 +96,6 @@ class _ActiveGameCard extends StatelessWidget {
   final AppState state;
 
   @override
-
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final playerValue = state
@@ -185,79 +174,6 @@ class _ActiveGameCard extends StatelessWidget {
       ),
     );
   }
-
-  Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.all(22),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xff244a36), Color(0xff477c5a)],
-          ),
-          borderRadius: BorderRadius.circular(28),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Row(
-              children: [
-                Icon(Icons.radar, color: Color(0xffffd267)),
-                SizedBox(width: 8),
-                Text(
-                  'NU ACTIEF',
-                  style: TextStyle(
-                    color: Color(0xffffd267),
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              'Game X',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 28,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-            const Text(
-              'Jij bent ZOEKER • nog 26:30',
-              style: TextStyle(color: Colors.white70),
-            ),
-            const SizedBox(height: 18),
-            Row(
-              children: [
-                StatPill(
-                  icon: Icons.person_search,
-                  value: '${state.activeGame.playersFound}/20',
-                  label: 'gevonden',
-                ),
-                const SizedBox(width: 10),
-                const StatPill(
-                  icon: Icons.stars,
-                  value: '€ 4,50',
-                  label: 'demo-beloning',
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            FilledButton.icon(
-              style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xffffd267),
-                foregroundColor: const Color(0xff24382c),
-              ),
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => ActiveGameScreen(state: state),
-                ),
-              ),
-              icon: const Icon(Icons.play_arrow),
-              label: const Text('Open Game X'),
-            ),
-          ],
-        ),
-      );
-
 }
 
 class _QuickAction extends StatelessWidget {

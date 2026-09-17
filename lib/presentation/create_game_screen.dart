@@ -3,10 +3,8 @@ import 'package:flutter/material.dart';
 import '../app_state.dart';
 import '../domain/models.dart';
 import '../services/financial_service.dart';
-
 import '../services/introduction_service.dart';
 import '../services/location_repository.dart';
-
 import 'widgets.dart';
 
 class CreateGameScreen extends StatefulWidget {
@@ -22,7 +20,6 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
   int step = 0;
   final name = TextEditingController(text: 'Test123');
   final intro = TextEditingController();
-
   final specificArea = TextEditingController(text: 'Niet van toepassing');
   final LocationRepository locations = const DemoLocationRepository();
   final IntroductionService introductionService =
@@ -34,13 +31,6 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
     neighbourhood: 'Alle',
   );
   int introductionVariant = 0;
-
-  final country = TextEditingController(text: 'Nederland');
-  final province = TextEditingController(text: 'Flevoland');
-  final city = TextEditingController(text: 'Almere');
-  final neighbourhood = TextEditingController(text: 'Alle');
-  final specificArea = TextEditingController(text: 'Niet van toepassing');
-
 
   bool isPublic = true;
   bool hints = true;
@@ -57,28 +47,15 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
   void dispose() {
     name.dispose();
     intro.dispose();
-
-    country.dispose();
-    province.dispose();
-    city.dispose();
-    neighbourhood.dispose();
-
     specificArea.dispose();
     super.dispose();
   }
 
   SearchArea get selectedArea => SearchArea(
-
         country: location.country ?? 'Nederland',
         province: location.province ?? 'Alle',
         city: location.city ?? 'Alle',
         neighbourhood: location.neighbourhood ?? 'Alle',
-
-        country: country.text.trim(),
-        province: province.text.trim(),
-        city: city.text.trim(),
-        neighbourhood: neighbourhood.text.trim(),
-
         specificArea: specificArea.text.trim(),
       );
 
@@ -183,7 +160,6 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
         children: [
           TextField(
             controller: name,
-
             decoration: const InputDecoration(
               labelText: 'Naam van het spel',
               floatingLabelBehavior: FloatingLabelBehavior.always,
@@ -192,9 +168,6 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
                 vertical: 18,
               ),
             ),
-
-            decoration: const InputDecoration(labelText: 'Naam van het spel'),
-
           ),
           const SizedBox(height: 12),
           SwitchListTile(
@@ -253,7 +226,6 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
 
   Widget _buildSearchArea() => Column(
         children: [
-
           _LocationAutocomplete(
             label: 'Land(en)',
             value: location.country,
@@ -304,12 +276,6 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
               setState(() => location = location.selectNeighbourhood(value));
             },
           ),
-
-          _AreaField(label: 'Land(en)', controller: country),
-          _AreaField(label: 'Provincie(s)', controller: province),
-          _AreaField(label: 'Stad/steden', controller: city),
-          _AreaField(label: 'Wijk(en)', controller: neighbourhood),
-
           _AreaField(label: 'Specifiek gebied', controller: specificArea),
           const SizedBox(height: 4),
           const MapPlaceholder(height: 190),
@@ -385,7 +351,6 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
             ),
             const SizedBox(height: 10),
             OutlinedButton.icon(
-
               onPressed: _generateIntroduction,
               icon: const Icon(Icons.auto_awesome),
               label: const Text('Genereer introductie met AI (demo)'),
@@ -411,19 +376,6 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
     );
     introductionVariant++;
   }
-
-
-              onPressed: () => setState(() {
-                intro.text = 'Durf jij je te verstoppen in Almere? Slimme '
-                    'zoekers, verrassende hints en een spannend zoekgebied '
-                    'wachten op je. Blijf uit zicht en speel voor de eer!';
-              }),
-              icon: const Icon(Icons.auto_awesome),
-              label: const Text('Genereer introductie met AI'),
-            ),
-          ],
-        ),
-      );
 
   Future<void> _pickDate() async {
     final selected = await showDatePicker(

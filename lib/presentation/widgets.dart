@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 
-
 import '../domain/profile_models.dart';
-
 
 class SectionTitle extends StatelessWidget {
   const SectionTitle(this.title, {this.action, super.key});
@@ -97,7 +95,6 @@ class DemoBadge extends StatelessWidget {
 }
 
 class MapPlaceholder extends StatelessWidget {
-
   const MapPlaceholder({
     this.height = 220,
     this.playerMarker = PlayerMarker.ghost,
@@ -106,11 +103,6 @@ class MapPlaceholder extends StatelessWidget {
 
   final double height;
   final PlayerMarker playerMarker;
-
-  const MapPlaceholder({this.height = 220, super.key});
-
-  final double height;
-
 
   @override
   Widget build(BuildContext context) => Semantics(
@@ -141,21 +133,12 @@ class MapPlaceholder extends StatelessWidget {
                 ),
               ),
               Positioned.fill(child: CustomPaint(painter: _AreaPainter())),
-
               Positioned(
                 left: 28,
                 top: 24,
                 child: _Marker(
                   icon: markerIcon(playerMarker),
                   color: Theme.of(context).colorScheme.primary,
-
-              const Positioned(
-                left: 28,
-                top: 24,
-                child: _Marker(
-                  icon: Icons.person_pin_circle,
-                  color: Color(0xff24553c),
-
                   label: 'Jij',
                 ),
               ),
@@ -200,14 +183,12 @@ class MapPlaceholder extends StatelessWidget {
       );
 }
 
-
 IconData markerIcon(PlayerMarker marker) => switch (marker) {
   PlayerMarker.ghost => Icons.cruelty_free,
   PlayerMarker.wolf => Icons.pets,
   PlayerMarker.police => Icons.local_police,
   PlayerMarker.explorer => Icons.explore,
 };
-
 
 class _Marker extends StatelessWidget {
   const _Marker({

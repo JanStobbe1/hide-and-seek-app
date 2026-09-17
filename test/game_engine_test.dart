@@ -1,7 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-
 import 'package:verstobbertje/domain/countdown.dart';
-
 import 'package:verstobbertje/domain/game_engine.dart';
 import 'package:verstobbertje/domain/models.dart';
 
@@ -48,7 +46,6 @@ void main() {
         throwsAssertionError,
       );
     });
-
     test('tick completes the game when configured time reaches zero', () {
       const state = ActiveGameState(
         countdown: GameCountdown(
@@ -63,6 +60,5 @@ void main() {
       expect(completed.status, GameStatus.completed);
       expect(identical(completed, completed.tick()), isTrue);
     });
-
   });
 }

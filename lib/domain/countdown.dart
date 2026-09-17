@@ -1,6 +1,5 @@
 class GameCountdown {
-  const GameCountdown({required this.total, required this.remaining})
-      : assert(remaining <= total);
+  const GameCountdown({required this.total, required this.remaining});
 
   factory GameCountdown.start(Duration duration) {
     if (duration.isNegative) {

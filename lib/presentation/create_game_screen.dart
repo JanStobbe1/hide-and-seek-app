@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../app_state.dart';
 import '../domain/models.dart';
 import '../services/financial_service.dart';
+import '../services/introduction_service.dart';
+import '../services/location_repository.dart';
 import 'widgets.dart';
 
 class CreateGameScreen extends StatefulWidget {
@@ -18,11 +20,17 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
   int step = 0;
   final name = TextEditingController(text: 'Test123');
   final intro = TextEditingController();
-  final country = TextEditingController(text: 'Nederland');
-  final province = TextEditingController(text: 'Flevoland');
-  final city = TextEditingController(text: 'Almere');
-  final neighbourhood = TextEditingController(text: 'Alle');
   final specificArea = TextEditingController(text: 'Niet van toepassing');
+  final LocationRepository locations = const DemoLocationRepository();
+  final IntroductionService introductionService =
+      const DemoIntroductionService();
+  LocationSelection location = const LocationSelection(
+    country: 'Nederland',
+    province: 'Flevoland',
+    city: 'Almere',
+    neighbourhood: 'Alle',
+  );
+  int introductionVariant = 0;
 
   bool isPublic = true;
   bool hints = true;
@@ -39,19 +47,15 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
   void dispose() {
     name.dispose();
     intro.dispose();
-    country.dispose();
-    province.dispose();
-    city.dispose();
-    neighbourhood.dispose();
     specificArea.dispose();
     super.dispose();
   }
 
   SearchArea get selectedArea => SearchArea(
-        country: country.text.trim(),
-        province: province.text.trim(),
-        city: city.text.trim(),
-        neighbourhood: neighbourhood.text.trim(),
+        country: location.country ?? 'Nederland',
+        province: location.province ?? 'Alle',
+        city: location.city ?? 'Alle',
+        neighbourhood: location.neighbourhood ?? 'Alle',
         specificArea: specificArea.text.trim(),
       );
 
@@ -156,7 +160,12 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
         children: [
           TextField(
             controller: name,
-            decoration: const InputDecoration(labelText: 'Naam van het spel'),
+            decoration: const InputDecoration(
+              labelText: 'Naam van het spel',
+              floatingLabelBehavior: FloatingLabelBehavior.always,
+              contentPadding:
+                  EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+            ),
           ),
           const SizedBox(height: 12),
           SwitchListTile(
@@ -215,10 +224,53 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
 
   Widget _buildSearchArea() => Column(
         children: [
-          _AreaField(label: 'Land(en)', controller: country),
-          _AreaField(label: 'Provincie(s)', controller: province),
-          _AreaField(label: 'Stad/steden', controller: city),
-          _AreaField(label: 'Wijk(en)', controller: neighbourhood),
+          _LocationAutocomplete(
+            label: 'Land(en)',
+            value: location.country,
+            options: locations.countries,
+            onSelected: (value) {
+              setState(() => location = location.selectCountry(value));
+            },
+          ),
+          _LocationAutocomplete(
+            label: 'Provincie(s)',
+            value: location.province,
+            options: location.country == null
+                ? const []
+                : locations.provincesFor(location.country!),
+            enabled: location.country != null,
+            onSelected: (value) {
+              setState(() => location = location.selectProvince(value));
+            },
+          ),
+          _LocationAutocomplete(
+            label: 'Stad/steden',
+            value: location.city,
+            options: location.country == null || location.province == null
+                ? const []
+                : locations.citiesFor(location.country!, location.province!),
+            enabled: location.province != null && location.province != 'Alle',
+            onSelected: (value) {
+              setState(() => location = location.selectCity(value));
+            },
+          ),
+          _LocationAutocomplete(
+            label: 'Wijk(en)',
+            value: location.neighbourhood,
+            options: location.country == null ||
+                    location.province == null ||
+                    location.city == null
+                ? const []
+                : locations.neighbourhoodsFor(
+                    location.country!,
+                    location.province!,
+                    location.city!,
+                  ),
+            enabled: location.city != null && location.city != 'Alle',
+            onSelected: (value) {
+              setState(() => location = location.selectNeighbourhood(value));
+            },
+          ),
           _AreaField(label: 'Specifiek gebied', controller: specificArea),
           const SizedBox(height: 4),
           const MapPlaceholder(height: 190),
@@ -294,17 +346,31 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
             ),
             const SizedBox(height: 10),
             OutlinedButton.icon(
-              onPressed: () => setState(() {
-                intro.text = 'Durf jij je te verstoppen in Almere? Slimme '
-                    'zoekers, verrassende hints en een spannend zoekgebied '
-                    'wachten op je. Blijf uit zicht en speel voor de eer!';
-              }),
+              onPressed: _generateIntroduction,
               icon: const Icon(Icons.auto_awesome),
-              label: const Text('Genereer introductie met AI'),
+              label: const Text('Genereer introductie met AI (demo)'),
             ),
           ],
         ),
       );
+
+  void _generateIntroduction() {
+    final selectedCity =
+        location.city ?? location.province ?? location.country ?? 'Nederland';
+    final request = IntroductionRequest(
+      gameName: name.text.trim().isEmpty ? 'dit spel' : name.text.trim(),
+      city: selectedCity,
+      durationMinutes: duration,
+      maxParticipants: players,
+      hintsEnabled: hints,
+      questionsEnabled: questions,
+    );
+    intro.text = introductionService.generate(
+      request,
+      variant: introductionVariant,
+    );
+    introductionVariant++;
+  }
 
   Future<void> _pickDate() async {
     final selected = await showDatePicker(
@@ -347,10 +413,7 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
         scheduledStart: selectedScheduledStart,
         participantThreshold: selectedParticipantThreshold,
         isPublic: isPublic,
-        rules: GameRules(
-          hintsEnabled: hints,
-          questionsEnabled: questions,
-        ),
+        rules: GameRules(hintsEnabled: hints, questionsEnabled: questions),
       ),
     );
     showDialog<void>(
@@ -427,6 +490,55 @@ class _AreaField extends StatelessWidget {
           decoration: InputDecoration(
             labelText: label,
             prefixIcon: const Icon(Icons.location_on_outlined),
+          ),
+        ),
+      );
+}
+
+class _LocationAutocomplete extends StatelessWidget {
+  const _LocationAutocomplete({
+    required this.label,
+    required this.value,
+    required this.options,
+    required this.onSelected,
+    this.enabled = true,
+  });
+
+  final String label;
+  final String? value;
+  final List<String> options;
+  final ValueChanged<String> onSelected;
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: Autocomplete<String>(
+          key: ValueKey('$label-$value-$enabled'),
+          initialValue: TextEditingValue(text: value ?? ''),
+          optionsBuilder: (text) {
+            if (!enabled) return const Iterable<String>.empty();
+            return filterLocationOptions(options, text.text);
+          },
+          onSelected: onSelected,
+          fieldViewBuilder:
+              (context, controller, focusNode, onFieldSubmitted) =>
+                  TextFormField(
+            controller: controller,
+            focusNode: focusNode,
+            enabled: enabled,
+            onFieldSubmitted: (_) => onFieldSubmitted(),
+            decoration: InputDecoration(
+              labelText: label,
+              hintText: enabled ? 'Typ om te zoeken' : 'Kies eerst hierboven',
+              prefixIcon: const Icon(Icons.location_on_outlined),
+              suffixIcon: const Icon(Icons.arrow_drop_down),
+              floatingLabelBehavior: FloatingLabelBehavior.always,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 18,
+              ),
+            ),
           ),
         ),
       );
@@ -526,10 +638,7 @@ class _Review extends StatelessWidget {
             ),
           ),
         ),
-        if (intro.isNotEmpty) ...[
-          const SizedBox(height: 12),
-          Text(intro),
-        ],
+        if (intro.isNotEmpty) ...[const SizedBox(height: 12), Text(intro)],
       ],
     );
   }

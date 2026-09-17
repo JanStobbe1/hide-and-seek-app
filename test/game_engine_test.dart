@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:verstobbertje/domain/countdown.dart';
 import 'package:verstobbertje/domain/game_engine.dart';
 import 'package:verstobbertje/domain/models.dart';
 
@@ -32,18 +33,26 @@ void main() {
       expect(completed.invisibilityAvailable, isTrue);
     });
     test('rejects invalid player totals and progress', () {
-      expect(
-        () => ActiveGameState(playersFound: -1),
-        throwsAssertionError,
-      );
-      expect(
-        () => ActiveGameState(totalPlayers: 0),
-        throwsAssertionError,
-      );
+      expect(() => ActiveGameState(playersFound: -1), throwsAssertionError);
+      expect(() => ActiveGameState(totalPlayers: 0), throwsAssertionError);
       expect(
         () => ActiveGameState(playersFound: 21, totalPlayers: 20),
         throwsAssertionError,
       );
+    });
+    test('tick completes the game when configured time reaches zero', () {
+      const state = ActiveGameState(
+        countdown: GameCountdown(
+          total: Duration(seconds: 2),
+          remaining: Duration(seconds: 2),
+        ),
+      );
+
+      final completed = state.tick(const Duration(seconds: 5));
+
+      expect(completed.countdown.remaining, Duration.zero);
+      expect(completed.status, GameStatus.completed);
+      expect(identical(completed, completed.tick()), isTrue);
     });
   });
 }

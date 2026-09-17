@@ -69,10 +69,8 @@ class _AvailableGamesScreenState extends State<AvailableGamesScreen> {
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => GameDetailScreen(
-                  state: widget.state,
-                  game: game,
-                ),
+                builder: (_) =>
+                    GameDetailScreen(state: widget.state, game: game),
               ),
             ),
           ),
@@ -150,11 +148,7 @@ class GameCard extends StatelessWidget {
 }
 
 class GameDetailScreen extends StatelessWidget {
-  const GameDetailScreen({
-    required this.state,
-    required this.game,
-    super.key,
-  });
+  const GameDetailScreen({required this.state, required this.game, super.key});
 
   final AppState state;
   final Game game;
@@ -175,8 +169,11 @@ class GameDetailScreen extends StatelessWidget {
               Container(
                 height: 180,
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xff224934), Color(0xff8aae68)],
+                  gradient: LinearGradient(
+                    colors: [
+                      Theme.of(context).colorScheme.primary,
+                      Theme.of(context).colorScheme.secondary,
+                    ],
                   ),
                   borderRadius: BorderRadius.circular(28),
                 ),
@@ -248,9 +245,7 @@ class GameDetailScreen extends StatelessWidget {
                         Navigator.pop(context);
                       },
                 icon: Icon(joined ? Icons.check : Icons.sports_kabaddi),
-                label: Text(
-                  joined ? 'Je doet al mee' : 'Doe mee (simulatie)',
-                ),
+                label: Text(joined ? 'Je doet al mee' : 'Doe mee (simulatie)'),
               ),
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 12),
@@ -315,8 +310,7 @@ class MyGamesScreen extends StatelessWidget {
               onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => ActiveGameScreen(state: state),
-                ),
+                    builder: (_) => ActiveGameScreen(state: state)),
               ),
             ),
           ),

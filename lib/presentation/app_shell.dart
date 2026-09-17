@@ -31,10 +31,7 @@ class _AppShellState extends State<AppShell> {
       selectedIcon: Icon(Icons.sports_kabaddi),
       label: 'Mijn spellen',
     ),
-    NavigationDestination(
-      icon: Icon(Icons.travel_explore),
-      label: 'Ontdekken',
-    ),
+    NavigationDestination(icon: Icon(Icons.travel_explore), label: 'Ontdekken'),
     NavigationDestination(
       icon: Icon(Icons.emoji_events_outlined),
       label: 'Afgerond',
@@ -147,9 +144,7 @@ class _AppShellState extends State<AppShell> {
 
   void _create() {
     Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => CreateGameScreen(state: widget.state),
-      ),
+      MaterialPageRoute(builder: (_) => CreateGameScreen(state: widget.state)),
     );
   }
 }

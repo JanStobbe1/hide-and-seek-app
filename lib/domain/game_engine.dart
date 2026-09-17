@@ -1,3 +1,4 @@
+import 'countdown.dart';
 import 'models.dart';
 
 class ActiveGameState {
@@ -6,6 +7,10 @@ class ActiveGameState {
     this.playersFound = 5,
     this.totalPlayers = 20,
     this.invisibilityAvailable = true,
+    this.countdown = const GameCountdown(
+      total: Duration(minutes: 30),
+      remaining: Duration(minutes: 30),
+    ),
   })  : assert(playersFound >= 0, 'Found players cannot be negative.'),
         assert(totalPlayers > 0, 'A game needs at least one player.'),
         assert(
@@ -17,6 +22,9 @@ class ActiveGameState {
   final int playersFound;
   final int totalPlayers;
   final bool invisibilityAvailable;
+  final GameCountdown countdown;
+
+  Duration get elapsed => countdown.elapsed;
 
   ActiveGameState playerFound() {
     if (status != GameStatus.active || playersFound >= totalPlayers) {
@@ -27,6 +35,7 @@ class ActiveGameState {
       playersFound: playersFound + 1,
       totalPlayers: totalPlayers,
       invisibilityAvailable: invisibilityAvailable,
+      countdown: countdown,
     );
   }
 
@@ -37,6 +46,7 @@ class ActiveGameState {
       playersFound: playersFound,
       totalPlayers: totalPlayers,
       invisibilityAvailable: invisibilityAvailable,
+      countdown: countdown,
     );
   }
 
@@ -47,6 +57,19 @@ class ActiveGameState {
       playersFound: playersFound,
       totalPlayers: totalPlayers,
       invisibilityAvailable: false,
+      countdown: countdown,
+    );
+  }
+
+  ActiveGameState tick([Duration amount = const Duration(seconds: 1)]) {
+    if (status != GameStatus.active || countdown.isFinished) return this;
+    final nextCountdown = countdown.tick(amount);
+    return ActiveGameState(
+      status: nextCountdown.isFinished ? GameStatus.completed : status,
+      playersFound: playersFound,
+      totalPlayers: totalPlayers,
+      invisibilityAvailable: invisibilityAvailable,
+      countdown: nextCountdown,
     );
   }
 }

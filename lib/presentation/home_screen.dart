@@ -19,75 +19,73 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ListView(
-        padding: const EdgeInsets.fromLTRB(20, 18, 20, 110),
+    padding: const EdgeInsets.fromLTRB(20, 18, 20, 110),
+    children: [
+      Text(
+        'Hoi ${state.displayName} 👋',
+        style: Theme.of(context).textTheme.headlineMedium
+            ?.copyWith(fontWeight: FontWeight.w900),
+      ),
+      const Text('Klaar voor je volgende avontuur?'),
+      const SizedBox(height: 20),
+      _ActiveGameCard(state: state),
+      SectionTitle(
+        'Snel naar',
+        action: TextButton(
+          onPressed: onCreate,
+          child: const Text('Nieuw spel'),
+        ),
+      ),
+      GridView.count(
+        crossAxisCount: MediaQuery.sizeOf(context).width > 600 ? 4 : 2,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        mainAxisSpacing: 12,
+        crossAxisSpacing: 12,
+        childAspectRatio: 1.35,
         children: [
-          Text(
-            'Hoi ${state.displayName} 👋',
-            style: Theme.of(context)
-                .textTheme
-                .headlineMedium
-                ?.copyWith(fontWeight: FontWeight.w900),
+          _QuickAction(
+            icon: Icons.group,
+            label: 'Ik speel al mee met',
+            count: '${state.repository.joinedGames.length + 1}',
+            onTap: () => onNavigate(1),
           ),
-          const Text('Klaar voor je volgende avontuur?'),
-          const SizedBox(height: 20),
-          _ActiveGameCard(state: state),
-          SectionTitle(
-            'Snel naar',
-            action: TextButton(
-              onPressed: onCreate,
-              child: const Text('Nieuw spel'),
-            ),
+          _QuickAction(
+            icon: Icons.travel_explore,
+            label: 'Beschikbare spellen',
+            count: '${state.repository.availableGames.length}',
+            onTap: () => onNavigate(2),
           ),
-          GridView.count(
-            crossAxisCount: MediaQuery.sizeOf(context).width > 600 ? 4 : 2,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            mainAxisSpacing: 12,
-            crossAxisSpacing: 12,
-            childAspectRatio: 1.35,
-            children: [
-              _QuickAction(
-                icon: Icons.group,
-                label: 'Ik speel al mee met',
-                count: '${state.repository.joinedGames.length + 1}',
-                onTap: () => onNavigate(1),
-              ),
-              _QuickAction(
-                icon: Icons.travel_explore,
-                label: 'Beschikbare spellen',
-                count: '${state.repository.availableGames.length}',
-                onTap: () => onNavigate(2),
-              ),
-              _QuickAction(
-                icon: Icons.flag,
-                label: 'Afgeronde spellen',
-                count: '${state.gamesPlayed}',
-                onTap: () => onNavigate(3),
-              ),
-              _QuickAction(
-                icon: Icons.person,
-                label: 'Persoonlijke omgeving',
-                count: 'Beginner',
-                onTap: () => onNavigate(4),
-              ),
-            ],
+          _QuickAction(
+            icon: Icons.flag,
+            label: 'Afgeronde spellen',
+            count: '${state.gamesPlayed}',
+            onTap: () => onNavigate(3),
           ),
-          const SectionTitle('Jouw voortgang'),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(18),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _Metric('${state.gamesPlayed}', 'gespeeld'),
-                  _Metric('${state.wins}', 'gewonnen'),
-                  _Metric('${state.friends.length}', 'vrienden'),
-                ],
-              ),
-            ),
+          _QuickAction(
+            icon: Icons.person,
+            label: 'Persoonlijke omgeving',
+            count: 'Beginner',
+            onTap: () => onNavigate(4),
           ),
         ],
-      );
+      ),
+      const SectionTitle('Jouw voortgang'),
+      Card(
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _Metric('${state.gamesPlayed}', 'gespeeld'),
+              _Metric('${state.wins}', 'gewonnen'),
+              _Metric('${state.friends.length}', 'vrienden'),
+            ],
+          ),
+        ),
+      ),
+    ],
+  );
 }
 
 class _ActiveGameCard extends StatelessWidget {
@@ -105,9 +103,7 @@ class _ActiveGameCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [colors.primary, colors.secondary],
-        ),
+        gradient: LinearGradient(colors: [colors.primary, colors.secondary]),
         borderRadius: BorderRadius.circular(28),
       ),
       child: Column(
@@ -163,9 +159,7 @@ class _ActiveGameCard extends StatelessWidget {
             ),
             onPressed: () => Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (_) => ActiveGameScreen(state: state),
-              ),
+              MaterialPageRoute(builder: (_) => ActiveGameScreen(state: state)),
             ),
             icon: const Icon(Icons.play_arrow),
             label: const Text('Open Game X'),
@@ -191,29 +185,26 @@ class _QuickAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.all(14),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Icon(icon, color: Theme.of(context).colorScheme.primary),
-                Text(
-                  count,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 18,
-                  ),
-                ),
-                Text(label, maxLines: 2),
-              ],
+    child: InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Icon(icon, color: Theme.of(context).colorScheme.primary),
+            Text(
+              count,
+              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18),
             ),
-          ),
+            Text(label, maxLines: 2),
+          ],
         ),
-      );
+      ),
+    ),
+  );
 }
 
 class _Metric extends StatelessWidget {
@@ -224,12 +215,12 @@ class _Metric extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Column(
-        children: [
-          Text(
-            value,
-            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 24),
-          ),
-          Text(label),
-        ],
-      );
+    children: [
+      Text(
+        value,
+        style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 24),
+      ),
+      Text(label),
+    ],
+  );
 }

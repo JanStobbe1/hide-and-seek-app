@@ -2,24 +2,15 @@ abstract interface class LocationRepository {
   List<String> get countries;
   List<String> provincesFor(String country);
   List<String> citiesFor(String country, String province);
-  List<String> neighbourhoodsFor(
-    String country,
-    String province,
-    String city,
-  );
+  List<String> neighbourhoodsFor(String country, String province, String city);
 }
 
 typedef _ProvinceLocations = Map<String, Map<String, List<String>>>;
 
-Iterable<String> filterLocationOptions(
-  Iterable<String> options,
-  String query,
-) {
+Iterable<String> filterLocationOptions(Iterable<String> options, String query) {
   final normalized = query.trim().toLowerCase();
   if (normalized.isEmpty) return options;
-  return options.where(
-    (option) => option.toLowerCase().contains(normalized),
-  );
+  return options.where((option) => option.toLowerCase().contains(normalized));
 }
 
 class DemoLocationRepository implements LocationRepository {
@@ -65,11 +56,7 @@ class DemoLocationRepository implements LocationRepository {
   }
 
   @override
-  List<String> neighbourhoodsFor(
-    String country,
-    String province,
-    String city,
-  ) {
+  List<String> neighbourhoodsFor(String country, String province, String city) {
     if (province == 'Alle' || city == 'Alle') return const ['Alle'];
     return _withAll(_locations[country]?[province]?[city]);
   }

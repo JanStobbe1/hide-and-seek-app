@@ -13,11 +13,7 @@ void main() {
       contains('Amsterdam'),
     );
     expect(
-      repository.neighbourhoodsFor(
-        'Nederland',
-        'Noord-Holland',
-        'Amsterdam',
-      ),
+      repository.neighbourhoodsFor('Nederland', 'Noord-Holland', 'Amsterdam'),
       contains('Centrum'),
     );
   });

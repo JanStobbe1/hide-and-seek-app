@@ -13,9 +13,8 @@ void main() {
       expect(result.prizePool, 90);
     });
     test('supports a configurable platform fee', () {
-      final result = const FinancialService(
-        platformFeeRate: .2,
-      ).calculate(players: 5, entryFee: 4);
+      final result = const FinancialService(platformFeeRate: .2)
+          .calculate(players: 5, entryFee: 4);
       expect(result.platformFee, 4);
       expect(result.prizePool, 16);
     });

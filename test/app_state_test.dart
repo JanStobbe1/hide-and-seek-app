@@ -39,9 +39,7 @@ void main() {
   });
 
   test('active game ticks down and completion is counted once', () {
-    final state = AppState(
-      activeGameDuration: const Duration(seconds: 3),
-    );
+    final state = AppState(activeGameDuration: const Duration(seconds: 3));
     final initial = state.activeGame.countdown.remaining;
 
     state.tickActiveGame();

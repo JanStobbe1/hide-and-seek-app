@@ -33,14 +33,8 @@ void main() {
       expect(completed.invisibilityAvailable, isTrue);
     });
     test('rejects invalid player totals and progress', () {
-      expect(
-        () => ActiveGameState(playersFound: -1),
-        throwsAssertionError,
-      );
-      expect(
-        () => ActiveGameState(totalPlayers: 0),
-        throwsAssertionError,
-      );
+      expect(() => ActiveGameState(playersFound: -1), throwsAssertionError);
+      expect(() => ActiveGameState(totalPlayers: 0), throwsAssertionError);
       expect(
         () => ActiveGameState(playersFound: 21, totalPlayers: 20),
         throwsAssertionError,

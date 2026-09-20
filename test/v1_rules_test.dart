@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:verstobbertje/app_state.dart';
 import 'package:verstobbertje/domain/friends.dart';
 import 'package:verstobbertje/domain/game_lifecycle.dart';
 import 'package:verstobbertje/domain/hints.dart';

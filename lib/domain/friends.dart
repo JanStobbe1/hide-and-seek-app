@@ -47,6 +47,23 @@ class FriendshipService {
     return request.decision;
   }
 
+  FriendDecision reject(FriendRequest request) {
+    if (request.decision == FriendDecision.pending) {
+      request.decision = FriendDecision.rejected;
+    }
+    return request.decision;
+  }
+
+  FriendDecision block(FriendRequest request) {
+    request.decision = FriendDecision.blocked;
+    requests.remove('${request.sender}->${request.receiver}');
+    requests.remove('${request.receiver}->${request.sender}');
+    friendships.remove(_pair(request.sender, request.receiver));
+    return request.decision;
+  }
+
+  bool canWithdraw(FriendRequest request) => false;
+
   void invite({required String inviter, required String invitee}) =>
       friendships.add(_pair(inviter, invitee));
 }

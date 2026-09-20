@@ -116,10 +116,14 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
       return;
     }
     final message = switch (result.reason) {
-      HintBlockReason.cooldown => 'Wacht 10 minuten voordat je weer een hint gebruikt.',
-      HintBlockReason.insufficientPoints => 'Je hebt niet genoeg punten voor deze hint.',
-      HintBlockReason.finalQuarter => 'Hints zijn niet beschikbaar in het laatste kwart.',
-      HintBlockReason.zoneTooSmall => 'Het zoekgebied is te klein voor een bruikbare hint.',
+      HintBlockReason.cooldown =>
+        'Wacht 10 minuten voordat je weer een hint gebruikt.',
+      HintBlockReason.insufficientPoints =>
+        'Je hebt niet genoeg punten voor deze hint.',
+      HintBlockReason.finalQuarter =>
+        'Hints zijn niet beschikbaar in het laatste kwart.',
+      HintBlockReason.zoneTooSmall =>
+        'Het zoekgebied is te klein voor een bruikbare hint.',
       null => 'Deze hint kan nu niet worden gebruikt.',
     };
     _notice(context, message);

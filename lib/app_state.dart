@@ -291,9 +291,9 @@ class AppState extends ChangeNotifier {
     );
   }
 
-  ProfileNameValidation setDisplayName(String value) {
+  NameValidationResult setDisplayName(String value) {
     final validation = const ProfileNameValidator().validate(value);
-    if (!validation.isValid) return validation;
+    if (!validation.valid) return validation;
     displayName = value.trim();
     notifyListeners();
     return validation;

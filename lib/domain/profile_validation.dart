@@ -30,20 +30,20 @@ class ProfileNameValidator {
 
     // German
     'scheisse', 'scheiße', 'arschloch', 'wichser', 'fotze', 'hurensohn',
-    'hure', 'schlampe', 'idiot', 'depp', 'vollidiot', 'missgeburt',
-    'spast', 'schwuchtel', 'nazi', 'faschist', 'rassist', 'kanake',
+    'hure', 'schlampe', 'depp', 'vollidiot', 'missgeburt',
+    'spast', 'schwuchtel', 'faschist', 'rassist', 'kanake',
     'drecksau', 'mistkerl',
 
     // French
     'putain', 'merde', 'connard', 'connasse', 'salope', 'pute', 'encule',
-    'enculé', 'enculee', 'enculée', 'batard', 'bâtard', 'con', 'idiot',
-    'debile', 'débile', 'facho', 'raciste', 'nazi', 'pedophile',
+    'enculé', 'enculee', 'enculée', 'batard', 'bâtard', 'con', 
+    'debile', 'débile', 'facho', 'raciste', 
     'pédophile',
 
     // Spanish
     'puta', 'puto', 'mierda', 'cabron', 'cabrón', 'gilipollas', 'pendejo',
     'pendeja', 'coño', 'joder', 'zorra', 'maricon', 'maricón', 'idiota',
-    'imbecil', 'imbécil', 'racista', 'nazi', 'fascista', 'pedofilo',
+    'imbecil', 'imbécil', 'racista', 'fascista', 'pedofilo',
     'pedófilo',
 
     // Arabic (Modern Standard + common colloquial insults)

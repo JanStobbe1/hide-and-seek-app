@@ -630,7 +630,6 @@ class _MultiLocationPickerState extends State<_MultiLocationPicker> {
   }
 }
 
-
 class _Review extends StatelessWidget {
   const _Review({
     required this.name,

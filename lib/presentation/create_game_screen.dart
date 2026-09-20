@@ -228,9 +228,9 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
             onChanged: isPublic
                 ? null
                 : (value) => setState(() {
-              questions = value;
-              _sourcesChanged();
-                  }),
+                      questions = value;
+                      _sourcesChanged();
+                    }),
           ),
         ],
       );

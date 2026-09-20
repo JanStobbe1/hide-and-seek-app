@@ -24,11 +24,10 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
   final LocationRepository locations = const DemoLocationRepository();
   final IntroductionService introductionService =
       const DemoIntroductionService();
-  LocationSelection location = const LocationSelection(
-    country: 'Nederland',
-    province: 'Flevoland',
-    city: 'Almere',
-    neighbourhood: 'Alle',
+  MultiLocationSelection multiLocation = const MultiLocationSelection(
+    countries: {'Nederland'},
+    provinces: {'Flevoland'},
+    cities: {'Almere'},
   );
   int introductionVariant = 0;
   final IntroductionDraft introductionDraft = IntroductionDraft();
@@ -53,10 +52,15 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
   }
 
   SearchArea get selectedArea => SearchArea(
-        country: location.country ?? 'Nederland',
-        province: location.province ?? 'Alle',
-        city: location.city ?? 'Alle',
-        neighbourhood: location.neighbourhood ?? 'Alle',
+        country: multiLocation.countries.join(', '),
+        province: multiLocation.provinces.isEmpty
+            ? 'Alle'
+            : multiLocation.provinces.join(', '),
+        city:
+            multiLocation.cities.isEmpty ? 'Alle' : multiLocation.cities.join(', '),
+        neighbourhood: multiLocation.neighbourhoods.isEmpty
+            ? 'Alle'
+            : multiLocation.neighbourhoods.join(', '),
         specificArea: specificArea.text.trim(),
       );
 
@@ -237,67 +241,65 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
 
   Widget _buildSearchArea() => Column(
         children: [
-          _LocationAutocomplete(
+          _MultiLocationPicker(
             label: 'Land(en)',
-            value: location.country,
+            selected: multiLocation.countries,
             options: locations.countries,
-            onSelected: (value) {
-              setState(() {
-                location = location.selectCountry(value);
-                _sourcesChanged();
-              });
-            },
+            onToggle: (value) => setState(() {
+              multiLocation = multiLocation.toggleCountry(value, locations);
+              _sourcesChanged();
+            }),
           ),
-          _LocationAutocomplete(
+          _MultiLocationPicker(
             label: 'Provincie(s)',
-            value: location.province,
-            options: location.country == null
-                ? const []
-                : locations.provincesFor(location.country!),
-            enabled: location.country != null,
-            onSelected: (value) {
-              setState(() {
-                location = location.selectProvince(value);
-                _sourcesChanged();
-              });
-            },
+            selected: multiLocation.provinces,
+            options: {
+              for (final country in multiLocation.countries)
+                ...locations
+                    .provincesFor(country)
+                    .where((value) => value != 'Alle'),
+            }.toList(),
+            enabled: multiLocation.countries.isNotEmpty,
+            onToggle: (value) => setState(() {
+              multiLocation = multiLocation.toggleProvince(value, locations);
+              _sourcesChanged();
+            }),
           ),
-          _LocationAutocomplete(
+          _MultiLocationPicker(
             label: 'Stad/steden',
-            value: location.city,
-            options: location.country == null || location.province == null
-                ? const []
-                : locations.citiesFor(location.country!, location.province!),
-            enabled: location.province != null && location.province != 'Alle',
-            onSelected: (value) {
-              setState(() {
-                location = location.selectCity(value, repository: locations);
-                _sourcesChanged();
-              });
-            },
+            selected: multiLocation.cities,
+            options: {
+              for (final country in multiLocation.countries)
+                for (final province in multiLocation.provinces)
+                  if (locations.provincesFor(country).contains(province))
+                    ...locations
+                        .citiesFor(country, province)
+                        .where((value) => value != 'Alle'),
+            }.toList(),
+            enabled: multiLocation.provinces.isNotEmpty,
+            onToggle: (value) => setState(() {
+              multiLocation = multiLocation.toggleCity(value, locations);
+              _sourcesChanged();
+            }),
           ),
-          _LocationAutocomplete(
+          _MultiLocationPicker(
             label: 'Wijk(en)',
-            value: location.neighbourhood,
-            options: location.country == null ||
-                    location.province == null ||
-                    location.city == null
-                ? const []
-                : locations.neighbourhoodsFor(
-                    location.country!,
-                    location.province!,
-                    location.city!,
-                  ),
-            enabled: location.city != null && location.city != 'Alle',
-            onSelected: (value) {
-              setState(() {
-                location = location.selectNeighbourhood(
-                  value,
-                  repository: locations,
-                );
-                _sourcesChanged();
-              });
-            },
+            selected: multiLocation.neighbourhoods,
+            options: {
+              for (final country in multiLocation.countries)
+                for (final province in multiLocation.provinces)
+                  for (final city in multiLocation.cities)
+                    if (locations.containsCity(country, province, city))
+                      ...locations
+                          .neighbourhoodsFor(country, province, city)
+                          .where((value) => value != 'Alle'),
+            }.toList(),
+            enabled: multiLocation.cities.isNotEmpty,
+            onToggle: (value) => setState(() {
+              multiLocation =
+                  multiLocation.toggleNeighbourhood(value, locations);
+              _sourcesChanged();
+            }),
           ),
           _AreaField(label: 'Specifiek gebied', controller: specificArea),
           const SizedBox(height: 4),
@@ -305,8 +307,8 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
           const Padding(
             padding: EdgeInsets.all(8),
             child: Text(
-              'Mockselectie: meerdere gebieden kun je met komma’s invoeren. '
-              'Later vervangbaar door een echte kaartservice.',
+              'Je kunt meerdere gebieden selecteren. Lagere keuzes worden '
+              'automatisch opgeschoond wanneer een bovenliggend gebied wijzigt.',
               style: TextStyle(fontSize: 12),
               textAlign: TextAlign.center,
             ),
@@ -545,6 +547,46 @@ class _AreaField extends StatelessWidget {
           decoration: InputDecoration(
             labelText: label,
             prefixIcon: const Icon(Icons.location_on_outlined),
+          ),
+        ),
+      );
+}
+
+class _MultiLocationPicker extends StatelessWidget {
+  const _MultiLocationPicker({
+    required this.label,
+    required this.selected,
+    required this.options,
+    required this.onToggle,
+    this.enabled = true,
+  });
+
+  final String label;
+  final Set<String> selected;
+  final List<String> options;
+  final ValueChanged<String> onToggle;
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: InputDecorator(
+          decoration: InputDecoration(
+            labelText: label,
+            floatingLabelBehavior: FloatingLabelBehavior.always,
+            enabled: enabled,
+          ),
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            children: [
+              for (final option in options)
+                FilterChip(
+                  label: Text(option),
+                  selected: selected.contains(option),
+                  onSelected: enabled ? (_) => onToggle(option) : null,
+                ),
+            ],
           ),
         ),
       );

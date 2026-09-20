@@ -43,7 +43,7 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
     _resultScheduled = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      _showSeekerResult(context);
+      _showRoleResult(context);
     });
   }
 
@@ -71,7 +71,10 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
                 child: ListView(
                   padding: const EdgeInsets.all(20),
                   children: [
-                    _StatusRow(finished: state.gameFinished),
+                    _StatusRow(
+                      finished: state.gameFinished,
+                      role: state.activeRole,
+                    ),
                     const SizedBox(height: 12),
                     _CountdownCard(state: state),
                     const SectionTitle('Zoekgebied'),
@@ -93,24 +96,30 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
                     ),
                     const SizedBox(height: 10),
                     OutlinedButton.icon(
-                      onPressed: state.gameFinished
+                      onPressed: state.gameFinished ||
+                              state.activeRole != PlayerRole.hider
                           ? null
-                          : () => _showHiderWarning(context),
+                          : () {
+                              state.markCurrentHiderFound();
+                              _showHiderWarning(context);
+                            },
                       icon: const Icon(Icons.warning_amber),
                       label: const Text('Simuleer zoeker dichtbij'),
                     ),
                     TextButton(
-                      onPressed: () => _showHiderResult(context),
+                      onPressed: state.activeRole == PlayerRole.hider
+                          ? () => _showHiderResult(context)
+                          : null,
                       child: const Text('Bekijk hider-resultaat'),
                     ),
                     const SizedBox(height: 10),
                     TextButton(
                       onPressed: state.gameFinished
-                          ? () => _showSeekerResult(context)
+                          ? () => _showRoleResult(context)
                           : () => _finish(context),
                       child: Text(
                         state.gameFinished
-                            ? 'Bekijk zoeker-resultaat'
+                            ? 'Bekijk resultaat'
                             : 'Beëindig demo-spel',
                       ),
                     ),
@@ -283,16 +292,16 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
 
   void _finish(BuildContext context) {
     state.finishGame();
-    _showSeekerResult(context);
+    _showRoleResult(context);
   }
 
   void _showHiderResult(BuildContext context) {
     final elapsed = state.activeGame.elapsed;
     final minutes = elapsed.inMinutes;
-    final found = state.activeGame.playersFound > 0;
+    final found = state.currentHiderFound;
     final tone = const ResultService().hiderTone(
       found: found,
-      foundAt: found ? elapsed : null,
+      foundAt: state.currentHiderFoundAt,
       total: state.activeGameDuration,
       survivors: state.activeHiders,
     );
@@ -395,6 +404,14 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
     };
   }
 
+  void _showRoleResult(BuildContext context) {
+    if (state.activeRole == PlayerRole.hider) {
+      _showHiderResult(context);
+    } else {
+      _showSeekerResult(context);
+    }
+  }
+
   void _showSeekerResult(BuildContext context) {
     final finalPoints = state.finalPointsAfterHints;
     final hintPenalty = state.hintState.purchasedHints;
@@ -440,16 +457,23 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
 }
 
 class _StatusRow extends StatelessWidget {
-  const _StatusRow({required this.finished});
+  const _StatusRow({required this.finished, required this.role});
 
   final bool finished;
+  final PlayerRole role;
 
   @override
   Widget build(BuildContext context) => Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Chip(
-              avatar: Icon(Icons.person_search), label: Text('ROL: ZOEKER')),
+          Chip(
+            avatar: Icon(
+              role == PlayerRole.seeker ? Icons.person_search : Icons.hide_source,
+            ),
+            label: Text(
+              role == PlayerRole.seeker ? 'ROL: ZOEKER' : 'ROL: VERSTOPPER',
+            ),
+          ),
           Chip(
             avatar: const Icon(Icons.circle, size: 12),
             label: Text(finished ? 'AFGEROND' : 'SPEL ACTIEF'),

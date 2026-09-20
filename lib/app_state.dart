@@ -29,7 +29,8 @@ class AppState extends ChangeNotifier {
   late ActiveGameState activeGame;
   late DateTime _lastGameClockUpdate;
   bool gameFinished = false;
-  final ResultPresentationTracker resultPresentation = ResultPresentationTracker();
+  final ResultPresentationTracker resultPresentation =
+      ResultPresentationTracker();
   late FindingState findingState;
   late HintState hintState;
   int _findingEventSequence = 0;

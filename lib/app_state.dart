@@ -101,7 +101,9 @@ class AppState extends ChangeNotifier {
   bool join(String id, {DateTime? now}) {
     if (joinBlockReason(id, now: now) != null) return false;
     repository.join(id);
-    final joined = repository.joinedGames.any((candidate) => candidate.id == id);
+    final joined = repository.joinedGames.any(
+      (candidate) => candidate.id == id,
+    );
     if (joined) notifyListeners();
     return joined;
   }
@@ -171,15 +173,14 @@ class AppState extends ChangeNotifier {
     required bool privateGame,
     required bool enabled,
     required bool inRange,
-  }) =>
-      const PrivateQuestionService().visibility(
-        privateGame: privateGame,
-        enabled: enabled,
-        inRange: inRange,
-        playerId: 'me',
-        subjectId: subjectId,
-        attempt: questionAttempts[subjectId],
-      );
+  }) => const PrivateQuestionService().visibility(
+    privateGame: privateGame,
+    enabled: enabled,
+    inRange: inRange,
+    playerId: 'me',
+    subjectId: subjectId,
+    attempt: questionAttempts[subjectId],
+  );
 
   void startQuestion(String subjectId) {
     final attempt = questionAttemptFor(subjectId);

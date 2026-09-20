@@ -64,7 +64,8 @@ class DemoLocationRepository implements LocationRepository {
 
   @override
   bool containsCity(String country, String province, String city) =>
-      city == 'Alle' || (_locations[country]?[province]?.containsKey(city) ?? false);
+      city == 'Alle' ||
+      (_locations[country]?[province]?.containsKey(city) ?? false);
 
   @override
   List<String> neighbourhoodsFor(String country, String province, String city) {
@@ -113,7 +114,10 @@ class LocationSelection {
     );
   }
 
-  LocationSelection selectCity(String? value, {LocationRepository? repository}) {
+  LocationSelection selectCity(
+    String? value, {
+    LocationRepository? repository,
+  }) {
     if (value != null &&
         repository != null &&
         country != null &&
@@ -138,13 +142,12 @@ class LocationSelection {
         country != null &&
         province != null &&
         city != null &&
-        !repository.containsNeighbourhood(
-          country!,
-          province!,
-          city!,
-          value,
-        )) {
-      return LocationSelection(country: country, province: province, city: city);
+        !repository.containsNeighbourhood(country!, province!, city!, value)) {
+      return LocationSelection(
+        country: country,
+        province: province,
+        city: city,
+      );
     }
     return LocationSelection(
       country: country,
@@ -154,7 +157,6 @@ class LocationSelection {
     );
   }
 }
-
 
 class MultiLocationSelection {
   const MultiLocationSelection({
@@ -209,9 +211,8 @@ class MultiLocationSelection {
     String value,
     LocationRepository repository,
   ) {
-    final valid = _countryProvincePairs(repository).any(
-      (pair) => repository.containsCity(pair.$1, pair.$2, value),
-    );
+    final valid = _countryProvincePairs(repository)
+        .any((pair) => repository.containsCity(pair.$1, pair.$2, value));
     if (!valid || value == 'Alle') return this;
     final next = {...cities};
     next.contains(value) ? next.remove(value) : next.add(value);

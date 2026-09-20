@@ -12,14 +12,14 @@ class IntroductionRequest {
   final int durationMinutes, maxParticipants;
   final bool hintsEnabled, questionsEnabled;
   String get fingerprint => [
-        gameName,
-        region,
-        organizer,
-        durationMinutes,
-        maxParticipants,
-        hintsEnabled,
-        questionsEnabled,
-      ].join('|');
+    gameName,
+    region,
+    organizer,
+    durationMinutes,
+    maxParticipants,
+    hintsEnabled,
+    questionsEnabled,
+  ].join('|');
 }
 
 abstract interface class IntroductionService {
@@ -58,8 +58,9 @@ class IntroductionDraft {
   String? _fingerprint;
   void setManual(String value) {
     text = value;
-    origin =
-        value.isEmpty ? IntroductionOrigin.empty : IntroductionOrigin.manual;
+    origin = value.isEmpty
+        ? IntroductionOrigin.empty
+        : IntroductionOrigin.manual;
     _fingerprint = null;
   }
 

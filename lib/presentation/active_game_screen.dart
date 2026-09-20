@@ -54,72 +54,72 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
 
   @override
   Widget build(BuildContext context) => ListenableBuilder(
-        listenable: state,
-        builder: (context, _) {
-          _scheduleAutomaticResultIfNeeded();
-          return Scaffold(
-          appBar: AppBar(
-            title: const Text('Game X'),
-            actions: const [
-              Padding(padding: EdgeInsets.all(12), child: DemoBadge()),
-            ],
-          ),
-          body: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 760),
-              child: ListView(
-                padding: const EdgeInsets.all(20),
-                children: [
-                  _StatusRow(finished: state.gameFinished),
-                  const SizedBox(height: 12),
-                  _CountdownCard(state: state),
-                  const SectionTitle('Zoekgebied'),
-                  MapPlaceholder(playerMarker: state.playerMarker),
-                  const SectionTitle('Jouw acties'),
-                  _GameActions(
-                    state: state,
-                    onHint: () => _useHint(context),
-                    onQuestion: () => _showPrivateQuestion(context),
-                    onNotice: (message) => _notice(context, message),
+    listenable: state,
+    builder: (context, _) {
+      _scheduleAutomaticResultIfNeeded();
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Game X'),
+          actions: const [
+            Padding(padding: EdgeInsets.all(12), child: DemoBadge()),
+          ],
+        ),
+        body: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 760),
+            child: ListView(
+              padding: const EdgeInsets.all(20),
+              children: [
+                _StatusRow(finished: state.gameFinished),
+                const SizedBox(height: 12),
+                _CountdownCard(state: state),
+                const SectionTitle('Zoekgebied'),
+                MapPlaceholder(playerMarker: state.playerMarker),
+                const SectionTitle('Jouw acties'),
+                _GameActions(
+                  state: state,
+                  onHint: () => _useHint(context),
+                  onQuestion: () => _showPrivateQuestion(context),
+                  onNotice: (message) => _notice(context, message),
+                ),
+                const SizedBox(height: 18),
+                FilledButton.icon(
+                  onPressed: state.gameFinished
+                      ? null
+                      : () => _showProximity(context),
+                  icon: const Icon(Icons.sensors),
+                  label: const Text('Simuleer speler binnen 5 meter'),
+                ),
+                const SizedBox(height: 10),
+                OutlinedButton.icon(
+                  onPressed: state.gameFinished
+                      ? null
+                      : () => _showHiderWarning(context),
+                  icon: const Icon(Icons.warning_amber),
+                  label: const Text('Simuleer zoeker dichtbij'),
+                ),
+                TextButton(
+                  onPressed: () => _showHiderResult(context),
+                  child: const Text('Bekijk hider-resultaat'),
+                ),
+                const SizedBox(height: 10),
+                TextButton(
+                  onPressed: state.gameFinished
+                      ? () => _showSeekerResult(context)
+                      : () => _finish(context),
+                  child: Text(
+                    state.gameFinished
+                        ? 'Bekijk zoeker-resultaat'
+                        : 'Beëindig demo-spel',
                   ),
-                  const SizedBox(height: 18),
-                  FilledButton.icon(
-                    onPressed: state.gameFinished
-                        ? null
-                        : () => _showProximity(context),
-                    icon: const Icon(Icons.sensors),
-                    label: const Text('Simuleer speler binnen 5 meter'),
-                  ),
-                  const SizedBox(height: 10),
-                  OutlinedButton.icon(
-                    onPressed: state.gameFinished
-                        ? null
-                        : () => _showHiderWarning(context),
-                    icon: const Icon(Icons.warning_amber),
-                    label: const Text('Simuleer zoeker dichtbij'),
-                  ),
-                  TextButton(
-                    onPressed: () => _showHiderResult(context),
-                    child: const Text('Bekijk hider-resultaat'),
-                  ),
-                  const SizedBox(height: 10),
-                  TextButton(
-                    onPressed: state.gameFinished
-                        ? () => _showSeekerResult(context)
-                        : () => _finish(context),
-                    child: Text(
-                      state.gameFinished
-                          ? 'Bekijk zoeker-resultaat'
-                          : 'Beëindig demo-spel',
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
-        );
-        },
+        ),
       );
+    },
+  );
 
   void _showPrivateQuestion(BuildContext context) {
     const subjectId = 'friend-mila';
@@ -410,16 +410,15 @@ class _StatusRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          const Chip(
-              avatar: Icon(Icons.person_search), label: Text('ROL: ZOEKER')),
-          Chip(
-            avatar: const Icon(Icons.circle, size: 12),
-            label: Text(finished ? 'AFGEROND' : 'SPEL ACTIEF'),
-          ),
-        ],
-      );
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    children: [
+      const Chip(avatar: Icon(Icons.person_search), label: Text('ROL: ZOEKER')),
+      Chip(
+        avatar: const Icon(Icons.circle, size: 12),
+        label: Text(finished ? 'AFGEROND' : 'SPEL ACTIEF'),
+      ),
+    ],
+  );
 }
 
 class _CountdownCard extends StatelessWidget {
@@ -471,7 +470,8 @@ class _CountdownCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           LinearProgressIndicator(
-            value: state.activeGame.playersFound /
+            value:
+                state.activeGame.playersFound /
                 (state.activeGame.playersFound + state.activeHiders),
             minHeight: 9,
             borderRadius: BorderRadius.circular(8),
@@ -509,28 +509,28 @@ class _GameActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Wrap(
-        spacing: 10,
-        runSpacing: 10,
-        children: [
-          ActionChip(
-            avatar: const Icon(Icons.visibility),
-            label: const Text('2 zichtbare verstoppers'),
-            onPressed: () {},
-          ),
-          ActionChip(
-            avatar: const Icon(Icons.lightbulb),
-            label: Text(
-              state.hintState.freeAvailable
-                  ? 'Gebruik gratis hint'
-                  : 'Hint: ${5} punten + kwartaaltoeslag',
-            ),
-            onPressed: onHint,
-          ),
-          ActionChip(
-            avatar: const Icon(Icons.quiz),
-            label: const Text('Persoonlijke vraag'),
-            onPressed: onQuestion,
-          ),
-        ],
-      );
+    spacing: 10,
+    runSpacing: 10,
+    children: [
+      ActionChip(
+        avatar: const Icon(Icons.visibility),
+        label: const Text('2 zichtbare verstoppers'),
+        onPressed: () {},
+      ),
+      ActionChip(
+        avatar: const Icon(Icons.lightbulb),
+        label: Text(
+          state.hintState.freeAvailable
+              ? 'Gebruik gratis hint'
+              : 'Hint: ${5} punten + kwartaaltoeslag',
+        ),
+        onPressed: onHint,
+      ),
+      ActionChip(
+        avatar: const Icon(Icons.quiz),
+        label: const Text('Persoonlijke vraag'),
+        onPressed: onQuestion,
+      ),
+    ],
+  );
 }

@@ -71,15 +71,14 @@ class PrivacyService {
     required bool friend,
     required bool shareAge,
     required bool sharePhoto,
-  }) =>
-      {
-        'name': p.name,
-        'rank': p.rank,
-        if (friend && shareAge) 'age': p.age,
-        if (friend && sharePhoto) 'photo': p.photo,
-        if (friend) 'gamesWon': p.gamesWon,
-        if (friend) 'gamesPlayed': p.gamesPlayed,
-        if (friend) 'badges': p.badges,
-        if (friend) 'streak': p.streak,
-      };
+  }) => {
+    'name': p.name,
+    'rank': p.rank,
+    if (friend && shareAge) 'age': p.age,
+    if (friend && sharePhoto) 'photo': p.photo,
+    if (friend) 'gamesWon': p.gamesWon,
+    if (friend) 'gamesPlayed': p.gamesPlayed,
+    if (friend) 'badges': p.badges,
+    if (friend) 'streak': p.streak,
+  };
 }

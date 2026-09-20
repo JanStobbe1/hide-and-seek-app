@@ -605,7 +605,6 @@ class _GameActions extends StatelessWidget {
       );
 }
 
-
 class _HintCircle extends StatelessWidget {
   const _HintCircle({
     required this.startedAt,
@@ -636,7 +635,10 @@ class _HintCircle extends StatelessWidget {
           height: 220.0 * scale,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.55),
+            color: Theme.of(context)
+                .colorScheme
+                .primaryContainer
+                .withValues(alpha: 0.55),
             border: Border.all(
               color: Theme.of(context).colorScheme.primary,
               width: 3,

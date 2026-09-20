@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../app_state.dart';
 import '../domain/hints.dart';
 import '../domain/models.dart';
+import '../domain/private_questions.dart';
 import 'widgets.dart';
 
 class ActiveGameScreen extends StatefulWidget {
@@ -64,6 +65,7 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
                   _GameActions(
                     state: state,
                     onHint: () => _useHint(context),
+                    onQuestion: () => _showPrivateQuestion(context),
                     onNotice: (message) => _notice(context, message),
                   ),
                   const SizedBox(height: 18),
@@ -103,6 +105,74 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
           ),
         ),
       );
+
+  void _showPrivateQuestion(BuildContext context) {
+    const subjectId = 'friend-mila';
+    final visibility = state.questionVisibility(
+      subjectId: subjectId,
+      privateGame: true,
+      enabled: true,
+      inRange: true,
+    );
+    if (visibility == QuestionMarkerStatus.completed ||
+        visibility == QuestionMarkerStatus.failed) {
+      _notice(context, 'Deze persoonlijke vraag is al afgerond.');
+      return;
+    }
+    state.startQuestion(subjectId);
+    var selected = 0;
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        icon: const Icon(Icons.quiz),
+        title: const Text('Persoonlijke vragen over Mila'),
+        content: StatefulBuilder(
+          builder: (context, setDialogState) => Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Je bent binnen bereik. Beantwoord vijf persoonlijke vragen. '
+                'In deze V1-simulatie kies je hoeveel antwoorden juist waren.',
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<int>(
+                initialValue: selected,
+                decoration: const InputDecoration(labelText: 'Juiste antwoorden'),
+                items: [
+                  for (var i = 0; i <= 5; i++)
+                    DropdownMenuItem(value: i, child: Text('$i van 5')),
+                ],
+                onChanged: (value) =>
+                    setDialogState(() => selected = value ?? 0),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Verlaat je het bereik, dan heb je 5 seconden om terug te keren.',
+                style: TextStyle(fontSize: 12),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Later'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final awarded = state.completeQuestion(subjectId, selected);
+              Navigator.pop(dialogContext);
+              _notice(
+                context,
+                'Vraag afgerond: +$awarded punten. Totaal: ${state.points}.',
+              );
+            },
+            child: const Text('Afronden'),
+          ),
+        ],
+      ),
+    );
+  }
 
   void _useHint(BuildContext context) {
     final result = state.useHint();
@@ -396,11 +466,13 @@ class _GameActions extends StatelessWidget {
   const _GameActions({
     required this.state,
     required this.onHint,
+    required this.onQuestion,
     required this.onNotice,
   });
 
   final AppState state;
   final VoidCallback onHint;
+  final VoidCallback onQuestion;
   final ValueChanged<String> onNotice;
 
   @override
@@ -424,9 +496,8 @@ class _GameActions extends StatelessWidget {
           ),
           ActionChip(
             avatar: const Icon(Icons.quiz),
-            label: const Text('Beantwoord vraag'),
-            onPressed: () =>
-                onNotice('Goed! Amsterdam is de hoofdstad van Nederland.'),
+            label: const Text('Persoonlijke vraag'),
+            onPressed: onQuestion,
           ),
         ],
       );

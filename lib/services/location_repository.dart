@@ -3,7 +3,6 @@ abstract interface class LocationRepository {
   List<String> provincesFor(String country);
   List<String> citiesFor(String country, String province);
   bool containsCity(String country, String province, String city);
-  List<String> citiesForProvinces(String country, Iterable<String> provinces);
   List<String> neighbourhoodsFor(String country, String province, String city);
   bool containsNeighbourhood(
     String country,
@@ -62,23 +61,6 @@ class DemoLocationRepository implements LocationRepository {
     if (province == 'Alle') return const ['Alle'];
     return _withAll(_locations[country]?[province]?.keys);
   }
-
-  @override
-  List<String> citiesForProvinces(
-    String country,
-    Iterable<String> provinces,
-  ) {
-    final selected = provinces.where((value) => value != 'Alle').toSet();
-    if (selected.isEmpty) return const ['Alle'];
-    final cities = <String>{};
-    for (final province in selected) {
-      cities.addAll(_locations[country]?[province]?.keys ?? const []);
-    }
-    return _withAll(cities);
-  }
-
-  bool cityBelongsToProvince(String country, String province, String city) =>
-      city == 'Alle' || (_locations[country]?[province]?.containsKey(city) ?? false);
 
   @override
   bool containsCity(String country, String province, String city) =>
@@ -169,59 +151,6 @@ class LocationSelection {
       province: province,
       city: city,
       neighbourhood: value,
-    );
-  }
-}
-
-
-class MultiLocationSelection {
-  const MultiLocationSelection({
-    this.country,
-    this.provinces = const {},
-    this.cities = const {},
-    this.neighbourhoods = const {},
-  });
-
-  final String? country;
-  final Set<String> provinces;
-  final Set<String> cities;
-  final Set<String> neighbourhoods;
-
-  MultiLocationSelection selectCountry(String? value) =>
-      MultiLocationSelection(country: value);
-
-  MultiLocationSelection selectProvinces(
-    Iterable<String> values,
-    DemoLocationRepository repository,
-  ) {
-    final allowed = country == null
-        ? <String>{}
-        : repository.provincesFor(country!).toSet();
-    final nextProvinces = values.where(allowed.contains).toSet();
-    final allowedCities = country == null
-        ? <String>{}
-        : repository.citiesForProvinces(country!, nextProvinces).toSet();
-    final nextCities = cities.where(allowedCities.contains).toSet();
-    return MultiLocationSelection(
-      country: country,
-      provinces: nextProvinces,
-      cities: nextCities,
-      neighbourhoods: nextCities == cities ? neighbourhoods : const {},
-    );
-  }
-
-  MultiLocationSelection selectCities(
-    Iterable<String> values,
-    DemoLocationRepository repository,
-  ) {
-    if (country == null) return this;
-    final allowed = repository.citiesForProvinces(country!, provinces).toSet();
-    final nextCities = values.where(allowed.contains).toSet();
-    return MultiLocationSelection(
-      country: country,
-      provinces: provinces,
-      cities: nextCities,
-      neighbourhoods: nextCities == cities ? neighbourhoods : const {},
     );
   }
 }

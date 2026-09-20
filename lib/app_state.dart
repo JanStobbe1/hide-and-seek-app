@@ -385,23 +385,54 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  List<FriendRequest> incomingFriendRequestsAt([DateTime? now]) {
+    final timestamp = now ?? DateTime.now();
+    _expireFriendRequests(timestamp);
+    return friendshipService.requests.values
+        .where(
+          (request) =>
+              request.receiver == 'me' &&
+              request.decision == FriendDecision.pending,
+        )
+        .toList(growable: false);
+  }
+
   List<FriendRequest> get incomingFriendRequests =>
-      friendshipService.requests.values
-          .where(
-            (request) =>
-                request.receiver == 'me' &&
-                request.decision == FriendDecision.pending,
-          )
-          .toList(growable: false);
+      incomingFriendRequestsAt();
+
+  List<FriendRequest> outgoingFriendRequestsAt([DateTime? now]) {
+    final timestamp = now ?? DateTime.now();
+    _expireFriendRequests(timestamp);
+    return friendshipService.requests.values
+        .where(
+          (request) =>
+              request.sender == 'me' &&
+              request.decision == FriendDecision.pending,
+        )
+        .toList(growable: false);
+  }
 
   List<FriendRequest> get outgoingFriendRequests =>
-      friendshipService.requests.values
-          .where(
-            (request) =>
-                request.sender == 'me' &&
-                request.decision == FriendDecision.pending,
-          )
-          .toList(growable: false);
+      outgoingFriendRequestsAt();
+
+  List<String> get friendshipPlayerIds {
+    final ids = <String>{};
+    for (final pair in friendshipService.friendships) {
+      final parts = pair.split('::');
+      if (parts.length != 2 || !parts.contains('me')) continue;
+      ids.add(parts.first == 'me' ? parts.last : parts.first);
+    }
+    return ids.toList(growable: false)..sort();
+  }
+
+  void _expireFriendRequests(DateTime now) {
+    for (final request in friendshipService.requests.values) {
+      if (request.decision == FriendDecision.pending &&
+          now.difference(request.createdAt) > const Duration(days: 2)) {
+        request.decision = FriendDecision.expired;
+      }
+    }
+  }
 
   void seedIncomingFriendRequest({
     String playerId = 'player-mila',

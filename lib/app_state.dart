@@ -397,8 +397,7 @@ class AppState extends ChangeNotifier {
         .toList(growable: false);
   }
 
-  List<FriendRequest> get incomingFriendRequests =>
-      incomingFriendRequestsAt();
+  List<FriendRequest> get incomingFriendRequests => incomingFriendRequestsAt();
 
   List<FriendRequest> outgoingFriendRequestsAt([DateTime? now]) {
     final timestamp = now ?? DateTime.now();
@@ -412,8 +411,7 @@ class AppState extends ChangeNotifier {
         .toList(growable: false);
   }
 
-  List<FriendRequest> get outgoingFriendRequests =>
-      outgoingFriendRequestsAt();
+  List<FriendRequest> get outgoingFriendRequests => outgoingFriendRequestsAt();
 
   List<String> get friendshipPlayerIds {
     final ids = <String>{};

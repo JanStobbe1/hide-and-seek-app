@@ -336,10 +336,8 @@ class FriendsScreen extends StatelessWidget {
               const SectionTitle('Mijn vrienden'),
               ...state.friendshipPlayerIds
                   .where(
-                    (playerId) =>
-                        !friends.any((friend) =>
-                            friend.name.toLowerCase() ==
-                            playerId.toLowerCase()),
+                    (playerId) => !friends.any((friend) =>
+                        friend.name.toLowerCase() == playerId.toLowerCase()),
                   )
                   .map(
                     (playerId) => Card(

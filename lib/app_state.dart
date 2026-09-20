@@ -6,6 +6,7 @@ import 'domain/game_engine.dart';
 import 'domain/hints.dart';
 import 'domain/models.dart';
 import 'domain/player_value_rules.dart';
+import 'domain/private_questions.dart';
 import 'domain/profile_models.dart';
 import 'domain/scoring.dart';
 import 'domain/seeker_decay.dart';
@@ -30,6 +31,8 @@ class AppState extends ChangeNotifier {
   late FindingState findingState;
   late HintState hintState;
   int _findingEventSequence = 0;
+  final Map<String, QuestionAttempt> questionAttempts = {};
+  final Map<String, int> questionResults = {};
   int gamesPlayed = 5;
   int wins = 3;
   int points = 840;
@@ -126,6 +129,59 @@ class AppState extends ChangeNotifier {
 
   int get finalPointsAfterHints => const HintService().finalPoints(hintState);
 
+  QuestionAttempt questionAttemptFor(String subjectId) =>
+      questionAttempts.putIfAbsent(
+        subjectId,
+        () => QuestionAttempt(playerId: 'me', subjectId: subjectId),
+      );
+
+  QuestionMarkerStatus questionVisibility({
+    required String subjectId,
+    required bool privateGame,
+    required bool enabled,
+    required bool inRange,
+  }) =>
+      const PrivateQuestionService().visibility(
+        privateGame: privateGame,
+        enabled: enabled,
+        inRange: inRange,
+        playerId: 'me',
+        subjectId: subjectId,
+        attempt: questionAttempts[subjectId],
+      );
+
+  void startQuestion(String subjectId) {
+    final attempt = questionAttemptFor(subjectId);
+    const PrivateQuestionService().start(attempt);
+    notifyListeners();
+  }
+
+  int completeQuestion(String subjectId, int correct) {
+    final attempt = questionAttemptFor(subjectId);
+    final awarded = const PrivateQuestionService().complete(attempt, correct);
+    if (attempt.status == QuestionMarkerStatus.completed) {
+      questionResults[subjectId] = correct;
+      points += awarded;
+      hintState.points = points;
+      notifyListeners();
+    }
+    return awarded;
+  }
+
+  void updateQuestionRange(
+    String subjectId, {
+    required bool inRange,
+    DateTime? now,
+  }) {
+    final attempt = questionAttemptFor(subjectId);
+    const PrivateQuestionService().updateRange(
+      attempt,
+      inRange: inRange,
+      now: now ?? DateTime.now(),
+    );
+    notifyListeners();
+  }
+
   void _resetHintState() {
     hintState = HintState(points: points);
   }
@@ -142,6 +198,8 @@ class AppState extends ChangeNotifier {
         ),
     ]);
     _findingEventSequence = 0;
+    questionAttempts.clear();
+    questionResults.clear();
   }
 
   void useInvisibility() {

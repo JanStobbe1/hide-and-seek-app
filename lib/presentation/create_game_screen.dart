@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../app_state.dart';
 import '../domain/models.dart';
+import '../domain/profile_validation.dart';
 import '../services/introduction_service.dart';
 import '../services/location_repository.dart';
 import 'widgets.dart';
@@ -30,6 +31,8 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
     neighbourhood: 'Alle',
   );
   int introductionVariant = 0;
+  final IntroductionDraft introductionDraft = IntroductionDraft();
+  final ProfileNameValidator nameValidator = const ProfileNameValidator();
 
   bool isPublic = true;
   bool hints = true;
@@ -157,6 +160,7 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
         children: [
           TextField(
             controller: name,
+            onChanged: (_) => _sourcesChanged(),
             decoration: const InputDecoration(
               labelText: 'Naam van het spel',
               floatingLabelBehavior: FloatingLabelBehavior.always,
@@ -179,7 +183,10 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
             max: 360,
             divisions: 11,
             suffix: ' minuten',
-            onChanged: (value) => setState(() => duration = value.round()),
+            onChanged: (value) => setState(() {
+              duration = value.round();
+              _sourcesChanged();
+            }),
           ),
           _SettingSlider(
             label: 'Maximum deelnemers',
@@ -193,19 +200,26 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
               if (participantThreshold > players) {
                 participantThreshold = players;
               }
+              _sourcesChanged();
             }),
           ),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
             title: const Text('Hints kunnen worden gekocht'),
             value: hints,
-            onChanged: (value) => setState(() => hints = value),
+            onChanged: (value) => setState(() {
+              hints = value;
+              _sourcesChanged();
+            }),
           ),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
             title: const Text('Vragen kunnen worden beantwoord'),
             value: questions,
-            onChanged: (value) => setState(() => questions = value),
+            onChanged: (value) => setState(() {
+              questions = value;
+              _sourcesChanged();
+            }),
           ),
         ],
       );
@@ -217,7 +231,10 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
             value: location.country,
             options: locations.countries,
             onSelected: (value) {
-              setState(() => location = location.selectCountry(value));
+              setState(() {
+                location = location.selectCountry(value);
+                _sourcesChanged();
+              });
             },
           ),
           _LocationAutocomplete(
@@ -228,7 +245,10 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
                 : locations.provincesFor(location.country!),
             enabled: location.country != null,
             onSelected: (value) {
-              setState(() => location = location.selectProvince(value));
+              setState(() {
+                location = location.selectProvince(value);
+                _sourcesChanged();
+              });
             },
           ),
           _LocationAutocomplete(
@@ -239,7 +259,10 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
                 : locations.citiesFor(location.country!, location.province!),
             enabled: location.province != null && location.province != 'Alle',
             onSelected: (value) {
-              setState(() => location = location.selectCity(value));
+              setState(() {
+                location = location.selectCity(value);
+                _sourcesChanged();
+              });
             },
           ),
           _LocationAutocomplete(
@@ -256,7 +279,10 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
                   ),
             enabled: location.city != null && location.city != 'Alle',
             onSelected: (value) {
-              setState(() => location = location.selectNeighbourhood(value));
+              setState(() {
+                location = location.selectNeighbourhood(value);
+                _sourcesChanged();
+              });
             },
           ),
           _AreaField(label: 'Specifiek gebied', controller: specificArea),
@@ -326,6 +352,7 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
             const SizedBox(height: 16),
             TextField(
               controller: intro,
+              onChanged: introductionDraft.setManual,
               maxLines: 5,
               decoration: const InputDecoration(
                 labelText: 'Spelintroductie',
@@ -342,10 +369,10 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
         ),
       );
 
-  void _generateIntroduction() {
+  IntroductionRequest _introductionRequest() {
     final selectedCity =
         location.city ?? location.province ?? location.country ?? 'Nederland';
-    final request = IntroductionRequest(
+    return IntroductionRequest(
       gameName: name.text.trim().isEmpty ? 'dit spel' : name.text.trim(),
       region: selectedCity,
       organizer: widget.state.displayName,
@@ -354,10 +381,24 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
       hintsEnabled: hints,
       questionsEnabled: questions,
     );
-    intro.text = introductionService.generate(
+  }
+
+  void _sourcesChanged() {
+    final request = _introductionRequest();
+    introductionDraft.sourcesChanged(request);
+    if (introductionDraft.origin == IntroductionOrigin.empty && intro.text.isNotEmpty) {
+      intro.clear();
+    }
+  }
+
+  void _generateIntroduction() {
+    final request = _introductionRequest();
+    final generated = introductionService.generate(
       request,
       variant: introductionVariant,
     );
+    introductionDraft.setGenerated(generated, request);
+    intro.text = generated;
     introductionVariant++;
   }
 
@@ -382,6 +423,14 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
   }
 
   void _publish() {
+    final validation = nameValidator.validate(name.text);
+    if (!validation.valid) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(validation.message ?? 'Ongeldige spelnaam.')),
+      );
+      setState(() => step = 0);
+      return;
+    }
     final now = DateTime.now();
     widget.state.publish(
       Game(

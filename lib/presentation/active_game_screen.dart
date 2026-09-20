@@ -348,8 +348,11 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
             Text(feedback, textAlign: TextAlign.center),
             const SizedBox(height: 16),
             FilledButton(
-              onPressed: () => Navigator.pop(sheetContext),
-              child: const Text('Sluiten'),
+              onPressed: () {
+                Navigator.pop(sheetContext);
+                _showFriendQuestion(context);
+              },
+              child: const Text('Verder'),
             ),
           ],
         ),

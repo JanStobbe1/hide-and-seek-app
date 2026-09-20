@@ -119,8 +119,12 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
           FilledButton(
             onPressed: () {
               Navigator.pop(dialogContext);
-              state.foundPlayer();
-              _showFoundConfirmation(context);
+              final registered = state.foundPlayer();
+              if (registered) {
+                _showFoundConfirmation(context);
+              } else {
+                _notice(context, 'Deze speler kan niet opnieuw worden gevonden.');
+              }
             },
             child: const Text('GEVONDEN'),
           ),
@@ -135,7 +139,10 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
       builder: (dialogContext) => AlertDialog(
         icon: const Icon(Icons.celebration, size: 46),
         title: const Text('Gevonden!'),
-        content: const Text('Je hebt speler XYZ uitgeschakeld.\nGoed gedaan!'),
+        content: Text(
+          'De vondst is verwerkt volgens de V1-puntenregels.\\n'
+          'Jouw puntensaldo is nu ${state.points}.',
+        ),
         actions: [
           FilledButton(
             onPressed: () => Navigator.pop(dialogContext),
@@ -320,8 +327,8 @@ class _CountdownCard extends StatelessWidget {
           ),
           const Divider(color: Colors.white24, height: 28),
           Text(
-            '${state.activeGame.playersFound} van de '
-            '${state.activeGame.totalPlayers} gevonden',
+            '${state.activeGame.playersFound} verstoppers gevonden • '
+            '${state.activeHiders} nog actief',
             style: const TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.w900,
@@ -330,15 +337,16 @@ class _CountdownCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           LinearProgressIndicator(
-            value:
-                state.activeGame.playersFound / state.activeGame.totalPlayers,
+            value: state.activeGame.playersFound /
+                (state.activeGame.playersFound + state.activeHiders),
             minHeight: 9,
             borderRadius: BorderRadius.circular(8),
           ),
           const SizedBox(height: 14),
           Text(
-            'Omdat je ${state.activeGame.playersFound} spelers hebt gevonden '
-            'ben je ${value.toStringAsFixed(2).replaceAll('.', ',')} punten waard.',
+            'Jouw huidige spelwaarde is '
+            '${value.toStringAsFixed(2).replaceAll('.', ',')} punten. '
+            'Puntensaldo: ${state.points}.',
             textAlign: TextAlign.center,
             style: const TextStyle(color: Colors.white),
           ),

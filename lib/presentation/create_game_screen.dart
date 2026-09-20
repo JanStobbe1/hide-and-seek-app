@@ -387,8 +387,13 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
       );
 
   IntroductionRequest _introductionRequest() {
-    final selectedCity =
-        location.city ?? location.province ?? location.country ?? 'Nederland';
+    final selectedCity = multiLocation.cities.isNotEmpty
+        ? multiLocation.cities.join(', ')
+        : multiLocation.provinces.isNotEmpty
+            ? multiLocation.provinces.join(', ')
+            : multiLocation.countries.isNotEmpty
+                ? multiLocation.countries.join(', ')
+                : 'Nederland';
     return IntroductionRequest(
       gameName: name.text.trim().isEmpty ? 'dit spel' : name.text.trim(),
       region: selectedCity,
@@ -622,54 +627,6 @@ class _MultiLocationPickerState extends State<_MultiLocationPicker> {
   }
 }
 
-class _LocationAutocomplete extends StatelessWidget {
-  const _LocationAutocomplete({
-    required this.label,
-    required this.value,
-    required this.options,
-    required this.onSelected,
-    this.enabled = true,
-  });
-
-  final String label;
-  final String? value;
-  final List<String> options;
-  final ValueChanged<String> onSelected;
-  final bool enabled;
-
-  @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(bottom: 12),
-        child: Autocomplete<String>(
-          key: ValueKey('$label-$value-$enabled'),
-          initialValue: TextEditingValue(text: value ?? ''),
-          optionsBuilder: (text) {
-            if (!enabled) return const Iterable<String>.empty();
-            return filterLocationOptions(options, text.text);
-          },
-          onSelected: onSelected,
-          fieldViewBuilder:
-              (context, controller, focusNode, onFieldSubmitted) =>
-                  TextFormField(
-            controller: controller,
-            focusNode: focusNode,
-            enabled: enabled,
-            onFieldSubmitted: (_) => onFieldSubmitted(),
-            decoration: InputDecoration(
-              labelText: label,
-              hintText: enabled ? 'Typ om te zoeken' : 'Kies eerst hierboven',
-              prefixIcon: const Icon(Icons.location_on_outlined),
-              suffixIcon: const Icon(Icons.arrow_drop_down),
-              floatingLabelBehavior: FloatingLabelBehavior.always,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 18,
-              ),
-            ),
-          ),
-        ),
-      );
-}
 
 class _Review extends StatelessWidget {
   const _Review({

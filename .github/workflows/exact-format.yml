@@ -16,6 +16,7 @@ jobs:
         with:
           flutter-version: '3.47.4'
           channel: stable
+      - run: flutter pub get
       - run: dart format .
       - run: |
           git config user.name "github-actions[bot]"

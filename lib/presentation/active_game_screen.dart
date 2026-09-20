@@ -345,13 +345,18 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
       totalHiders: totalHiders,
     );
     return switch (tone) {
-      ResultTone.mostNegative => 'Volgende ronde biedt nieuwe kansen, in shaa Allah.',
+      ResultTone.mostNegative =>
+        'Volgende ronde biedt nieuwe kansen, in shaa Allah.',
       ResultTone.veryNegative => 'Blijf zoeken en verfijn je aanpak.',
-      ResultTone.negative => 'Je bijdrage telt; probeer volgende keer meer te vinden.',
+      ResultTone.negative =>
+        'Je bijdrage telt; probeer volgende keer meer te vinden.',
       ResultTone.neutral => 'Je hebt een nuttige bijdrage geleverd.',
-      ResultTone.positive => 'Mooi gezocht, je had een duidelijk aandeel in het resultaat.',
-      ResultTone.veryPositive => 'Sterk gezocht, je vond een groot deel van de verstoppers.',
-      ResultTone.mostPositive => 'Maa shaa Allah, jij vond alle gevonden verstoppers.',
+      ResultTone.positive =>
+        'Mooi gezocht, je had een duidelijk aandeel in het resultaat.',
+      ResultTone.veryPositive =>
+        'Sterk gezocht, je vond een groot deel van de verstoppers.',
+      ResultTone.mostPositive =>
+        'Maa shaa Allah, jij vond alle gevonden verstoppers.',
     };
   }
 

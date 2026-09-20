@@ -123,7 +123,10 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
               if (registered) {
                 _showFoundConfirmation(context);
               } else {
-                _notice(context, 'Deze speler kan niet opnieuw worden gevonden.');
+                _notice(
+                  context,
+                  'Deze speler kan niet opnieuw worden gevonden.',
+                );
               }
             },
             child: const Text('GEVONDEN'),

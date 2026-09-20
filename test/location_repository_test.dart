@@ -44,3 +44,37 @@ void main() {
     expect(filtered, ['Amsterdam']);
   });
 }
+
+
+  test('multi location selection prunes invalid dependent choices', () {
+    const repository = DemoLocationRepository();
+    var selection = const MultiLocationSelection()
+        .toggleCountry('Nederland', repository)
+        .toggleProvince('Flevoland', repository)
+        .toggleCity('Almere', repository)
+        .toggleNeighbourhood('Almere Stad', repository);
+
+    expect(selection.cities, contains('Almere'));
+    expect(selection.neighbourhoods, contains('Almere Stad'));
+
+    selection = selection
+        .toggleProvince('Noord-Holland', repository)
+        .toggleProvince('Flevoland', repository);
+
+    expect(selection.provinces, {'Noord-Holland'});
+    expect(selection.cities, isEmpty);
+    expect(selection.neighbourhoods, isEmpty);
+  });
+
+  test('multi location selection supports multiple valid branches', () {
+    const repository = DemoLocationRepository();
+    final selection = const MultiLocationSelection()
+        .toggleCountry('Nederland', repository)
+        .toggleProvince('Flevoland', repository)
+        .toggleProvince('Noord-Holland', repository)
+        .toggleCity('Almere', repository)
+        .toggleCity('Amsterdam', repository);
+
+    expect(selection.provinces, containsAll(['Flevoland', 'Noord-Holland']));
+    expect(selection.cities, containsAll(['Almere', 'Amsterdam']));
+  });

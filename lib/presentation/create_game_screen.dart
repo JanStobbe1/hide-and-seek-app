@@ -271,7 +271,7 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
             enabled: location.province != null && location.province != 'Alle',
             onSelected: (value) {
               setState(() {
-                location = location.selectCity(value);
+                location = location.selectCity(value, repository: locations);
                 _sourcesChanged();
               });
             },
@@ -291,7 +291,10 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
             enabled: location.city != null && location.city != 'Alle',
             onSelected: (value) {
               setState(() {
-                location = location.selectNeighbourhood(value);
+                location = location.selectNeighbourhood(
+                  value,
+                  repository: locations,
+                );
                 _sourcesChanged();
               });
             },

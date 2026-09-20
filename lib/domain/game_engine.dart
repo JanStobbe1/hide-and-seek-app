@@ -11,12 +11,12 @@ class ActiveGameState {
       total: Duration(minutes: 30),
       remaining: Duration(minutes: 30),
     ),
-  })  : assert(playersFound >= 0, 'Found players cannot be negative.'),
-        assert(totalPlayers > 0, 'A game needs at least one player.'),
-        assert(
-          playersFound <= totalPlayers,
-          'Found players cannot exceed total players.',
-        );
+  }) : assert(playersFound >= 0, 'Found players cannot be negative.'),
+       assert(totalPlayers > 0, 'A game needs at least one player.'),
+       assert(
+         playersFound <= totalPlayers,
+         'Found players cannot exceed total players.',
+       );
 
   final GameStatus status;
   final int playersFound;

@@ -39,9 +39,7 @@ class _AvailableGamesScreenState extends State<AvailableGamesScreen> {
       children: [
         Text(
           'Beschikbare spellen',
-          style: Theme.of(context)
-              .textTheme
-              .headlineSmall
+          style: Theme.of(context).textTheme.headlineSmall
               ?.copyWith(fontWeight: FontWeight.w900),
         ),
         const Text('Ontdek een avontuur bij jou in de buurt.'),
@@ -92,55 +90,56 @@ class GameCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(bottom: 12),
-        child: Card(
-          child: InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(12),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 26,
-                    backgroundColor:
-                        Theme.of(context).colorScheme.secondaryContainer,
-                    child: const Icon(Icons.forest),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          game.name,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w800,
-                            fontSize: 17,
-                          ),
-                        ),
-                        Text(
-                          '${game.area.label} • '
-                          '${game.distanceKm.toStringAsFixed(1)} km',
-                        ),
-                        const SizedBox(height: 5),
-                        Text(
-                          '${game.participants}/${game.maxParticipants} spelers',
-                        ),
-                        Text(
-                          _startSummary(game),
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Icon(Icons.chevron_right),
-                ],
+    padding: const EdgeInsets.only(bottom: 12),
+    child: Card(
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 26,
+                backgroundColor: Theme.of(context)
+                    .colorScheme
+                    .secondaryContainer,
+                child: const Icon(Icons.forest),
               ),
-            ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      game.name,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 17,
+                      ),
+                    ),
+                    Text(
+                      '${game.area.label} • '
+                      '${game.distanceKm.toStringAsFixed(1)} km',
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      '${game.participants}/${game.maxParticipants} spelers',
+                    ),
+                    Text(
+                      _startSummary(game),
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_right),
+            ],
           ),
         ),
-      );
+      ),
+    ),
+  );
 }
 
 class GameDetailScreen extends StatelessWidget {
@@ -194,9 +193,7 @@ class GameDetailScreen extends StatelessWidget {
               ),
               Text(
                 game.name,
-                style: Theme.of(context)
-                    .textTheme
-                    .headlineMedium
+                style: Theme.of(context).textTheme.headlineMedium
                     ?.copyWith(fontWeight: FontWeight.w900),
               ),
               Text(
@@ -267,11 +264,11 @@ class _Info extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ListTile(
-        contentPadding: EdgeInsets.zero,
-        leading: Icon(icon),
-        title: Text(label),
-        subtitle: Text(value),
-      );
+    contentPadding: EdgeInsets.zero,
+    leading: Icon(icon),
+    title: Text(label),
+    subtitle: Text(value),
+  );
 }
 
 class MyGamesScreen extends StatelessWidget {
@@ -281,57 +278,54 @@ class MyGamesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          Text(
-            'Ik speel al mee met',
-            style: Theme.of(context)
-                .textTheme
-                .headlineSmall
-                ?.copyWith(fontWeight: FontWeight.w900),
+    padding: const EdgeInsets.all(20),
+    children: [
+      Text(
+        'Ik speel al mee met',
+        style: Theme.of(context).textTheme.headlineSmall
+            ?.copyWith(fontWeight: FontWeight.w900),
+      ),
+      const SizedBox(height: 16),
+      Card(
+        child: ListTile(
+          leading: const CircleAvatar(child: Icon(Icons.radar)),
+          title: const Text(
+            'Game X',
+            style: TextStyle(fontWeight: FontWeight.w800),
           ),
-          const SizedBox(height: 16),
-          Card(
-            child: ListTile(
-              leading: const CircleAvatar(child: Icon(Icons.radar)),
-              title: const Text(
-                'Game X',
-                style: TextStyle(fontWeight: FontWeight.w800),
-              ),
-              subtitle: Text(
-                '${state.activeGame.playersFound} van 20 gevonden • Actief',
-              ),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (_) => ActiveGameScreen(state: state)),
-              ),
+          subtitle: Text(
+            '${state.activeGame.playersFound} van 20 gevonden • Actief',
+          ),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => ActiveGameScreen(state: state)),
+          ),
+        ),
+      ),
+      const SectionTitle('Binnenkort'),
+      if (state.repository.joinedGames.isEmpty)
+        const Card(
+          child: Padding(
+            padding: EdgeInsets.all(24),
+            child: Text(
+              'Nog geen spellen. Ontdek een beschikbaar spel en doe mee!',
             ),
           ),
-          const SectionTitle('Binnenkort'),
-          if (state.repository.joinedGames.isEmpty)
-            const Card(
-              child: Padding(
-                padding: EdgeInsets.all(24),
-                child: Text(
-                  'Nog geen spellen. Ontdek een beschikbaar spel en doe mee!',
-                ),
-              ),
-            ),
-          ...state.repository.joinedGames.map(
-            (game) => GameCard(
-              game: game,
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => GameDetailScreen(state: state, game: game),
-                ),
-              ),
+        ),
+      ...state.repository.joinedGames.map(
+        (game) => GameCard(
+          game: game,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => GameDetailScreen(state: state, game: game),
             ),
           ),
-        ],
-      );
+        ),
+      ),
+    ],
+  );
 }
 
 class CompletedGamesScreen extends StatelessWidget {
@@ -349,54 +343,52 @@ class CompletedGamesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          Text(
-            'Afgeronde spellen',
-            style: Theme.of(context)
-                .textTheme
-                .headlineSmall
-                ?.copyWith(fontWeight: FontWeight.w900),
-          ),
-          const Text('Jouw avonturen en resultaten.'),
-          if (state.gameFinished)
-            Padding(
-              padding: const EdgeInsets.only(top: 16),
-              child: Card(
-                child: ListTile(
-                  leading: const CircleAvatar(child: Icon(Icons.emoji_events)),
-                  title: Text(
-                    'Game X • ${state.activeGame.playersFound} '
-                    'spelers gevonden',
-                  ),
-                  subtitle: const Text('840 punten'),
-                ),
+    padding: const EdgeInsets.all(20),
+    children: [
+      Text(
+        'Afgeronde spellen',
+        style: Theme.of(context).textTheme.headlineSmall
+            ?.copyWith(fontWeight: FontWeight.w900),
+      ),
+      const Text('Jouw avonturen en resultaten.'),
+      if (state.gameFinished)
+        Padding(
+          padding: const EdgeInsets.only(top: 16),
+          child: Card(
+            child: ListTile(
+              leading: const CircleAvatar(child: Icon(Icons.emoji_events)),
+              title: Text(
+                'Game X • ${state.activeGame.playersFound} '
+                'spelers gevonden',
               ),
+              subtitle: const Text('840 punten'),
             ),
-          const SizedBox(height: 16),
-          ...names.asMap().entries.map(
-                (entry) => Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: Card(
-                    child: ListTile(
-                      leading: const CircleAvatar(child: Icon(Icons.flag)),
-                      title: Text(
-                        entry.value,
-                        style: const TextStyle(fontWeight: FontWeight.w700),
-                      ),
-                      subtitle: Text(
-                        entry.key == 0
-                            ? 'Dit was niet echt een succes. Je was al binnen '
-                                '10 minuten gevonden. Houd de moed erin!'
-                            : '${300 + entry.key * 125} punten • Almere',
-                      ),
-                      trailing: Text(entry.key < 3 ? 'Gewonnen' : 'Gevonden'),
-                    ),
-                  ),
-                ),
+          ),
+        ),
+      const SizedBox(height: 16),
+      ...names.asMap().entries.map(
+        (entry) => Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: Card(
+            child: ListTile(
+              leading: const CircleAvatar(child: Icon(Icons.flag)),
+              title: Text(
+                entry.value,
+                style: const TextStyle(fontWeight: FontWeight.w700),
               ),
-        ],
-      );
+              subtitle: Text(
+                entry.key == 0
+                    ? 'Dit was niet echt een succes. Je was al binnen '
+                          '10 minuten gevonden. Houd de moed erin!'
+                    : '${300 + entry.key * 125} punten • Almere',
+              ),
+              trailing: Text(entry.key < 3 ? 'Gewonnen' : 'Gevonden'),
+            ),
+          ),
+        ),
+      ),
+    ],
+  );
 }
 
 String _startSummary(Game game) {

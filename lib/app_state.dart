@@ -101,10 +101,10 @@ class AppState extends ChangeNotifier {
   }
 
   double playerValue(PlayerRole role) => DemoPlayerValueRules.calculate(
-        role: role,
-        elapsed: activeGame.elapsed,
-        playersFound: activeGame.playersFound,
-      );
+    role: role,
+    elapsed: activeGame.elapsed,
+    playersFound: activeGame.playersFound,
+  );
 
   void setDisplayName(String value) {
     final trimmed = value.trim();

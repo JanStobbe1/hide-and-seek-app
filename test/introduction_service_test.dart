@@ -11,7 +11,7 @@ void main() {
         gameName: 'Grachtenjacht',
         region: 'Amsterdam',
         organizer: 'Jan',
-      durationMinutes: 90,
+        durationMinutes: 90,
         maxParticipants: 24,
         hintsEnabled: true,
         questionsEnabled: false,

@@ -32,8 +32,7 @@ class MockGameRepository implements GameRepository {
         id: 'epic',
         name: 'MostEpicGameEver',
         organizer: 'Jan',
-        description:
-            'Een avontuurlijk verstopspel in de bossen van de Utrechtse Heuvelrug.',
+        description: 'Een avontuurlijk verstopspel in de bossen van de Utrechtse Heuvelrug.',
         area: const SearchArea(
           country: 'Nederland',
           province: 'Utrecht',
@@ -74,22 +73,21 @@ class MockGameRepository implements GameRepository {
     double distance,
     int participants,
     DateTime start,
-  ) =>
-      Game(
-        id: id,
-        name: name,
-        organizer: 'Demo-organisator',
-        description:
-            'Vind de beste verstopplek en blijf uit handen van de zoekers.',
-        area: demoArea,
-        status: GameStatus.available,
-        duration: const Duration(hours: 2),
-        participants: participants,
-        maxParticipants: 24,
-        distanceKm: distance,
-        startCondition: StartCondition.scheduled,
-        scheduledStart: start,
-      );
+  ) => Game(
+    id: id,
+    name: name,
+    organizer: 'Demo-organisator',
+    description:
+        'Vind de beste verstopplek en blijf uit handen van de zoekers.',
+    area: demoArea,
+    status: GameStatus.available,
+    duration: const Duration(hours: 2),
+    participants: participants,
+    maxParticipants: 24,
+    distanceKm: distance,
+    startCondition: StartCondition.scheduled,
+    scheduledStart: start,
+  );
 
   @override
   void join(String id) {

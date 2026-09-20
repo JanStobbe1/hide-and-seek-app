@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../app_state.dart';
 import '../domain/models.dart';
-import '../services/financial_service.dart';
 import '../services/introduction_service.dart';
 import '../services/location_repository.dart';
 import 'widgets.dart';
@@ -35,7 +34,6 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
   bool isPublic = true;
   bool hints = true;
   bool questions = true;
-  double entry = 10;
   int players = 30;
   int duration = 120;
   int participantThreshold = 10;
@@ -117,7 +115,6 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
                     name: name.text,
                     isPublic: isPublic,
                     duration: duration,
-                    entry: entry,
                     players: players,
                     hints: hints,
                     questions: questions,
@@ -183,15 +180,6 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
             divisions: 11,
             suffix: ' minuten',
             onChanged: (value) => setState(() => duration = value.round()),
-          ),
-          _SettingSlider(
-            label: 'Demo-inleg',
-            value: entry,
-            min: 0,
-            max: 25,
-            divisions: 25,
-            suffix: ' euro',
-            onChanged: (value) => setState(() => entry = value),
           ),
           _SettingSlider(
             label: 'Maximum deelnemers',
@@ -359,7 +347,8 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
         location.city ?? location.province ?? location.country ?? 'Nederland';
     final request = IntroductionRequest(
       gameName: name.text.trim().isEmpty ? 'dit spel' : name.text.trim(),
-      city: selectedCity,
+      region: selectedCity,
+      organizer: widget.state.displayName,
       durationMinutes: duration,
       maxParticipants: players,
       hintsEnabled: hints,
@@ -405,7 +394,6 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
         area: selectedArea,
         status: GameStatus.available,
         duration: Duration(minutes: duration),
-        entryFee: entry,
         participants: 1,
         maxParticipants: players,
         distanceKm: 1.2,
@@ -549,7 +537,6 @@ class _Review extends StatelessWidget {
     required this.name,
     required this.isPublic,
     required this.duration,
-    required this.entry,
     required this.players,
     required this.hints,
     required this.questions,
@@ -567,21 +554,17 @@ class _Review extends StatelessWidget {
   final bool questions;
   final int duration;
   final int players;
-  final double entry;
   final SearchArea area;
   final StartCondition startCondition;
   final DateTime? scheduledStart;
   final int? participantThreshold;
 
+  String get startLabel => startCondition == StartCondition.scheduled
+      ? _formatScheduledStart(scheduledStart!)
+      : 'Bij $participantThreshold deelnemers';
+
   @override
   Widget build(BuildContext context) {
-    final money = const FinancialService().calculate(
-      players: players,
-      entryFee: entry,
-    );
-    final startLabel = startCondition == StartCondition.scheduled
-        ? _formatScheduledStart(scheduledStart!)
-        : 'Bij $participantThreshold deelnemers';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -607,37 +590,6 @@ class _Review extends StatelessWidget {
           value: [if (hints) 'Hints', if (questions) 'Vragen'].join(' • '),
         ),
         const SizedBox(height: 10),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Gesimuleerde prijzenpot',
-                  style: TextStyle(fontWeight: FontWeight.w800),
-                ),
-                Text(
-                  '$players × € ${entry.toStringAsFixed(2)} = '
-                  '€ ${money.grossPool.toStringAsFixed(2)} bruto',
-                ),
-                Text(
-                  'Voorbeeld platformkosten: '
-                  '€ ${money.platformFee.toStringAsFixed(2)}',
-                ),
-                Text(
-                  'Getoonde prijzenpot: '
-                  '€ ${money.prizePool.toStringAsFixed(2)}',
-                  style: const TextStyle(fontWeight: FontWeight.w800),
-                ),
-                const Text(
-                  'Demo — geen echt geld',
-                  style: TextStyle(fontSize: 12),
-                ),
-              ],
-            ),
-          ),
-        ),
         if (intro.isNotEmpty) ...[const SizedBox(height: 12), Text(intro)],
       ],
     );

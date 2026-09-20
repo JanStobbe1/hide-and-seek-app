@@ -139,31 +139,6 @@ class ProfileScreen extends StatelessWidget {
               style: TextStyle(fontSize: 12),
             ),
           ),
-          const SectionTitle('Demo financiën'),
-          const Card(
-            child: Column(
-              children: [
-                ListTile(
-                  leading: Icon(Icons.account_balance_wallet_outlined),
-                  title: Text('Mocksaldo'),
-                  trailing: Text('€ 12,50'),
-                ),
-                ListTile(
-                  leading: Icon(Icons.payments_outlined),
-                  title: Text('Gesimuleerd uitgekeerd'),
-                  trailing: Text('€ 0,00'),
-                ),
-                Padding(
-                  padding: EdgeInsets.all(12),
-                  child: Text(
-                    'Alle bedragen zijn demonstratiedata. Er is geen echte '
-                    'wallet en er wordt niets overgemaakt.',
-                    style: TextStyle(fontSize: 12),
-                  ),
-                ),
-              ],
-            ),
-          ),
           const SectionTitle('Privacy & voorkeuren'),
           ...state.privacy.entries.map(
             (entry) => SwitchListTile(

@@ -9,8 +9,9 @@ void main() {
     () {
       const request = IntroductionRequest(
         gameName: 'Grachtenjacht',
-        city: 'Amsterdam',
-        durationMinutes: 90,
+        region: 'Amsterdam',
+        organizer: 'Jan',
+      durationMinutes: 90,
         maxParticipants: 24,
         hintsEnabled: true,
         questionsEnabled: false,
@@ -29,7 +30,8 @@ void main() {
   test('successive variants produce different copy', () {
     const request = IntroductionRequest(
       gameName: 'Test123',
-      city: 'Almere',
+      region: 'Almere',
+      organizer: 'Jan',
       durationMinutes: 120,
       maxParticipants: 30,
       hintsEnabled: true,

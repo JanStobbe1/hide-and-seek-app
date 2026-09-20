@@ -159,8 +159,8 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
         content: Text(
           'Zoeker ${state.displayName} zit binnen 5 meter van jou.\n\n'
           'Omdat er ${state.activeGame.playersFound} spelers zijn gevonden '
-          'ben je € ${hiderValue.toStringAsFixed(2).replaceAll('.', ',')} '
-          'waard (demo).\n\n$warning',
+          'heb je ${hiderValue.toStringAsFixed(2).replaceAll('.', ',')} '
+          'punten spelwaarde.\n\n$warning',
         ),
         actions: [
           TextButton(
@@ -248,15 +248,6 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
             ),
             const Text('Rank: Beginner • 68% naar Avonturier'),
             const SizedBox(height: 12),
-            const Card(
-              child: ListTile(
-                leading: Icon(Icons.account_balance_wallet_outlined),
-                title: Text('Demoresultaat: € 4,50'),
-                subtitle: Text(
-                  'Mockbedrag — er is geen geld ontvangen of overgemaakt.',
-                ),
-              ),
-            ),
             const SizedBox(height: 12),
             FilledButton(
               onPressed: () => Navigator.pop(sheetContext),
@@ -347,12 +338,12 @@ class _CountdownCard extends StatelessWidget {
           const SizedBox(height: 14),
           Text(
             'Omdat je ${state.activeGame.playersFound} spelers hebt gevonden '
-            'ben je € ${value.toStringAsFixed(2).replaceAll('.', ',')} waard.',
+            'ben je ${value.toStringAsFixed(2).replaceAll('.', ',')} punten waard.',
             textAlign: TextAlign.center,
             style: const TextStyle(color: Colors.white),
           ),
           const Text(
-            'DEMO-waarde • geen echte uitbetaling',
+            'Actuele spelwaarde',
             style: TextStyle(color: Colors.white60, fontSize: 11),
           ),
         ],

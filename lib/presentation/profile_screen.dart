@@ -184,7 +184,9 @@ class ProfileScreen extends StatelessWidget {
               final validation = validator.validate(controller.text);
               if (!validation.valid) {
                 ScaffoldMessenger.of(dialogContext).showSnackBar(
-                  SnackBar(content: Text(validation.message ?? 'Ongeldige naam.')),
+                  SnackBar(
+                    content: Text(validation.message ?? 'Ongeldige naam.'),
+                  ),
                 );
                 return;
               }

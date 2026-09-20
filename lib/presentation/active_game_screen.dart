@@ -6,6 +6,7 @@ import '../app_state.dart';
 import '../domain/hints.dart';
 import '../domain/models.dart';
 import '../domain/private_questions.dart';
+import '../domain/results.dart';
 import 'widgets.dart';
 
 class ActiveGameScreen extends StatefulWidget {
@@ -336,7 +337,27 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
     );
   }
 
+  String _seekerFeedback() {
+    final totalHiders = state.activeGame.playersFound + state.activeHiders;
+    final tone = const ResultService().seekerTone(
+      personallyFound: state.activeGame.playersFound,
+      totalFound: state.activeGame.playersFound,
+      totalHiders: totalHiders,
+    );
+    return switch (tone) {
+      ResultTone.mostNegative => 'Volgende ronde biedt nieuwe kansen, in shaa Allah.',
+      ResultTone.veryNegative => 'Blijf zoeken en verfijn je aanpak.',
+      ResultTone.negative => 'Je bijdrage telt; probeer volgende keer meer te vinden.',
+      ResultTone.neutral => 'Je hebt een nuttige bijdrage geleverd.',
+      ResultTone.positive => 'Mooi gezocht, je had een duidelijk aandeel in het resultaat.',
+      ResultTone.veryPositive => 'Sterk gezocht, je vond een groot deel van de verstoppers.',
+      ResultTone.mostPositive => 'Maa shaa Allah, jij vond alle gevonden verstoppers.',
+    };
+  }
+
   void _showSeekerResult(BuildContext context) {
+    final finalPoints = state.finalPointsAfterHints;
+    final hintPenalty = state.hintState.purchasedHints;
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -356,9 +377,13 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
               style: const TextStyle(fontSize: 25, fontWeight: FontWeight.w900),
             ),
             Text(
-              '${state.activeGame.playersFound} spelers gevonden • 840 punten',
+              '${state.activeGame.playersFound} verstoppers gevonden • '
+              '$finalPoints punten',
             ),
-            const Text('Rank: Beginner • 68% naar Avonturier'),
+            if (hintPenalty > 0)
+              Text('Hintcorrectie eindresultaat: -$hintPenalty punt(en)'),
+            const SizedBox(height: 8),
+            Text(_seekerFeedback(), textAlign: TextAlign.center),
             const SizedBox(height: 12),
             const SizedBox(height: 12),
             FilledButton(

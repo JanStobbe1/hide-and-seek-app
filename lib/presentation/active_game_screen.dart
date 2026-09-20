@@ -95,8 +95,8 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
                     onPressed: state.gameFinished
                         ? null
                         : () => _showHiderWarning(context),
-                    icon: const Icon(Icons.visibility_off),
-                    label: const Text('Bekijk hider-scenario'),
+                    icon: const Icon(Icons.warning_amber),
+                    label: const Text('Simuleer zoeker dichtbij'),
                   ),
                   TextButton(
                     onPressed: () => _showHiderResult(context),
@@ -274,48 +274,12 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
   }
 
   void _showHiderWarning(BuildContext context) {
-    final warning = state.activeGame.invisibilityAvailable
-        ? _invisibilityAvailableText
-        : _invisibilityUsedText;
-    final hiderValue = state.playerValue(PlayerRole.hider);
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        icon: const Icon(Icons.warning_amber, size: 44),
-        title: const Text('Let op!'),
-        content: Text(
-          'Zoeker ${state.displayName} zit binnen 5 meter van jou.\n\n'
-          'Omdat er ${state.activeGame.playersFound} spelers zijn gevonden '
-          'heb je ${hiderValue.toStringAsFixed(2).replaceAll('.', ',')} '
-          'punten spelwaarde.\n\n$warning',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Sluiten'),
-          ),
-          FilledButton(
-            onPressed: state.activeGame.invisibilityAvailable
-                ? () {
-                    state.useInvisibility();
-                    Navigator.pop(dialogContext);
-                    _notice(
-                      context,
-                      'Je bent tijdelijk onzichtbaar (simulatie).',
-                    );
-                  }
-                : null,
-            child: const Text('Onzichtbaar maken'),
-          ),
-        ],
-      ),
+    _notice(
+      context,
+      'Een zoeker is dichtbij. Blijf binnen het actieve zoekgebied.',
     );
   }
 
-  static const _invisibilityAvailableText =
-      'Je onzichtbaarheidskracht is nog beschikbaar.';
-  static const _invisibilityUsedText =
-      'Je onzichtbaarheidskracht is al gebruikt.';
 
   void _finish(BuildContext context) {
     state.finishGame();
@@ -323,6 +287,24 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
   }
 
   void _showHiderResult(BuildContext context) {
+    final elapsed = state.activeGame.elapsed;
+    final minutes = elapsed.inMinutes;
+    final found = state.activeGame.playersFound > 0;
+    final tone = const ResultService().hiderTone(
+      found: found,
+      foundAt: found ? elapsed : null,
+      total: state.activeGameDuration,
+      survivors: state.activeHiders,
+    );
+    final feedback = switch (tone) {
+      ResultTone.mostNegative => 'Je werd vroeg gevonden. Volgende ronde biedt een nieuwe kans.',
+      ResultTone.veryNegative => 'Je werd vrij vroeg gevonden.',
+      ResultTone.negative => 'Je hield het een deel van het spel vol.',
+      ResultTone.neutral => 'Je bleef een flink deel van het spel verborgen.',
+      ResultTone.positive => 'Sterk verstopt: je hield het lang vol.',
+      ResultTone.veryPositive => 'Maa shaa Allah, je bleef tot het einde verborgen.',
+      ResultTone.mostPositive => 'Maa shaa Allah, jij bent de enige overgebleven verstopper.',
+    };
     showModalBottomSheet<void>(
       context: context,
       builder: (sheetContext) => Padding(
@@ -330,16 +312,17 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.sentiment_dissatisfied, size: 58),
-            const Text(
-              'Helaas, je bent gevonden!',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
+            Icon(found ? Icons.sentiment_dissatisfied : Icons.celebration, size: 58),
+            Text(
+              found ? 'Je bent gevonden' : 'Je bent niet gevonden!',
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 10),
-            const Text('Overlevingstijd: 1 uur en 42 minuten'),
-            const Text('Ontvangen: 100 punten'),
-            const Text('Rank: Beginner • 54% naar Avonturier'),
+            Text('Overlevingstijd: $minutes minuten'),
+            Text('Puntensaldo: ${state.finalPointsAfterHints} punten'),
+            const SizedBox(height: 8),
+            Text(feedback, textAlign: TextAlign.center),
             const SizedBox(height: 16),
             FilledButton(
               onPressed: () => Navigator.pop(sheetContext),

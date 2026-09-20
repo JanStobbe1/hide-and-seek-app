@@ -20,6 +20,7 @@ class ActiveGameScreen extends StatefulWidget {
 
 class _ActiveGameScreenState extends State<ActiveGameScreen> {
   late final Timer _timer;
+  bool _resultScheduled = false;
 
   AppState get state => widget.state;
 
@@ -29,9 +30,19 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
     state.syncActiveGameClock();
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       state.syncActiveGameClock();
-      if (state.activeGame.countdown.isFinished) {
+      _scheduleAutomaticResultIfNeeded();
+      if (state.gameFinished) {
         _timer.cancel();
       }
+    });
+  }
+
+  void _scheduleAutomaticResultIfNeeded() {
+    if (_resultScheduled || !state.shouldAutoShowResult()) return;
+    _resultScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _showSeekerResult(context);
     });
   }
 
@@ -44,7 +55,9 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
   @override
   Widget build(BuildContext context) => ListenableBuilder(
         listenable: state,
-        builder: (context, _) => Scaffold(
+        builder: (context, _) {
+          _scheduleAutomaticResultIfNeeded();
+          return Scaffold(
           appBar: AppBar(
             title: const Text('Game X'),
             actions: const [
@@ -104,7 +117,8 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
               ),
             ),
           ),
-        ),
+        );
+        },
       );
 
   void _showPrivateQuestion(BuildContext context) {

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../app_state.dart';
 import '../config/app_theme.dart';
 import '../domain/profile_models.dart';
+import '../domain/friends.dart';
 import '../domain/profile_validation.dart';
 import 'widgets.dart';
 
@@ -84,7 +85,7 @@ class ProfileScreen extends StatelessWidget {
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => FriendsScreen(friends: state.friends),
+                builder: (_) => FriendsScreen(state: state),
               ),
             ),
           ),
@@ -271,20 +272,69 @@ class ProfileScreen extends StatelessWidget {
 }
 
 class FriendsScreen extends StatelessWidget {
-  const FriendsScreen({required this.friends, super.key});
+  const FriendsScreen({required this.state, super.key});
 
-  final List<FriendProfile> friends;
+  final AppState state;
+
+  List<FriendProfile> get friends => state.friends;
 
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(title: const Text('Vrienden')),
-        body: ListView.separated(
+        body: ListenableBuilder(
+          listenable: state,
+          builder: (context, _) => ListView(
           padding: const EdgeInsets.all(20),
-          itemCount: friends.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 12),
-          itemBuilder: (context, index) {
-            final friend = friends[index];
-            return Card(
+          children: [
+            if (state.incomingFriendRequests.isNotEmpty) ...[
+              const SectionTitle('Vriendschapsverzoeken'),
+              ...state.incomingFriendRequests.map(
+                (request) => Card(
+                  child: ListTile(
+                    leading: const Icon(Icons.person_add_alt_1),
+                    title: Text(request.sender),
+                    subtitle: const Text('Verzoek is maximaal 2 dagen geldig'),
+                    trailing: Wrap(
+                      children: [
+                        IconButton(
+                          tooltip: 'Weigeren',
+                          onPressed: () => state.respondToFriendRequest(
+                            request,
+                            accept: false,
+                          ),
+                          icon: const Icon(Icons.close),
+                        ),
+                        IconButton(
+                          tooltip: 'Blokkeren',
+                          onPressed: () => state.blockFriendRequest(request),
+                          icon: const Icon(Icons.block),
+                        ),
+                        IconButton(
+                          tooltip: 'Accepteren',
+                          onPressed: () => state.respondToFriendRequest(
+                            request,
+                            accept: true,
+                          ),
+                          icon: const Icon(Icons.check),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+            if (state.outgoingFriendRequests.isNotEmpty) ...[
+              const SectionTitle('Verzonden verzoeken'),
+              ...state.outgoingFriendRequests.map(
+                (request) => ListTile(
+                  leading: const Icon(Icons.schedule_send),
+                  title: Text(request.receiver),
+                  subtitle: const Text('In afwachting • niet intrekbaar'),
+                ),
+              ),
+            ],
+            const SectionTitle('Mijn vrienden'),
+            ...friends.map((friend) => Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Row(
@@ -295,28 +345,23 @@ class FriendsScreen extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            friend.name,
-                            style: const TextStyle(fontWeight: FontWeight.w800),
-                          ),
+                          Text(friend.name, style: const TextStyle(fontWeight: FontWeight.w800)),
                           Text(friend.city),
                           const SizedBox(height: 8),
-                          Text(
-                            '${friend.gamesPlayed} gespeeld • '
-                            '${friend.gamesWon} gewonnen • '
-                            '${friend.points} punten',
-                          ),
+                          Text('${friend.gamesPlayed} gespeeld • ${friend.gamesWon} gewonnen • ${friend.points} punten'),
                         ],
                       ),
                     ),
                   ],
                 ),
               ),
-            );
-          },
+            )),
+          ],
+        ),
         ),
       );
 }
+
 
 String _markerLabel(PlayerMarker marker) => switch (marker) {
       PlayerMarker.ghost => 'Spook',

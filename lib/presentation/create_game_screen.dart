@@ -387,13 +387,16 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
       );
 
   IntroductionRequest _introductionRequest() {
-    final selectedCity = multiLocation.cities.isNotEmpty
-        ? multiLocation.cities.join(', ')
-        : multiLocation.provinces.isNotEmpty
-        ? multiLocation.provinces.join(', ')
-        : multiLocation.countries.isNotEmpty
-        ? multiLocation.countries.join(', ')
-        : 'Nederland';
+    String selectedCity = 'Nederland';
+    if (multiLocation.countries.isNotEmpty) {
+      selectedCity = multiLocation.countries.join(', ');
+    }
+    if (multiLocation.provinces.isNotEmpty) {
+      selectedCity = multiLocation.provinces.join(', ');
+    }
+    if (multiLocation.cities.isNotEmpty) {
+      selectedCity = multiLocation.cities.join(', ');
+    }
     return IntroductionRequest(
       gameName: name.text.trim().isEmpty ? 'dit spel' : name.text.trim(),
       region: selectedCity,

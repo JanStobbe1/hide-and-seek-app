@@ -6,6 +6,7 @@ import 'domain/game_engine.dart';
 import 'domain/models.dart';
 import 'domain/player_value_rules.dart';
 import 'domain/profile_models.dart';
+import 'domain/scoring.dart';
 
 class AppState extends ChangeNotifier {
   AppState({
@@ -16,12 +17,15 @@ class AppState extends ChangeNotifier {
       countdown: GameCountdown.start(activeGameDuration),
     );
     _lastGameClockUpdate = DateTime.now();
+    _resetFindingState();
   }
   final MockGameRepository repository;
   final Duration activeGameDuration;
   late ActiveGameState activeGame;
   late DateTime _lastGameClockUpdate;
   bool gameFinished = false;
+  late FindingState findingState;
+  int _findingEventSequence = 0;
   int gamesPlayed = 5;
   int wins = 3;
   int points = 840;
@@ -71,9 +75,44 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void foundPlayer() {
+  bool foundPlayer() {
+    final hider = findingState.players.values
+        .where((player) => player.role == PlayerRole.hider && player.active)
+        .firstOrNull;
+    if (hider == null || activeGame.status != GameStatus.active) return false;
+    final registered = const FindingService().register(
+      state: findingState,
+      eventId: 'find-${_findingEventSequence++}',
+      finderId: 'me',
+      hiderId: hider.id,
+    );
+    if (!registered) return false;
     activeGame = activeGame.playerFound();
+    points = findingState.players['me']!.points;
     notifyListeners();
+    return true;
+  }
+
+  int get activeHiders => findingState.players.values
+      .where((player) => player.role == PlayerRole.hider && player.active)
+      .length;
+
+  int get activeSeekers => findingState.players.values
+      .where((player) => player.role == PlayerRole.seeker && player.active)
+      .length;
+
+  void _resetFindingState() {
+    findingState = FindingState([
+      ScoringPlayer(id: 'me', role: PlayerRole.seeker, points: points),
+      const ScoringPlayer(id: 'seeker-2', role: PlayerRole.seeker, points: 0),
+      for (var i = 0; i < 15; i++)
+        ScoringPlayer(
+          id: 'hider-$i',
+          role: PlayerRole.hider,
+          points: 50 + i * 2,
+        ),
+    ]);
+    _findingEventSequence = 0;
   }
 
   void useInvisibility() {
@@ -151,6 +190,7 @@ class AppState extends ChangeNotifier {
     gamesPlayed = 5;
     wins = 3;
     points = 840;
+    _resetFindingState();
     displayName = 'Arie';
     profileAvatar = 'A';
     themePreference = ThemePreference.forest;

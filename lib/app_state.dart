@@ -426,6 +426,8 @@ class AppState extends ChangeNotifier {
   void reset() {
     repository.reset();
     activeGame = ActiveGameState(
+      playersFound: 0,
+      totalPlayers: 15,
       countdown: GameCountdown.start(activeGameDuration),
     );
     _lastGameClockUpdate = DateTime.now();

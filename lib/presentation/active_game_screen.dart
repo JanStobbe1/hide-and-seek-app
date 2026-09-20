@@ -392,7 +392,6 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
             const SizedBox(height: 8),
             Text(_seekerFeedback(), textAlign: TextAlign.center),
             const SizedBox(height: 12),
-            const SizedBox(height: 12),
             FilledButton(
               onPressed: () => Navigator.pop(sheetContext),
               child: const Text('Terug naar het spel'),
@@ -433,7 +432,6 @@ class _CountdownCard extends StatelessWidget {
     final remaining = state.activeGame.countdown.remaining;
     final hours = remaining.inHours;
     final minutes = remaining.inMinutes.remainder(60);
-    final seconds = remaining.inSeconds.remainder(60);
     final value = state.playerValue(PlayerRole.seeker);
     return Container(
       padding: const EdgeInsets.all(20),
@@ -453,9 +451,8 @@ class _CountdownCard extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             '${hours.toString().padLeft(2, '0')}:'
-            '${minutes.toString().padLeft(2, '0')}:'
-            '${seconds.toString().padLeft(2, '0')}',
-            semanticsLabel: '$hours uur, $minutes minuten en $seconds seconden',
+            '${minutes.toString().padLeft(2, '0')}',
+            semanticsLabel: '$hours uur en $minutes minuten',
             style: const TextStyle(
               color: Colors.white,
               fontSize: 34,
@@ -464,8 +461,8 @@ class _CountdownCard extends StatelessWidget {
           ),
           const Divider(color: Colors.white24, height: 28),
           Text(
-            '${state.activeGame.playersFound} verstoppers gevonden • '
-            '${state.activeHiders} nog actief',
+            'Jij vond ${state.activeGame.playersFound} • '
+            '${state.activeHiders} verstoppers nog actief',
             style: const TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.w900,

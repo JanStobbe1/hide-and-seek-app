@@ -8,6 +8,7 @@ import 'domain/hints.dart';
 import 'domain/models.dart';
 import 'domain/player_value_rules.dart';
 import 'domain/private_questions.dart';
+import 'domain/profile_validation.dart';
 import 'domain/profile_models.dart';
 import 'domain/scoring.dart';
 import 'domain/seeker_decay.dart';
@@ -288,11 +289,12 @@ class AppState extends ChangeNotifier {
     );
   }
 
-  void setDisplayName(String value) {
-    final trimmed = value.trim();
-    if (trimmed.isEmpty) return;
-    displayName = trimmed;
+  ProfileNameValidation setDisplayName(String value) {
+    final validation = const ProfileNameValidator().validate(value);
+    if (!validation.isValid) return validation;
+    displayName = value.trim();
     notifyListeners();
+    return validation;
   }
 
   void setProfileAvatar(String value) {

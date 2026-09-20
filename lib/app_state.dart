@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'data/mock_game_repository.dart';
 import 'domain/countdown.dart';
 import 'domain/game_engine.dart';
+import 'domain/hints.dart';
 import 'domain/models.dart';
 import 'domain/player_value_rules.dart';
 import 'domain/profile_models.dart';
@@ -19,6 +20,7 @@ class AppState extends ChangeNotifier {
     );
     _lastGameClockUpdate = DateTime.now();
     _resetFindingState();
+    _resetHintState();
   }
   final MockGameRepository repository;
   final Duration activeGameDuration;
@@ -26,6 +28,7 @@ class AppState extends ChangeNotifier {
   late DateTime _lastGameClockUpdate;
   bool gameFinished = false;
   late FindingState findingState;
+  late HintState hintState;
   int _findingEventSequence = 0;
   int gamesPlayed = 5;
   int wins = 3;
@@ -101,6 +104,31 @@ class AppState extends ChangeNotifier {
   int get activeSeekers => findingState.players.values
       .where((player) => player.role == PlayerRole.seeker && player.active)
       .length;
+
+  HintUseResult useHint({DateTime? now, bool zoneLargeEnough = true}) {
+    final elapsed = activeGame.elapsed;
+    final totalMicros = activeGameDuration.inMicroseconds;
+    final quarter = totalMicros == 0
+        ? 3
+        : ((elapsed.inMicroseconds * 4) ~/ totalMicros).clamp(0, 3);
+    final result = const HintService().use(
+      state: hintState,
+      now: now ?? DateTime.now(),
+      quarter: quarter,
+      zoneLargeEnough: zoneLargeEnough,
+    );
+    if (result.started) {
+      points = result.points;
+      notifyListeners();
+    }
+    return result;
+  }
+
+  int get finalPointsAfterHints => const HintService().finalPoints(hintState);
+
+  void _resetHintState() {
+    hintState = HintState(points: points);
+  }
 
   void _resetFindingState() {
     findingState = FindingState([
@@ -202,6 +230,7 @@ class AppState extends ChangeNotifier {
     wins = 3;
     points = 840;
     _resetFindingState();
+    _resetHintState();
     displayName = 'Arie';
     profileAvatar = 'A';
     themePreference = ThemePreference.forest;

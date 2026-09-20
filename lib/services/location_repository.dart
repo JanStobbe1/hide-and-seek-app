@@ -2,8 +2,15 @@ abstract interface class LocationRepository {
   List<String> get countries;
   List<String> provincesFor(String country);
   List<String> citiesFor(String country, String province);
+  bool containsCity(String country, String province, String city);
   List<String> citiesForProvinces(String country, Iterable<String> provinces);
   List<String> neighbourhoodsFor(String country, String province, String city);
+  bool containsNeighbourhood(
+    String country,
+    String province,
+    String city,
+    String neighbourhood,
+  );
 }
 
 typedef _ProvinceLocations = Map<String, Map<String, List<String>>>;
@@ -74,10 +81,24 @@ class DemoLocationRepository implements LocationRepository {
       city == 'Alle' || (_locations[country]?[province]?.containsKey(city) ?? false);
 
   @override
+  bool containsCity(String country, String province, String city) =>
+      city == 'Alle' || (_locations[country]?[province]?.containsKey(city) ?? false);
+
+  @override
   List<String> neighbourhoodsFor(String country, String province, String city) {
     if (province == 'Alle' || city == 'Alle') return const ['Alle'];
     return _withAll(_locations[country]?[province]?[city]);
   }
+
+  @override
+  bool containsNeighbourhood(
+    String country,
+    String province,
+    String city,
+    String neighbourhood,
+  ) =>
+      neighbourhood == 'Alle' ||
+      (_locations[country]?[province]?[city]?.contains(neighbourhood) ?? false);
 
   static List<String> _withAll(Iterable<String>? values) {
     return ['Alle', ...?values];

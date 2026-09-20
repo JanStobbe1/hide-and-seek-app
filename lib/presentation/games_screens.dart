@@ -228,7 +228,15 @@ class GameDetailScreen extends StatelessWidget {
                 onPressed: joined
                     ? null
                     : () {
-                        state.join(game.id);
+                        final reason = state.joinBlockReason(game.id);
+                        if (reason != null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(reason)),
+                          );
+                          return;
+                        }
+                        final joinedNow = state.join(game.id);
+                        if (!joinedNow) return;
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text(
@@ -240,7 +248,7 @@ class GameDetailScreen extends StatelessWidget {
                         Navigator.pop(context);
                       },
                 icon: Icon(joined ? Icons.check : Icons.sports_kabaddi),
-                label: Text(joined ? 'Je doet al mee' : 'Doe mee (simulatie)'),
+                label: Text(joined ? 'Je doet al mee' : 'Doe mee'),
               ),
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 12),

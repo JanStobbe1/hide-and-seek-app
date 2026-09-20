@@ -19,6 +19,8 @@ class AppState extends ChangeNotifier {
     this.activeGameDuration = const Duration(minutes: 30),
   }) : repository = repository ?? MockGameRepository() {
     activeGame = ActiveGameState(
+      playersFound: 0,
+      totalPlayers: 15,
       countdown: GameCountdown.start(activeGameDuration),
     );
     _lastGameClockUpdate = DateTime.now();
@@ -132,6 +134,10 @@ class AppState extends ChangeNotifier {
     );
     if (!registered) return false;
     activeGame = activeGame.playerFound();
+    assert(
+      activeGame.playersFound == foundHiders,
+      'Active-game and scoring hider counts must stay in sync.',
+    );
     points = findingState.players['me']!.points;
     hintState.points = points;
     _evaluateGameEnd();
@@ -142,6 +148,12 @@ class AppState extends ChangeNotifier {
   int get activeHiders => findingState.players.values
       .where((player) => player.role == PlayerRole.hider && player.active)
       .length;
+
+  int get totalHiders => findingState.players.values
+      .where((player) => player.role == PlayerRole.hider)
+      .length;
+
+  int get foundHiders => totalHiders - activeHiders;
 
   int get activeSeekers => findingState.players.values
       .where((player) => player.role == PlayerRole.seeker && player.active)

@@ -390,10 +390,10 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
     final selectedCity = multiLocation.cities.isNotEmpty
         ? multiLocation.cities.join(', ')
         : multiLocation.provinces.isNotEmpty
-            ? multiLocation.provinces.join(', ')
-            : multiLocation.countries.isNotEmpty
-                ? multiLocation.countries.join(', ')
-                : 'Nederland';
+        ? multiLocation.provinces.join(', ')
+        : multiLocation.countries.isNotEmpty
+        ? multiLocation.countries.join(', ')
+        : 'Nederland';
     return IntroductionRequest(
       gameName: name.text.trim().isEmpty ? 'dit spel' : name.text.trim(),
       region: selectedCity,

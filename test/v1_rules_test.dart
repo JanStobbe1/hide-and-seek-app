@@ -295,6 +295,9 @@ void main() {
     expect(v.validate('JAN').valid, isFalse);
     expect(v.validate('Jan123').valid, isTrue);
     expect(v.validate('fuck').message, ProfileNameValidator.offensiveMessage);
+    expect(v.validate('Jan de fuck').valid, isFalse);
+    expect(v.validate('Fuckerby').valid, isTrue);
+    expect(v.validate('شرموطة').valid, isFalse);
     const privacy = PrivacyService();
     final payload = privacy.payload(
       const ParticipantView(name: 'Jan', rank: '1', age: 30, photo: 'x'),
@@ -318,6 +321,11 @@ void main() {
       friends.choose(from: 'b', to: 'a', now: now),
       FriendDecision.friends,
     );
+    final rejected = FriendRequest(sender: 'r', receiver: 's', createdAt: now);
+    expect(friends.reject(rejected), FriendDecision.rejected);
+    expect(friends.canWithdraw(rejected), isFalse);
+    final blocked = FriendRequest(sender: 'm', receiver: 'n', createdAt: now);
+    expect(friends.block(blocked), FriendDecision.blocked);
     final old = FriendRequest(sender: 'x', receiver: 'y', createdAt: now);
     expect(
       friends.accept(old, now.add(const Duration(days: 2, seconds: 1))),

@@ -22,9 +22,8 @@ void main() {
       throwsArgumentError,
     );
     expect(
-      () =>
-          GameCountdown.start(const Duration(seconds: 3))
-              .tick(const Duration(seconds: -1)),
+      () => GameCountdown.start(const Duration(seconds: 3))
+          .tick(const Duration(seconds: -1)),
       throwsArgumentError,
     );
   });

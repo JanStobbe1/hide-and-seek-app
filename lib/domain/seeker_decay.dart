@@ -32,11 +32,9 @@ class SeekerDecay {
     var loss = 0.0;
     for (var quarter = 0; quarter < 4; quarter++) {
       final start = quarter * quarterMicros;
-      final minutes =
-          ((cappedMicros - start).clamp(0, quarterMicros)) /
+      final minutes = ((cappedMicros - start).clamp(0, quarterMicros)) /
           Duration.microsecondsPerMinute;
-      loss +=
-          minutes *
+      loss += minutes *
           ratePerMinute(
             startValue: startValue,
             gameDuration: gameDuration,

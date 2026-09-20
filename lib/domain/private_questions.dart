@@ -76,8 +76,7 @@ class PerfectQuestionBonus {
     if (_awarded.contains(playerId) ||
         results.keys.toSet().difference(expectedSubjects).isNotEmpty ||
         results.length != expectedSubjects.length ||
-        results.values.any((v) => v != 5))
-      return 0;
+        results.values.any((v) => v != 5)) return 0;
     _awarded.add(playerId);
     return 500;
   }

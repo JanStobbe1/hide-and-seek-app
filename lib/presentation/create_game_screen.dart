@@ -552,7 +552,7 @@ class _AreaField extends StatelessWidget {
       );
 }
 
-class _MultiLocationPicker extends StatelessWidget {
+class _MultiLocationPicker extends StatefulWidget {
   const _MultiLocationPicker({
     required this.label,
     required this.selected,
@@ -568,28 +568,57 @@ class _MultiLocationPicker extends StatelessWidget {
   final bool enabled;
 
   @override
-  Widget build(BuildContext context) => Padding(
+  State<_MultiLocationPicker> createState() => _MultiLocationPickerState();
+}
+
+class _MultiLocationPickerState extends State<_MultiLocationPicker> {
+  String query = '';
+
+  @override
+  Widget build(BuildContext context) {
+    final filtered = filterLocationOptions(widget.options, query).toList();
+    return Padding(
         padding: const EdgeInsets.only(bottom: 12),
         child: InputDecorator(
           decoration: InputDecoration(
-            labelText: label,
+            labelText: widget.label,
             floatingLabelBehavior: FloatingLabelBehavior.always,
-            enabled: enabled,
+            enabled: widget.enabled,
           ),
-          child: Wrap(
-            spacing: 8,
-            runSpacing: 6,
+          child: Column(
             children: [
-              for (final option in options)
-                FilterChip(
-                  label: Text(option),
-                  selected: selected.contains(option),
-                  onSelected: enabled ? (_) => onToggle(option) : null,
+              TextField(
+                enabled: widget.enabled,
+                onChanged: (value) => setState(() => query = value),
+                decoration: const InputDecoration(
+                  hintText: 'Zoek binnen deze opties',
+                  prefixIcon: Icon(Icons.search),
+                  isDense: true,
                 ),
+              ),
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 6,
+                  children: [
+                    for (final option in filtered)
+                      FilterChip(
+                        label: Text(option),
+                        selected: widget.selected.contains(option),
+                        onSelected: widget.enabled
+                            ? (_) => widget.onToggle(option)
+                            : null,
+                      ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
       );
+  }
 }
 
 class _LocationAutocomplete extends StatelessWidget {

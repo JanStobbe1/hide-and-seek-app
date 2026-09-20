@@ -131,7 +131,14 @@ class LocationSelection {
     );
   }
 
-  LocationSelection selectCity(String? value) {
+  LocationSelection selectCity(String? value, {LocationRepository? repository}) {
+    if (value != null &&
+        repository != null &&
+        country != null &&
+        province != null &&
+        !repository.containsCity(country!, province!, value)) {
+      return LocationSelection(country: country, province: province);
+    }
     return LocationSelection(
       country: country,
       province: province,
@@ -140,7 +147,23 @@ class LocationSelection {
     );
   }
 
-  LocationSelection selectNeighbourhood(String? value) {
+  LocationSelection selectNeighbourhood(
+    String? value, {
+    LocationRepository? repository,
+  }) {
+    if (value != null &&
+        repository != null &&
+        country != null &&
+        province != null &&
+        city != null &&
+        !repository.containsNeighbourhood(
+          country!,
+          province!,
+          city!,
+          value,
+        )) {
+      return LocationSelection(country: country, province: province, city: city);
+    }
     return LocationSelection(
       country: country,
       province: province,

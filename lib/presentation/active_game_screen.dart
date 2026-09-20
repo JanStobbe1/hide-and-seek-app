@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../app_state.dart';
+import '../domain/hints.dart';
 import '../domain/models.dart';
 import 'widgets.dart';
 
@@ -61,7 +62,10 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
                   MapPlaceholder(playerMarker: state.playerMarker),
                   const SectionTitle('Jouw acties'),
                   _GameActions(
-                      onNotice: (message) => _notice(context, message)),
+                    state: state,
+                    onHint: () => _useHint(context),
+                    onNotice: (message) => _notice(context, message),
+                  ),
                   const SizedBox(height: 18),
                   FilledButton.icon(
                     onPressed: state.gameFinished
@@ -99,6 +103,27 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
           ),
         ),
       );
+
+  void _useHint(BuildContext context) {
+    final result = state.useHint();
+    if (result.started) {
+      final kind = result.purchasedHints == 0 ? 'gratis hint' : 'gekochte hint';
+      _notice(
+        context,
+        'Je $kind is gestart. De hintcirkel blijft 1 minuut zichtbaar '
+        'en begint na 30 seconden te krimpen. Puntensaldo: ${result.points}.',
+      );
+      return;
+    }
+    final message = switch (result.reason) {
+      HintBlockReason.cooldown => 'Wacht 10 minuten voordat je weer een hint gebruikt.',
+      HintBlockReason.insufficientPoints => 'Je hebt niet genoeg punten voor deze hint.',
+      HintBlockReason.finalQuarter => 'Hints zijn niet beschikbaar in het laatste kwart.',
+      HintBlockReason.zoneTooSmall => 'Het zoekgebied is te klein voor een bruikbare hint.',
+      null => 'Deze hint kan nu niet worden gebruikt.',
+    };
+    _notice(context, message);
+  }
 
   void _notice(BuildContext context, String text) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
@@ -364,8 +389,14 @@ class _CountdownCard extends StatelessWidget {
 }
 
 class _GameActions extends StatelessWidget {
-  const _GameActions({required this.onNotice});
+  const _GameActions({
+    required this.state,
+    required this.onHint,
+    required this.onNotice,
+  });
 
+  final AppState state;
+  final VoidCallback onHint;
   final ValueChanged<String> onNotice;
 
   @override
@@ -380,10 +411,12 @@ class _GameActions extends StatelessWidget {
           ),
           ActionChip(
             avatar: const Icon(Icons.lightbulb),
-            label: const Text('Koop hint (demo)'),
-            onPressed: () => onNotice(
-              'Hint ontgrendeld: kijk bij de grote eik. Geen echte betaling.',
+            label: Text(
+              state.hintState.freeAvailable
+                  ? 'Gebruik gratis hint'
+                  : 'Hint: ${5} punten + kwartaaltoeslag',
             ),
+            onPressed: onHint,
           ),
           ActionChip(
             avatar: const Icon(Icons.quiz),

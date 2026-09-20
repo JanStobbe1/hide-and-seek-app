@@ -386,7 +386,8 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
   void _sourcesChanged() {
     final request = _introductionRequest();
     introductionDraft.sourcesChanged(request);
-    if (introductionDraft.origin == IntroductionOrigin.empty && intro.text.isNotEmpty) {
+    if (introductionDraft.origin == IntroductionOrigin.empty &&
+        intro.text.isNotEmpty) {
       intro.clear();
     }
   }

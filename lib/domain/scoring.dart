@@ -45,7 +45,9 @@ class FindingService {
         !finder.active ||
         !hider.active ||
         finder.role != PlayerRole.seeker ||
-        hider.role != PlayerRole.hider) return false;
+        hider.role != PlayerRole.hider) {
+      return false;
+    }
     state.processedEvents.add(eventId);
     final value = hider.points;
     for (final entry in state.players.entries.toList()) {

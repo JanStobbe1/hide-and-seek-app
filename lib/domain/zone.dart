@@ -37,8 +37,9 @@ class ZoneService {
         radius: current.radius * math.sqrt(config.shrinkAreaFactor),
       );
   CircleZone requireContained(CircleZone current, CircleZone proposed) {
-    if (!current.containsZone(proposed))
+    if (!current.containsZone(proposed)) {
       throw ArgumentError('New zone must be fully contained.');
+    }
     return proposed;
   }
 }
@@ -58,8 +59,9 @@ class ZoneGpsService {
     required double metersPerSecond,
     required Duration gameDuration,
   }) {
-    if (distanceMeters < 0 || metersPerSecond <= 0)
+    if (distanceMeters < 0 || metersPerSecond <= 0) {
       throw ArgumentError('Invalid travel parameters.');
+    }
     final estimate = Duration(
       milliseconds:
           (distanceMeters / metersPerSecond * config.travelSafetyFactor * 1000)
@@ -94,8 +96,9 @@ class ZoneGpsService {
     if (state.outsideMeasurements >= config.confirmationMeasurements) {
       state.confirmedOutside = true;
       state.countdownStartedAt ??= now;
-      if (now.difference(state.countdownStartedAt!) > allowance)
+      if (now.difference(state.countdownStartedAt!) > allowance) {
         state.eliminated = true;
+      }
     }
   }
 }

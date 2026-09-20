@@ -19,20 +19,25 @@ class ProfileNameValidator {
   };
   NameValidationResult validate(String input) {
     final value = input.trim();
-    if (value.isEmpty)
+    if (value.isEmpty) {
       return const NameValidationResult(false, 'Vul een naam in.');
-    if (value.runes.length > 30)
+    }
+    if (value.runes.length > 30) {
       return const NameValidationResult(false, 'Gebruik maximaal 30 tekens.');
-    if (!RegExp(r'[\p{L}]', unicode: true).hasMatch(value))
+    }
+    if (!RegExp(r'[\p{L}]', unicode: true).hasMatch(value)) {
       return const NameValidationResult(false, 'Gebruik letters in je naam.');
-    if (value == value.toUpperCase() && value != value.toLowerCase())
+    }
+    if (value == value.toUpperCase() && value != value.toLowerCase()) {
       return const NameValidationResult(
         false,
         'Gebruik niet uitsluitend hoofdletters.',
       );
+    }
     final normalized = value.toLowerCase();
-    if (_blocked.any((word) => normalized.contains(word)))
+    if (_blocked.any((word) => normalized.contains(word))) {
       return const NameValidationResult(false, offensiveMessage);
+    }
     return const NameValidationResult(true);
   }
 }

@@ -148,7 +148,7 @@ class _ActiveGameCard extends StatelessWidget {
               const SizedBox(width: 10),
               StatPill(
                 icon: Icons.stars,
-                value: '${playerValue} punten',
+                value: '$playerValue punten',
                 label: 'demo-waarde',
               ),
             ],

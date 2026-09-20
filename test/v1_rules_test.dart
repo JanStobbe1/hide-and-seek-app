@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:verstobbertje/config/game_config.dart';
 import 'package:verstobbertje/domain/friends.dart';
 import 'package:verstobbertje/domain/game_lifecycle.dart';
 import 'package:verstobbertje/domain/hints.dart';
@@ -37,8 +36,8 @@ void main() {
     test('all three end conditions', () {
       for (final args in [
         (Duration.zero, 1, 1),
-        (Duration(minutes: 1), 0, 1),
-        (Duration(minutes: 1), 1, 0),
+        (const Duration(minutes: 1), 0, 1),
+        (const Duration(minutes: 1), 1, 0),
       ]) {
         expect(
           life.statusFor(
@@ -66,8 +65,9 @@ void main() {
           d.ratePerMinute(startValue: 50, gameDuration: duration, quarter: q),
       ];
       expect(rates[0], closeTo(.4102564103, 1e-9));
-      for (var q = 1; q < 4; q++)
+      for (var q = 1; q < 4; q++) {
         expect(rates[q], closeTo(rates[q - 1] * 1.5, 1e-12));
+      }
       expect(
         d.valueAt(startValue: 50, gameDuration: duration, elapsed: duration),
         closeTo(0, 1e-10),

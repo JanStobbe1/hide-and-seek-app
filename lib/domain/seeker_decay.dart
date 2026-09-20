@@ -11,8 +11,9 @@ class SeekerDecay {
     required int quarter,
   }) {
     _validate(startValue, gameDuration);
-    if (quarter < 0 || quarter > 3)
+    if (quarter < 0 || quarter > 3) {
       throw RangeError.range(quarter, 0, 3, 'quarter');
+    }
     final quarterMinutes =
         gameDuration.inMicroseconds / Duration.microsecondsPerMinute / 4;
     return startValue / (quarterMinutes * factorSum) * factors[quarter];
@@ -45,9 +46,10 @@ class SeekerDecay {
   }
 
   void _validate(double startValue, Duration duration) {
-    if (startValue < 0 || duration <= Duration.zero)
+    if (startValue < 0 || duration <= Duration.zero) {
       throw ArgumentError(
         'Start value must be non-negative and duration positive.',
       );
+    }
   }
 }

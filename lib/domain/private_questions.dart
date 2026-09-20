@@ -32,14 +32,16 @@ class PrivateQuestionService {
     QuestionAttempt? attempt,
   }) {
     if (playerId == subjectId) return QuestionMarkerStatus.own;
-    if (!privateGame || !enabled || !inRange)
+    if (!privateGame || !enabled || !inRange) {
       return QuestionMarkerStatus.unavailable;
+    }
     return attempt?.status ?? QuestionMarkerStatus.available;
   }
 
   void start(QuestionAttempt attempt) {
-    if (attempt.status == QuestionMarkerStatus.available)
+    if (attempt.status == QuestionMarkerStatus.available) {
       attempt.status = QuestionMarkerStatus.active;
+    }
   }
 
   void updateRange(
@@ -53,8 +55,9 @@ class PrivateQuestionService {
       return;
     }
     attempt.leftRangeAt ??= now;
-    if (now.difference(attempt.leftRangeAt!) > config.questionReturnGrace)
+    if (now.difference(attempt.leftRangeAt!) > config.questionReturnGrace) {
       attempt.status = QuestionMarkerStatus.failed;
+    }
   }
 
   int complete(QuestionAttempt attempt, int correct) {
@@ -76,7 +79,9 @@ class PerfectQuestionBonus {
     if (_awarded.contains(playerId) ||
         results.keys.toSet().difference(expectedSubjects).isNotEmpty ||
         results.length != expectedSubjects.length ||
-        results.values.any((v) => v != 5)) return 0;
+        results.values.any((v) => v != 5)) {
+      return 0;
+    }
     _awarded.add(playerId);
     return 500;
   }

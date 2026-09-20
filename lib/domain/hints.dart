@@ -45,19 +45,21 @@ class HintService {
   }) {
     HintBlockReason? block;
     if (state.lastUsed != null &&
-        now.difference(state.lastUsed!) < config.hintCooldown)
+        now.difference(state.lastUsed!) < config.hintCooldown) {
       block = HintBlockReason.cooldown;
+    }
     if (quarter >= 3) block ??= HintBlockReason.finalQuarter;
     if (!zoneLargeEnough) block ??= HintBlockReason.zoneTooSmall;
     final cost = state.freeAvailable ? 0 : config.hintCost(quarter);
     if (state.points < cost) block ??= HintBlockReason.insufficientPoints;
-    if (block != null)
+    if (block != null) {
       return HintUseResult(
         started: false,
         points: state.points,
         purchasedHints: state.purchasedHints,
         reason: block,
       );
+    }
     state.points -= cost;
     state.lastUsed = now;
     if (state.freeAvailable) {

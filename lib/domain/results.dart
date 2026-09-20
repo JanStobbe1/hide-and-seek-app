@@ -1,5 +1,3 @@
-import 'models.dart';
-
 enum ResultTone {
   mostNegative,
   veryNegative,
@@ -20,10 +18,11 @@ class ResultService {
     required int totalHiders,
   }) {
     if (totalFound == 0) return ResultTone.mostNegative;
-    if (!seekersWon(found: totalFound, total: totalHiders))
+    if (!seekersWon(found: totalFound, total: totalHiders)) {
       return personallyFound / totalFound < .1
           ? ResultTone.veryNegative
           : ResultTone.negative;
+    }
     final share = personallyFound / totalFound;
     if (share >= 1) return ResultTone.mostPositive;
     if (share >= .5) return ResultTone.veryPositive;
@@ -37,8 +36,9 @@ class ResultService {
     required Duration total,
     required int survivors,
   }) {
-    if (!found)
+    if (!found) {
       return survivors == 1 ? ResultTone.mostPositive : ResultTone.veryPositive;
+    }
     final ratio = foundAt!.inMicroseconds / total.inMicroseconds;
     if (ratio >= .75) return ResultTone.positive;
     if (ratio < .25) return ResultTone.mostNegative;

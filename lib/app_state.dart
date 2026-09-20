@@ -75,9 +75,26 @@ class AppState extends ChangeNotifier {
     'Meld deelname aan eerdere vrienden': true,
   };
 
-  void join(String id) {
+  bool join(String id, {DateTime? now}) {
+    final game = repository.availableGames
+        .where((candidate) => candidate.id == id)
+        .firstOrNull;
+    if (game == null) return false;
+
+    final start = game.scheduledStart;
+    if (start != null &&
+        !const GameLifecycle().canJoin(
+          startedAt: start,
+          now: now ?? DateTime.now(),
+        )) {
+      return false;
+    }
+    if (game.participants >= game.maxParticipants) return false;
+
     repository.join(id);
-    notifyListeners();
+    final joined = repository.joinedGames.any((candidate) => candidate.id == id);
+    if (joined) notifyListeners();
+    return joined;
   }
 
   void publish(Game game) {

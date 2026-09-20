@@ -7,7 +7,6 @@ import 'domain/game_lifecycle.dart';
 import 'domain/friends.dart';
 import 'domain/hints.dart';
 import 'domain/models.dart';
-import 'domain/player_value_rules.dart';
 import 'domain/private_questions.dart';
 import 'domain/profile_validation.dart';
 import 'domain/profile_models.dart';
@@ -24,6 +23,7 @@ class AppState extends ChangeNotifier {
     );
     _lastGameClockUpdate = DateTime.now();
     _resetFindingState();
+    seekerStartValue = points.toDouble();
     _resetHintState();
   }
   final MockGameRepository repository;
@@ -37,6 +37,10 @@ class AppState extends ChangeNotifier {
   late FindingState findingState;
   late HintState hintState;
   int _findingEventSequence = 0;
+  PlayerRole activeRole = PlayerRole.seeker;
+  bool currentHiderFound = false;
+  Duration? currentHiderFoundAt;
+  late double seekerStartValue;
   final Map<String, QuestionAttempt> questionAttempts = {};
   final Map<String, int> questionResults = {};
   int gamesPlayed = 5;
@@ -279,18 +283,27 @@ class AppState extends ChangeNotifier {
 
   double playerValue(PlayerRole role) {
     if (role == PlayerRole.seeker) {
-      final startValue = findingState.players['me']?.points.toDouble() ?? 0;
       return const SeekerDecay().valueAt(
-        startValue: startValue,
+        startValue: seekerStartValue,
         gameDuration: activeGameDuration,
         elapsed: activeGame.elapsed,
       );
     }
-    return DemoPlayerValueRules.calculate(
-      role: role,
-      elapsed: activeGame.elapsed,
-      playersFound: activeGame.playersFound,
-    );
+    return findingState.players['me']?.points.toDouble() ?? points.toDouble();
+  }
+
+  void setActiveRole(PlayerRole role) {
+    activeRole = role;
+    currentHiderFound = false;
+    currentHiderFoundAt = null;
+    notifyListeners();
+  }
+
+  void markCurrentHiderFound() {
+    if (activeRole != PlayerRole.hider || currentHiderFound) return;
+    currentHiderFound = true;
+    currentHiderFoundAt = activeGame.elapsed;
+    notifyListeners();
   }
 
   NameValidationResult setDisplayName(String value) {
@@ -405,10 +418,14 @@ class AppState extends ChangeNotifier {
     );
     _lastGameClockUpdate = DateTime.now();
     gameFinished = false;
+    activeRole = PlayerRole.seeker;
+    currentHiderFound = false;
+    currentHiderFoundAt = null;
     gamesPlayed = 5;
     wins = 3;
     points = 840;
     _resetFindingState();
+    seekerStartValue = points.toDouble();
     _resetHintState();
     displayName = 'Arie';
     profileAvatar = 'A';

@@ -334,6 +334,27 @@ class FriendsScreen extends StatelessWidget {
                 ),
               ],
               const SectionTitle('Mijn vrienden'),
+              ...state.friendshipPlayerIds
+                  .where(
+                    (playerId) =>
+                        !friends.any((friend) =>
+                            friend.name.toLowerCase() ==
+                            playerId.toLowerCase()),
+                  )
+                  .map(
+                    (playerId) => Card(
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          child: Text(playerId.characters.first.toUpperCase()),
+                        ),
+                        title: Text(playerId),
+                        subtitle: const Text(
+                          'Vriend geworden via een spel • '
+                          'verdere profielstatistieken zijn privé',
+                        ),
+                      ),
+                    ),
+                  ),
               ...friends.map((friend) => Card(
                     child: Padding(
                       padding: const EdgeInsets.all(16),

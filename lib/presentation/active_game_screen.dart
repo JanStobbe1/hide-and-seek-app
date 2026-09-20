@@ -632,8 +632,8 @@ class _HintCircle extends StatelessWidget {
       child: Center(
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 300),
-          width: 220 * scale,
-          height: 220 * scale,
+          width: 220.0 * scale,
+          height: 220.0 * scale,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.55),

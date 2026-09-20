@@ -452,8 +452,7 @@ class _CountdownCard extends StatelessWidget {
           Text(
             '${hours.toString().padLeft(2, '0')}:'
             '${minutes.toString().padLeft(2, '0')}',
-            semanticsLabel:
-                '$hours uur en $minutes minuten',
+            semanticsLabel: '$hours uur en $minutes minuten',
             style: const TextStyle(
               color: Colors.white,
               fontSize: 34,

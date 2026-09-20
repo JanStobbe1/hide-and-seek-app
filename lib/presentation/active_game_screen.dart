@@ -468,7 +468,9 @@ class _StatusRow extends StatelessWidget {
         children: [
           Chip(
             avatar: Icon(
-              role == PlayerRole.seeker ? Icons.person_search : Icons.hide_source,
+              role == PlayerRole.seeker
+                  ? Icons.person_search
+                  : Icons.hide_source,
             ),
             label: Text(
               role == PlayerRole.seeker ? 'ROL: ZOEKER' : 'ROL: VERSTOPPER',

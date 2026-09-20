@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../app_state.dart';
 import '../domain/hints.dart';
+import '../domain/friends.dart';
 import '../domain/models.dart';
 import '../domain/private_questions.dart';
 import '../domain/results.dart';
@@ -339,6 +340,38 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
     );
   }
 
+  void _showFriendQuestion(BuildContext context) {
+    const playerId = 'seeker-2';
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        icon: const Icon(Icons.person_add_alt_1),
+        title: const Text('Vrienden worden?'),
+        content: const Text(
+          'Wil je een vriendschapsverzoek sturen naar een speler uit dit spel? '
+          'Een verzoek blijft 2 dagen geldig en kan na verzenden niet worden ingetrokken.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Niet nu'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final decision = state.requestFriend(playerId);
+              Navigator.pop(dialogContext);
+              final message = decision == FriendDecision.friends
+                  ? 'Jullie zijn nu vrienden.'
+                  : 'Vriendschapsverzoek verzonden. Het blijft 2 dagen geldig.';
+              _notice(context, message);
+            },
+            child: const Text('Stuur verzoek'),
+          ),
+        ],
+      ),
+    );
+  }
+
   String _seekerFeedback() {
     final totalHiders = state.activeGame.playersFound + state.activeHiders;
     final tone = const ResultService().seekerTone(
@@ -393,8 +426,11 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
             Text(_seekerFeedback(), textAlign: TextAlign.center),
             const SizedBox(height: 12),
             FilledButton(
-              onPressed: () => Navigator.pop(sheetContext),
-              child: const Text('Terug naar het spel'),
+              onPressed: () {
+                Navigator.pop(sheetContext);
+                _showFriendQuestion(context);
+              },
+              child: const Text('Verder'),
             ),
           ],
         ),

@@ -173,14 +173,15 @@ class AppState extends ChangeNotifier {
     required bool privateGame,
     required bool enabled,
     required bool inRange,
-  }) => const PrivateQuestionService().visibility(
-    privateGame: privateGame,
-    enabled: enabled,
-    inRange: inRange,
-    playerId: 'me',
-    subjectId: subjectId,
-    attempt: questionAttempts[subjectId],
-  );
+  }) =>
+      const PrivateQuestionService().visibility(
+        privateGame: privateGame,
+        enabled: enabled,
+        inRange: inRange,
+        playerId: 'me',
+        subjectId: subjectId,
+        attempt: questionAttempts[subjectId],
+      );
 
   void startQuestion(String subjectId) {
     final attempt = questionAttemptFor(subjectId);

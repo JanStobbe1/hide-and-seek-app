@@ -47,13 +47,13 @@ class GameConfig {
   final PointRounding pointRounding;
 
   int roundPoints(double value) => switch (pointRounding) {
-    PointRounding.nearest => value.round(),
-    PointRounding.floor => value.floor(),
-    PointRounding.ceil => value.ceil(),
-  };
+        PointRounding.nearest => value.round(),
+        PointRounding.floor => value.floor(),
+        PointRounding.ceil => value.ceil(),
+      };
 
   int hintCost(int quarter) => roundPoints(
-    (hintBaseCost * math.pow(1 + hintQuarterIncrease, quarter.clamp(0, 3)))
-        .toDouble(),
-  );
+        (hintBaseCost * math.pow(1 + hintQuarterIncrease, quarter.clamp(0, 3)))
+            .toDouble(),
+      );
 }

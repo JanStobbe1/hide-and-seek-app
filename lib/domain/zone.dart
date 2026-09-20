@@ -26,14 +26,16 @@ class ZoneService {
   const ZoneService({this.config = const GameConfig()});
   final GameConfig config;
   List<Duration> shrinkStarts(Duration total) => [
-    1,
-    2,
-    3,
-  ].map((q) => Duration(microseconds: total.inMicroseconds * q ~/ 4)).toList();
+        1,
+        2,
+        3,
+      ]
+          .map((q) => Duration(microseconds: total.inMicroseconds * q ~/ 4))
+          .toList();
   CircleZone candidate(CircleZone current, Point2 center) => CircleZone(
-    center: center,
-    radius: current.radius * math.sqrt(config.shrinkAreaFactor),
-  );
+        center: center,
+        radius: current.radius * math.sqrt(config.shrinkAreaFactor),
+      );
   CircleZone requireContained(CircleZone current, CircleZone proposed) {
     if (!current.containsZone(proposed)) {
       throw ArgumentError('New zone must be fully contained.');
@@ -66,12 +68,11 @@ class ZoneGpsService {
               .round(),
     );
     final maximum = Duration(
-      microseconds: (gameDuration.inMicroseconds * config.maximumReturnFraction)
-          .round(),
+      microseconds:
+          (gameDuration.inMicroseconds * config.maximumReturnFraction).round(),
     );
-    final effectiveMin = maximum < config.minimumReturnTime
-        ? maximum
-        : config.minimumReturnTime;
+    final effectiveMin =
+        maximum < config.minimumReturnTime ? maximum : config.minimumReturnTime;
     if (estimate < effectiveMin) return effectiveMin;
     if (estimate > maximum) return maximum;
     return estimate;

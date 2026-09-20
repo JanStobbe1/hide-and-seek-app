@@ -77,12 +77,12 @@ class HintService {
   int finalPoints(HintState state) =>
       state.points - state.purchasedHints * config.hintResultPenalty;
   Map<PlayerRole, Map<PlayerRole, int>> counts(Iterable<PlayerRole> roles) => {
-    PlayerRole.seeker: {
-      PlayerRole.hider: roles.where((r) => r == PlayerRole.hider).length,
-    },
-    PlayerRole.hider: {
-      for (final role in PlayerRole.values)
-        role: roles.where((r) => r == role).length,
-    },
-  };
+        PlayerRole.seeker: {
+          PlayerRole.hider: roles.where((r) => r == PlayerRole.hider).length,
+        },
+        PlayerRole.hider: {
+          for (final role in PlayerRole.values)
+            role: roles.where((r) => r == role).length,
+        },
+      };
 }

@@ -10,9 +10,10 @@ class GameLifecycle {
     required Duration remaining,
     required int activeHiders,
     required int activeSeekers,
-  }) => remaining <= Duration.zero || activeHiders == 0 || activeSeekers == 0
-      ? GameStatus.completed
-      : GameStatus.active;
+  }) =>
+      remaining <= Duration.zero || activeHiders == 0 || activeSeekers == 0
+          ? GameStatus.completed
+          : GameStatus.active;
 }
 
 class ResultPresentationTracker {

@@ -13,16 +13,16 @@ class ScoringPlayer {
   final int points;
   final bool active;
   ScoringPlayer copyWith({int? points, bool? active}) => ScoringPlayer(
-    id: id,
-    role: role,
-    points: points ?? this.points,
-    active: active ?? this.active,
-  );
+        id: id,
+        role: role,
+        points: points ?? this.points,
+        active: active ?? this.active,
+      );
 }
 
 class FindingState {
   FindingState(Iterable<ScoringPlayer> players)
-    : players = {for (final p in players) p.id: p};
+      : players = {for (final p in players) p.id: p};
   final Map<String, ScoringPlayer> players;
   final Set<String> processedEvents = {};
 }
@@ -55,14 +55,12 @@ class FindingService {
       if (!player.active) continue;
       if (player.id == finderId) {
         state.players[entry.key] = player.copyWith(
-          points:
-              player.points +
+          points: player.points +
               config.roundPoints(value * config.finderRewardRate),
         );
       } else if (player.role == PlayerRole.seeker) {
         state.players[entry.key] = player.copyWith(
-          points:
-              player.points +
+          points: player.points +
               config.roundPoints(value * config.otherSeekerRewardRate),
         );
       } else if (player.id != hiderId) {

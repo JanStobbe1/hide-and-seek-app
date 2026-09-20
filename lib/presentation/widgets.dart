@@ -10,20 +10,22 @@ class SectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(top: 24, bottom: 12),
-    child: Row(
-      children: [
-        Expanded(
-          child: Text(
-            title,
-            style: Theme.of(context).textTheme.titleLarge
-                ?.copyWith(fontWeight: FontWeight.w800),
-          ),
+        padding: const EdgeInsets.only(top: 24, bottom: 12),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                title,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleLarge
+                    ?.copyWith(fontWeight: FontWeight.w800),
+              ),
+            ),
+            if (action != null) action!,
+          ],
         ),
-        if (action != null) action!,
-      ],
-    ),
-  );
+      );
 }
 
 class StatPill extends StatelessWidget {
@@ -40,35 +42,35 @@ class StatPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Expanded(
-    child: Semantics(
-      label: '$label: $value',
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: const Color(0x1fffffff),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, color: Colors.white),
-            const SizedBox(height: 6),
-            Text(
-              value,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w800,
-                fontSize: 18,
-              ),
+        child: Semantics(
+          label: '$label: $value',
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: const Color(0x1fffffff),
+              borderRadius: BorderRadius.circular(16),
             ),
-            Text(
-              label,
-              style: const TextStyle(color: Colors.white70, fontSize: 12),
+            child: Column(
+              children: [
+                Icon(icon, color: Colors.white),
+                const SizedBox(height: 6),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 18,
+                  ),
+                ),
+                Text(
+                  label,
+                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
-      ),
-    ),
-  );
+      );
 }
 
 class DemoBadge extends StatelessWidget {
@@ -76,20 +78,20 @@ class DemoBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-    decoration: BoxDecoration(
-      color: const Color(0xffffe19a),
-      borderRadius: BorderRadius.circular(99),
-    ),
-    child: const Text(
-      'DEMO MODE',
-      style: TextStyle(
-        fontSize: 11,
-        fontWeight: FontWeight.w900,
-        letterSpacing: .5,
-      ),
-    ),
-  );
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: const Color(0xffffe19a),
+          borderRadius: BorderRadius.circular(99),
+        ),
+        child: const Text(
+          'DEMO MODE',
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w900,
+            letterSpacing: .5,
+          ),
+        ),
+      );
 }
 
 class MapPlaceholder extends StatelessWidget {
@@ -104,85 +106,86 @@ class MapPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Semantics(
-    label: 'Gesimuleerde kaart van het zoekgebied',
-    child: Container(
-      height: height,
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: const Color(0xffdce9d4),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xffb6ceb0)),
-      ),
-      child: Stack(
-        children: [
-          ...List.generate(
-            6,
-            (index) => Positioned(
-              left: index * 72.0 - 50,
-              top: index.isEven ? 20 : 105,
-              child: Transform.rotate(
-                angle: -.25,
-                child: Container(width: 190, height: 3, color: Colors.white70),
-              ),
-            ),
+        label: 'Gesimuleerde kaart van het zoekgebied',
+        child: Container(
+          height: height,
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(
+            color: const Color(0xffdce9d4),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: const Color(0xffb6ceb0)),
           ),
-          Positioned.fill(child: CustomPaint(painter: _AreaPainter())),
-          Positioned(
-            left: 28,
-            top: 24,
-            child: _Marker(
-              icon: markerIcon(playerMarker),
-              color: Theme.of(context).colorScheme.primary,
-              label: 'Jij',
-            ),
-          ),
-          const Positioned(
-            right: 38,
-            top: 65,
-            child: _Marker(
-              icon: Icons.location_on,
-              color: Color(0xffef6c4d),
-              label: 'Speler',
-            ),
-          ),
-          const Positioned(
-            left: 125,
-            bottom: 24,
-            child: _Marker(
-              icon: Icons.visibility,
-              color: Color(0xffe5a62c),
-              label: 'Hint',
-            ),
-          ),
-          const Positioned(
-            left: 14,
-            bottom: 12,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.all(Radius.circular(10)),
-              ),
-              child: Padding(
-                padding: EdgeInsets.all(8),
-                child: Text(
-                  'Mockkaart • geen GPS',
-                  style: TextStyle(fontWeight: FontWeight.w600),
+          child: Stack(
+            children: [
+              ...List.generate(
+                6,
+                (index) => Positioned(
+                  left: index * 72.0 - 50,
+                  top: index.isEven ? 20 : 105,
+                  child: Transform.rotate(
+                    angle: -.25,
+                    child:
+                        Container(width: 190, height: 3, color: Colors.white70),
+                  ),
                 ),
               ),
-            ),
+              Positioned.fill(child: CustomPaint(painter: _AreaPainter())),
+              Positioned(
+                left: 28,
+                top: 24,
+                child: _Marker(
+                  icon: markerIcon(playerMarker),
+                  color: Theme.of(context).colorScheme.primary,
+                  label: 'Jij',
+                ),
+              ),
+              const Positioned(
+                right: 38,
+                top: 65,
+                child: _Marker(
+                  icon: Icons.location_on,
+                  color: Color(0xffef6c4d),
+                  label: 'Speler',
+                ),
+              ),
+              const Positioned(
+                left: 125,
+                bottom: 24,
+                child: _Marker(
+                  icon: Icons.visibility,
+                  color: Color(0xffe5a62c),
+                  label: 'Hint',
+                ),
+              ),
+              const Positioned(
+                left: 14,
+                bottom: 12,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.all(8),
+                    child: Text(
+                      'Mockkaart • geen GPS',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
-    ),
-  );
+        ),
+      );
 }
 
 IconData markerIcon(PlayerMarker marker) => switch (marker) {
-  PlayerMarker.ghost => Icons.cruelty_free,
-  PlayerMarker.wolf => Icons.pets,
-  PlayerMarker.police => Icons.local_police,
-  PlayerMarker.explorer => Icons.explore,
-};
+      PlayerMarker.ghost => Icons.cruelty_free,
+      PlayerMarker.wolf => Icons.pets,
+      PlayerMarker.police => Icons.local_police,
+      PlayerMarker.explorer => Icons.explore,
+    };
 
 class _Marker extends StatelessWidget {
   const _Marker({required this.icon, required this.color, required this.label});
@@ -193,9 +196,9 @@ class _Marker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Tooltip(
-    message: label,
-    child: Icon(icon, color: color, size: 40),
-  );
+        message: label,
+        child: Icon(icon, color: color, size: 40),
+      );
 }
 
 class _AreaPainter extends CustomPainter {

@@ -20,14 +20,12 @@ abstract final class DemoPlayerValueRules {
   }) {
     final elapsedMinutes = elapsed.inSeconds / 60;
     final value = switch (role) {
-      PlayerRole.seeker =>
-        seekerBaseValue +
-            (playersFound * valuePerPlayerFound) -
-            (elapsedMinutes * seekerDecayPerMinute),
-      PlayerRole.hider =>
-        hiderBaseValue +
-            (elapsedMinutes * hiderGrowthPerMinute) +
-            (playersFound * valuePerOtherHiderFound),
+      PlayerRole.seeker => seekerBaseValue +
+          (playersFound * valuePerPlayerFound) -
+          (elapsedMinutes * seekerDecayPerMinute),
+      PlayerRole.hider => hiderBaseValue +
+          (elapsedMinutes * hiderGrowthPerMinute) +
+          (playersFound * valuePerOtherHiderFound),
     };
     return value < minimumValue ? minimumValue : value;
   }

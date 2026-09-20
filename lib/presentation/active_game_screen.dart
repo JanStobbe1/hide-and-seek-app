@@ -22,6 +22,7 @@ class ActiveGameScreen extends StatefulWidget {
 class _ActiveGameScreenState extends State<ActiveGameScreen> {
   late final Timer _timer;
   bool _resultScheduled = false;
+  DateTime? _hintStartedAt;
 
   AppState get state => widget.state;
 
@@ -79,6 +80,12 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
                     _CountdownCard(state: state),
                     const SectionTitle('Zoekgebied'),
                     MapPlaceholder(playerMarker: state.playerMarker),
+                    if (_hintStartedAt != null)
+                      _HintCircle(
+                        startedAt: _hintStartedAt!,
+                        now: DateTime.now(),
+                        playerCount: state.activeHiders,
+                      ),
                     const SectionTitle('Jouw acties'),
                     _GameActions(
                       state: state,
@@ -205,6 +212,7 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
   void _useHint(BuildContext context) {
     final result = state.useHint();
     if (result.started) {
+      setState(() => _hintStartedAt = DateTime.now());
       final kind = result.purchasedHints == 0 ? 'gratis hint' : 'gekochte hint';
       _notice(
         context,
@@ -595,4 +603,54 @@ class _GameActions extends StatelessWidget {
           ),
         ],
       );
+}
+
+
+class _HintCircle extends StatelessWidget {
+  const _HintCircle({
+    required this.startedAt,
+    required this.now,
+    required this.playerCount,
+  });
+
+  final DateTime startedAt;
+  final DateTime now;
+  final int playerCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final elapsed = now.difference(startedAt);
+    if (elapsed >= const Duration(seconds: 60)) {
+      return const SizedBox.shrink();
+    }
+    final shrinkSeconds = (elapsed.inMilliseconds - 30000).clamp(0, 30000);
+    final scale = 1 - (shrinkSeconds / 30000) * 0.55;
+    final remaining = 60 - elapsed.inSeconds;
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Center(
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          width: 220 * scale,
+          height: 220 * scale,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.55),
+            border: Border.all(
+              color: Theme.of(context).colorScheme.primary,
+              width: 3,
+            ),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            '$playerCount verstoppers in hintgebied\n'
+            '$remaining sec resterend',
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontWeight: FontWeight.w800),
+          ),
+        ),
+      ),
+    );
+  }
 }

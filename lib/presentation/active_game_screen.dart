@@ -280,7 +280,6 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
     );
   }
 
-
   void _finish(BuildContext context) {
     state.finishGame();
     _showSeekerResult(context);
@@ -297,13 +296,16 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
       survivors: state.activeHiders,
     );
     final feedback = switch (tone) {
-      ResultTone.mostNegative => 'Je werd vroeg gevonden. Volgende ronde biedt een nieuwe kans.',
+      ResultTone.mostNegative =>
+        'Je werd vroeg gevonden. Volgende ronde biedt een nieuwe kans.',
       ResultTone.veryNegative => 'Je werd vrij vroeg gevonden.',
       ResultTone.negative => 'Je hield het een deel van het spel vol.',
       ResultTone.neutral => 'Je bleef een flink deel van het spel verborgen.',
       ResultTone.positive => 'Sterk verstopt: je hield het lang vol.',
-      ResultTone.veryPositive => 'Maa shaa Allah, je bleef tot het einde verborgen.',
-      ResultTone.mostPositive => 'Maa shaa Allah, jij bent de enige overgebleven verstopper.',
+      ResultTone.veryPositive =>
+        'Maa shaa Allah, je bleef tot het einde verborgen.',
+      ResultTone.mostPositive =>
+        'Maa shaa Allah, jij bent de enige overgebleven verstopper.',
     };
     showModalBottomSheet<void>(
       context: context,
@@ -312,7 +314,10 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(found ? Icons.sentiment_dissatisfied : Icons.celebration, size: 58),
+            Icon(
+              found ? Icons.sentiment_dissatisfied : Icons.celebration,
+              size: 58,
+            ),
             Text(
               found ? 'Je bent gevonden' : 'Je bent niet gevonden!',
               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900),

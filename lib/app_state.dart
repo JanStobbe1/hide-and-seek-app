@@ -4,6 +4,7 @@ import 'data/mock_game_repository.dart';
 import 'domain/countdown.dart';
 import 'domain/game_engine.dart';
 import 'domain/game_lifecycle.dart';
+import 'domain/friends.dart';
 import 'domain/hints.dart';
 import 'domain/models.dart';
 import 'domain/player_value_rules.dart';
@@ -32,6 +33,7 @@ class AppState extends ChangeNotifier {
   bool gameFinished = false;
   final ResultPresentationTracker resultPresentation =
       ResultPresentationTracker();
+  final FriendshipService friendshipService = FriendshipService();
   late FindingState findingState;
   late HintState hintState;
   int _findingEventSequence = 0;
@@ -319,6 +321,42 @@ class AppState extends ChangeNotifier {
     activeGame = activeGame.finish();
     gameFinished = true;
     gamesPlayed++;
+    notifyListeners();
+  }
+
+  FriendDecision requestFriend(String playerId, {DateTime? now}) {
+    final decision = friendshipService.choose(
+      from: 'me',
+      to: playerId,
+      now: now ?? DateTime.now(),
+    );
+    notifyListeners();
+    return decision;
+  }
+
+  FriendDecision respondToFriendRequest(
+    FriendRequest request, {
+    required bool accept,
+    DateTime? now,
+  }) {
+    final decision = accept
+        ? friendshipService.accept(request, now ?? DateTime.now())
+        : friendshipService.reject(request);
+    notifyListeners();
+    return decision;
+  }
+
+  FriendDecision blockFriendRequest(FriendRequest request) {
+    final decision = friendshipService.block(request);
+    notifyListeners();
+    return decision;
+  }
+
+  bool canWithdrawFriendRequest(FriendRequest request) =>
+      friendshipService.canWithdraw(request);
+
+  void inviteFriend(String playerId) {
+    friendshipService.invite(inviter: 'me', invitee: playerId);
     notifyListeners();
   }
 

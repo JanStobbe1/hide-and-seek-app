@@ -19,9 +19,26 @@ class ProfileNameValidator {
   // locally so validation remains deterministic/offline in the V1 demo.
   static const _blocked = <String>{
     // Dutch
-    'kanker', 'tering', 'tyfus', 'kut', 'lul', 'hoer', 'slet', 'klootzak',
-    'eikel', 'mongool', 'debiel', 'idioot', 'sukkel', 'flikker', 'homo',
-    'neger', 'nazi', 'fascist', 'racist', 'pedo',
+    'kanker',
+    'tering',
+    'tyfus',
+    'kut',
+    'lul',
+    'hoer',
+    'slet',
+    'klootzak',
+    'eikel',
+    'mongool',
+    'debiel',
+    'idioot',
+    'sukkel',
+    'flikker',
+    'homo',
+    'neger',
+    'nazi',
+    'fascist',
+    'racist',
+    'pedo',
 
     // English
     'fuck', 'fucker', 'fucking', 'shit', 'bitch', 'cunt', 'dick', 'cock',

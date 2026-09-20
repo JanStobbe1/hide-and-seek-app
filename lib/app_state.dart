@@ -360,6 +360,39 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  List<FriendRequest> get incomingFriendRequests => friendshipService
+      .requests.values
+      .where(
+        (request) =>
+            request.receiver == 'me' &&
+            request.decision == FriendDecision.pending,
+      )
+      .toList(growable: false);
+
+  List<FriendRequest> get outgoingFriendRequests => friendshipService
+      .requests.values
+      .where(
+        (request) =>
+            request.sender == 'me' &&
+            request.decision == FriendDecision.pending,
+      )
+      .toList(growable: false);
+
+  void seedIncomingFriendRequest({
+    String playerId = 'player-mila',
+    DateTime? createdAt,
+  }) {
+    friendshipService.requests.putIfAbsent(
+      '$playerId->me',
+      () => FriendRequest(
+        sender: playerId,
+        receiver: 'me',
+        createdAt: createdAt ?? DateTime.now(),
+      ),
+    );
+    notifyListeners();
+  }
+
   void setPrivacy(String key, bool value) {
     privacy[key] = value;
     notifyListeners();

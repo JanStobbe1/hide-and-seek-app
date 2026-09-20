@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'data/mock_game_repository.dart';
 import 'domain/countdown.dart';
 import 'domain/game_engine.dart';
+import 'domain/game_lifecycle.dart';
 import 'domain/hints.dart';
 import 'domain/models.dart';
 import 'domain/player_value_rules.dart';
@@ -28,6 +29,7 @@ class AppState extends ChangeNotifier {
   late ActiveGameState activeGame;
   late DateTime _lastGameClockUpdate;
   bool gameFinished = false;
+  final ResultPresentationTracker resultPresentation = ResultPresentationTracker();
   late FindingState findingState;
   late HintState hintState;
   int _findingEventSequence = 0;
@@ -96,6 +98,8 @@ class AppState extends ChangeNotifier {
     if (!registered) return false;
     activeGame = activeGame.playerFound();
     points = findingState.players['me']!.points;
+    hintState.points = points;
+    _evaluateGameEnd();
     notifyListeners();
     return true;
   }
@@ -211,12 +215,28 @@ class AppState extends ChangeNotifier {
     final next = activeGame.tick(amount);
     if (identical(next, activeGame)) return;
     activeGame = next;
-    if (next.status == GameStatus.completed && !gameFinished) {
+    _evaluateGameEnd();
+    notifyListeners();
+  }
+
+  void _evaluateGameEnd() {
+    final status = const GameLifecycle().statusFor(
+      remaining: activeGame.countdown.remaining,
+      activeHiders: activeHiders,
+      activeSeekers: activeSeekers,
+    );
+    if (status == GameStatus.completed && !gameFinished) {
+      activeGame = activeGame.finish();
       gameFinished = true;
       gamesPlayed++;
     }
-    notifyListeners();
   }
+
+  bool shouldAutoShowResult() =>
+      gameFinished && resultPresentation.shouldAutoShow('active-demo');
+
+  bool canOpenResultManually() =>
+      resultPresentation.canOpenManually('active-demo');
 
   void syncActiveGameClock([DateTime? timestamp]) {
     final now = timestamp ?? DateTime.now();

@@ -26,7 +26,7 @@ class ProfileNameValidator {
     // English
     'fuck', 'fucker', 'fucking', 'shit', 'bitch', 'cunt', 'dick', 'cock',
     'asshole', 'bastard', 'slut', 'whore', 'retard', 'moron', 'idiot',
-    'nigger', 'faggot', 'nazi', 'pedophile', 'motherfucker',
+    'nigger', 'faggot', 'pedophile', 'motherfucker',
 
     // German
     'scheisse', 'scheiße', 'arschloch', 'wichser', 'fotze', 'hurensohn',

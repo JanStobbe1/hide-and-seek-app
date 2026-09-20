@@ -7,6 +7,7 @@ import 'domain/models.dart';
 import 'domain/player_value_rules.dart';
 import 'domain/profile_models.dart';
 import 'domain/scoring.dart';
+import 'domain/seeker_decay.dart';
 
 class AppState extends ChangeNotifier {
   AppState({
@@ -139,11 +140,21 @@ class AppState extends ChangeNotifier {
     tickActiveGame(elapsed);
   }
 
-  double playerValue(PlayerRole role) => DemoPlayerValueRules.calculate(
-        role: role,
+  double playerValue(PlayerRole role) {
+    if (role == PlayerRole.seeker) {
+      final startValue = findingState.players['me']?.points.toDouble() ?? 0;
+      return const SeekerDecay().valueAt(
+        startValue: startValue,
+        gameDuration: activeGameDuration,
         elapsed: activeGame.elapsed,
-        playersFound: activeGame.playersFound,
       );
+    }
+    return DemoPlayerValueRules.calculate(
+      role: role,
+      elapsed: activeGame.elapsed,
+      playersFound: activeGame.playersFound,
+    );
+  }
 
   void setDisplayName(String value) {
     final trimmed = value.trim();

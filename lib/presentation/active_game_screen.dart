@@ -137,7 +137,9 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
               const SizedBox(height: 16),
               DropdownButtonFormField<int>(
                 initialValue: selected,
-                decoration: const InputDecoration(labelText: 'Juiste antwoorden'),
+                decoration: const InputDecoration(
+                  labelText: 'Juiste antwoorden',
+                ),
                 items: [
                   for (var i = 0; i <= 5; i++)
                     DropdownMenuItem(value: i, child: Text('$i van 5')),
@@ -147,7 +149,8 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
               ),
               const SizedBox(height: 8),
               const Text(
-                'Verlaat je het bereik, dan heb je 5 seconden om terug te keren.',
+                'Verlaat je het bereik, dan heb je 5 seconden om terug te '
+                'keren.',
                 style: TextStyle(fontSize: 12),
               ),
             ],

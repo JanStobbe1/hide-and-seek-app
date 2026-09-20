@@ -22,7 +22,9 @@ void main() {
 
     expect(state.gamesPlayed, 5);
     expect(state.activeGame.status, GameStatus.active);
-    expect(state.activeGame.playersFound, 5);
+    expect(state.activeGame.playersFound, 0);
+    expect(state.totalHiders, 15);
+    expect(state.activeHiders, 15);
     expect(state.gameFinished, isFalse);
     expect(state.privacy['Deel mijn naam'], isTrue);
     expect(state.displayName, 'Arie');
@@ -30,12 +32,15 @@ void main() {
     expect(state.playerMarker, PlayerMarker.ghost);
   });
 
-  test('finding a player moves deterministic progress from five to six', () {
+  test('finding a player keeps roster progress consistent', () {
     final state = AppState();
 
     state.foundPlayer();
 
-    expect(state.activeGame.playersFound, 6);
+    expect(state.activeGame.playersFound, 1);
+    expect(state.foundHiders, 1);
+    expect(state.activeHiders, 14);
+    expect(state.totalHiders, 15);
   });
 
   test('active game ticks down and completion is counted once', () {

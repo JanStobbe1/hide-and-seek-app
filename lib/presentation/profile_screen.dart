@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../app_state.dart';
 import '../config/app_theme.dart';
 import '../domain/profile_models.dart';
+import '../domain/profile_validation.dart';
 import 'widgets.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -179,6 +180,14 @@ class ProfileScreen extends StatelessWidget {
           ),
           FilledButton(
             onPressed: () {
+              const validator = ProfileNameValidator();
+              final validation = validator.validate(controller.text);
+              if (!validation.valid) {
+                ScaffoldMessenger.of(dialogContext).showSnackBar(
+                  SnackBar(content: Text(validation.message ?? 'Ongeldige naam.')),
+                );
+                return;
+              }
               state.setDisplayName(controller.text);
               Navigator.pop(dialogContext);
             },

@@ -43,8 +43,6 @@ void main() {
 
     expect(filtered, ['Amsterdam']);
   });
-}
-
 
   test('multi location selection prunes invalid dependent choices', () {
     const repository = DemoLocationRepository();
@@ -78,3 +76,4 @@ void main() {
     expect(selection.provinces, containsAll(['Flevoland', 'Noord-Holland']));
     expect(selection.cities, containsAll(['Almere', 'Amsterdam']));
   });
+}

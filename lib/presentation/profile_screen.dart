@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../app_state.dart';
 import '../config/app_theme.dart';
 import '../domain/profile_models.dart';
-import '../domain/friends.dart';
 import '../domain/profile_validation.dart';
 import 'widgets.dart';
 

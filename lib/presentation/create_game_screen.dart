@@ -174,7 +174,11 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
             title: Text(isPublic ? 'Openbaar spel' : 'Privéspel'),
             subtitle: const Text('Wie kan dit spel ontdekken?'),
             value: isPublic,
-            onChanged: (value) => setState(() => isPublic = value),
+            onChanged: (value) => setState(() {
+              isPublic = value;
+              if (isPublic) questions = false;
+              _sourcesChanged();
+            }),
           ),
           _SettingSlider(
             label: 'Duur',
@@ -216,10 +220,17 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
             contentPadding: EdgeInsets.zero,
             title: const Text('Vragen kunnen worden beantwoord'),
             value: questions,
-            onChanged: (value) => setState(() {
+            subtitle: Text(
+              isPublic
+                  ? 'Persoonlijke vragen zijn alleen beschikbaar in privéspellen.'
+                  : 'Vijf persoonlijke vragen per speler.',
+            ),
+            onChanged: isPublic
+                ? null
+                : (value) => setState(() {
               questions = value;
               _sourcesChanged();
-            }),
+                  }),
           ),
         ],
       );
@@ -437,9 +448,9 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
       Game(
         id: 'created-${now.millisecondsSinceEpoch}',
         name: name.text.trim().isEmpty ? 'Naamloos spel' : name.text.trim(),
-        organizer: 'Arie',
+        organizer: widget.state.displayName,
         description: intro.text.trim().isEmpty
-            ? 'Een nieuw avontuur in Almere.'
+            ? 'Een nieuw avontuur in ${selectedArea.city}.'
             : intro.text.trim(),
         area: selectedArea,
         status: GameStatus.available,
@@ -451,7 +462,10 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
         scheduledStart: selectedScheduledStart,
         participantThreshold: selectedParticipantThreshold,
         isPublic: isPublic,
-        rules: GameRules(hintsEnabled: hints, questionsEnabled: questions),
+        rules: GameRules(
+          hintsEnabled: hints,
+          questionsEnabled: !isPublic && questions,
+        ),
       ),
     );
     showDialog<void>(

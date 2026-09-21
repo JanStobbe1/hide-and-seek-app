@@ -35,7 +35,15 @@ void main() {
     );
     await tester.tap(confirmOutside);
     await tester.pump();
-    expect(find.text('Je staat buiten het actieve speelveld'), findsOneWidget);
+    expect(state.inActiveZone, isFalse);
+
+    final zoneAlarm = find.text('Je staat buiten het actieve speelveld');
+    await tester.scrollUntilVisible(
+      zoneAlarm,
+      -200,
+      scrollable: find.byType(Scrollable),
+    );
+    expect(zoneAlarm, findsOneWidget);
 
     final returnToZone = find.text('Keer terug in zone');
     await tester.scrollUntilVisible(
@@ -45,7 +53,8 @@ void main() {
     );
     await tester.tap(returnToZone);
     await tester.pump();
-    expect(find.text('Je staat buiten het actieve speelveld'), findsNothing);
+    expect(state.inActiveZone, isTrue);
+    expect(zoneAlarm, findsNothing);
 
     await tester.pumpWidget(const SizedBox());
   });

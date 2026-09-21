@@ -4,7 +4,8 @@ import 'package:verstobbertje/domain/models.dart';
 import 'package:verstobbertje/domain/private_questions.dart';
 
 void main() {
-  test('find action applies rewards and cannot process the same hider twice', () {
+  test('find action applies rewards and cannot process the same hider twice',
+      () {
     final state = AppState();
     final before = state.playerValue(PlayerRole.seeker);
 

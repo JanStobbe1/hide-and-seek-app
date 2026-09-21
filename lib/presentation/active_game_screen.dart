@@ -208,7 +208,8 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
   void _useHint() {
     final decision = state.useHint();
     if (decision.allowed) {
-      final cost = decision.cost == 0 ? 'gratis hint' : '${decision.cost} punten';
+      final cost =
+          decision.cost == 0 ? 'gratis hint' : '${decision.cost} punten';
       _notice(context, 'Hint gestart ($cost). Zoekcirkel: 60 seconden.');
       return;
     }
@@ -272,7 +273,8 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
             FilledButton(
               onPressed: answers.every((answer) => answer != null)
                   ? () {
-                      final correct = answers.where((answer) => answer == true).length;
+                      final correct =
+                          answers.where((answer) => answer == true).length;
                       final earned = state.completeQuestionRound(correct);
                       Navigator.pop(dialogContext);
                       _notice(context, '$correct/5 goed: +$earned punten.');

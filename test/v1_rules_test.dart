@@ -299,13 +299,50 @@ void main() {
     expect(v.validate('Fuckerby').valid, isTrue);
     expect(v.validate('شرموطة').valid, isFalse);
     const privacy = PrivacyService();
-    final payload = privacy.payload(
+    final publicPayload = privacy.payload(
       const ParticipantView(name: 'Jan', rank: '1', age: 30, photo: 'x'),
       friend: false,
       shareAge: true,
       sharePhoto: true,
     );
-    expect(payload.keys, unorderedEquals(['name', 'rank']));
+    expect(publicPayload.keys, unorderedEquals(['name', 'rank']));
+
+    final friendPayload = privacy.payload(
+      const ParticipantView(
+        name: 'Jan',
+        rank: '1',
+        age: 30,
+        photo: 'x',
+        gamesWon: 4,
+        gamesPlayed: 10,
+        badges: ['Scherp oog'],
+        streak: 3,
+        upcomingGames: ['Zaterdagspel'],
+        currentGame: 'Nu actief',
+        points: 999,
+        pointsToNextRank: 12,
+      ),
+      friend: true,
+      shareAge: true,
+      sharePhoto: true,
+    );
+    expect(
+      friendPayload.keys,
+      unorderedEquals([
+        'name',
+        'rank',
+        'age',
+        'photo',
+        'gamesWon',
+        'gamesPlayed',
+        'badges',
+        'streak',
+        'upcomingGames',
+      ]),
+    );
+    expect(friendPayload, isNot(contains('currentGame')));
+    expect(friendPayload, isNot(contains('points')));
+    expect(friendPayload, isNot(contains('pointsToNextRank')));
   });
   test('results and friends', () {
     const results = ResultService();

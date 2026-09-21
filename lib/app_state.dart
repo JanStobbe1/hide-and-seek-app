@@ -40,6 +40,7 @@ class AppState extends ChangeNotifier {
   late HintState hintState;
   int _findingEventSequence = 0;
   PlayerRole activeRole = PlayerRole.seeker;
+  int personallyFoundHiders = 0;
   bool currentHiderFound = false;
   Duration? currentHiderFoundAt;
   late double seekerStartValue;
@@ -122,6 +123,7 @@ class AppState extends ChangeNotifier {
   }
 
   bool foundPlayer() {
+    if (activeRole != PlayerRole.seeker) return false;
     final hider = findingState.players.values
         .where((player) => player.role == PlayerRole.hider && player.active)
         .firstOrNull;
@@ -134,6 +136,7 @@ class AppState extends ChangeNotifier {
     );
     if (!registered) return false;
     activeGame = activeGame.playerFound();
+    personallyFoundHiders++;
     assert(
       activeGame.playersFound == foundHiders,
       'Active-game and scoring hider counts must stay in sync.',
@@ -239,9 +242,15 @@ class AppState extends ChangeNotifier {
 
   void _resetFindingState() {
     findingState = FindingState([
-      ScoringPlayer(id: 'me', role: PlayerRole.seeker, points: points),
+      ScoringPlayer(id: 'me', role: activeRole, points: points),
+      if (activeRole == PlayerRole.hider)
+        const ScoringPlayer(
+          id: 'seeker-1',
+          role: PlayerRole.seeker,
+          points: 0,
+        ),
       const ScoringPlayer(id: 'seeker-2', role: PlayerRole.seeker, points: 0),
-      for (var i = 0; i < 15; i++)
+      for (var i = 0; i < (activeRole == PlayerRole.hider ? 14 : 15); i++)
         ScoringPlayer(
           id: 'hider-$i',
           role: PlayerRole.hider,
@@ -249,6 +258,7 @@ class AppState extends ChangeNotifier {
         ),
     ]);
     _findingEventSequence = 0;
+    personallyFoundHiders = 0;
     questionAttempts.clear();
     questionResults.clear();
   }
@@ -305,17 +315,46 @@ class AppState extends ChangeNotifier {
   }
 
   void setActiveRole(PlayerRole role) {
+    if (activeRole == role) return;
     activeRole = role;
     currentHiderFound = false;
     currentHiderFoundAt = null;
+    _resetFindingState();
+    activeGame = ActiveGameState(
+      playersFound: 0,
+      totalPlayers: totalHiders,
+      countdown: activeGame.countdown,
+    );
+    seekerStartValue = points.toDouble();
+    _resetHintState();
     notifyListeners();
   }
 
-  void markCurrentHiderFound() {
-    if (activeRole != PlayerRole.hider || currentHiderFound) return;
+  bool markCurrentHiderFound() {
+    if (activeRole != PlayerRole.hider ||
+        currentHiderFound ||
+        activeGame.status != GameStatus.active) {
+      return false;
+    }
+    final registered = const FindingService().register(
+      state: findingState,
+      eventId: 'find-${_findingEventSequence++}',
+      finderId: 'seeker-1',
+      hiderId: 'me',
+    );
+    if (!registered) return false;
     currentHiderFound = true;
     currentHiderFoundAt = activeGame.elapsed;
+    activeGame = activeGame.playerFound();
+    assert(
+      activeGame.playersFound == foundHiders,
+      'Active-game and scoring hider counts must stay in sync.',
+    );
+    points = findingState.players['me']!.points;
+    hintState.points = points;
+    _evaluateGameEnd();
     notifyListeners();
+    return true;
   }
 
   NameValidationResult setDisplayName(String value) {
@@ -462,6 +501,7 @@ class AppState extends ChangeNotifier {
     _lastGameClockUpdate = DateTime.now();
     gameFinished = false;
     activeRole = PlayerRole.seeker;
+    personallyFoundHiders = 0;
     currentHiderFound = false;
     currentHiderFoundAt = null;
     gamesPlayed = 5;

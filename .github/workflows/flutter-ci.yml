@@ -19,6 +19,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          ref: codex/cbs-neighbourhood-multiselect
 
       - name: Set up Flutter 3.47.4
         uses: subosito/flutter-action@v2
@@ -38,7 +40,8 @@ jobs:
           if ! git diff --quiet; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add .
+            git add lib/data/dutch_neighbourhoods.dart \
+              lib/presentation/create_game_screen.dart
             git commit -m "Format location selection sources"
             git push origin HEAD:codex/cbs-neighbourhood-multiselect
           fi

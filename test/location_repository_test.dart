@@ -75,6 +75,6 @@ void main() {
       'dam',
     );
 
-    expect(filtered, ['Amsterdam']);
+    expect(filtered, ['Amsterdam', 'Edam-Volendam']);
   });
 }

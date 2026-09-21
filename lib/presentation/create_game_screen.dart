@@ -267,8 +267,8 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
                     location.province!,
                     location.cities,
                   ),
-            enabled: location.cities.isNotEmpty &&
-                !location.cities.contains('Alle'),
+            enabled:
+                location.cities.isNotEmpty && !location.cities.contains('Alle'),
             onChanged: (values) {
               _sourceChanged();
               setState(() => location = location.selectDistricts(values));
@@ -645,8 +645,7 @@ class _MultiLocationPicker extends StatelessWidget {
                 children: [
                   TextField(
                     autofocus: true,
-                    onChanged: (value) =>
-                        setDialogState(() => query = value),
+                    onChanged: (value) => setDialogState(() => query = value),
                     decoration: const InputDecoration(
                       hintText: 'Typ om te zoeken',
                       prefixIcon: Icon(Icons.search),

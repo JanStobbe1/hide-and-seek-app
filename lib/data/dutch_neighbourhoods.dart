@@ -1,8 +1,7 @@
 // GENERATED FILE — do not edit by hand.
 // Source: CBS Wijk- en buurtkaart 2025 v1; watergebieden excluded.
 // Regenerate with tool/generate_dutch_neighbourhoods.py.
-const Map<String, Map<String, List<String>>> 
-    dutchDistrictsAndNeighbourhoods = {
+const Map<String, Map<String, List<String>>> dutchDistrictsAndNeighbourhoods = {
   'Den Haag': {
     'Wijk 01 Oostduinen': [
       'Oostduinen',

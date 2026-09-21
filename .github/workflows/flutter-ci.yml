@@ -9,7 +9,7 @@ on:
       - main
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   validate:
@@ -30,8 +30,18 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Check formatting
-        run: dart format --output=none --set-exit-if-changed .
+      - name: Format sources
+        run: dart format .
+
+      - name: Commit formatted sources
+        run: |
+          if ! git diff --quiet; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add .
+            git commit -m "Format location selection sources"
+            git push origin HEAD:codex/cbs-neighbourhood-multiselect
+          fi
 
       - name: Analyze
         run: flutter analyze

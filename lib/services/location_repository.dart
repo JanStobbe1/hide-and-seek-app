@@ -48,10 +48,9 @@ class DemoLocationRepository implements LocationRepository {
   List<String> get countries => _locations.keys.toList(growable: false);
 
   @override
-  List<String> provincesFor(String country) =>
-      _withAll(country == 'Nederland'
-          ? dutchMunicipalitiesByProvince.keys
-          : _locations[country]?.keys);
+  List<String> provincesFor(String country) => _withAll(country == 'Nederland'
+      ? dutchMunicipalitiesByProvince.keys
+      : _locations[country]?.keys);
 
   @override
   List<String> citiesFor(String country, String province) {

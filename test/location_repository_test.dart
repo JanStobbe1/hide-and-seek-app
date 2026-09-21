@@ -21,20 +21,22 @@ void main() {
   test('all Dutch provinces and 342 municipalities are available', () {
     final provinces = repository.provincesFor('Nederland');
     expect(provinces.length, 13);
-    expect(provinces, containsAll(<String>[
-      'Drenthe',
-      'Flevoland',
-      'Friesland',
-      'Gelderland',
-      'Groningen',
-      'Limburg',
-      'Noord-Brabant',
-      'Noord-Holland',
-      'Overijssel',
-      'Utrecht',
-      'Zeeland',
-      'Zuid-Holland',
-    ]));
+    expect(
+        provinces,
+        containsAll(<String>[
+          'Drenthe',
+          'Flevoland',
+          'Friesland',
+          'Gelderland',
+          'Groningen',
+          'Limburg',
+          'Noord-Brabant',
+          'Noord-Holland',
+          'Overijssel',
+          'Utrecht',
+          'Zeeland',
+          'Zuid-Holland',
+        ]));
     final municipalityCount = provinces
         .where((province) => province != 'Alle')
         .map((province) =>

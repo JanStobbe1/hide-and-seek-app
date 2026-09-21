@@ -228,16 +228,17 @@ class GameDetailScreen extends StatelessWidget {
                 onPressed: joined
                     ? null
                     : () {
-                        state.join(game.id);
+                        final joinedNow = state.join(game.id);
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
+                          SnackBar(
                             content: Text(
-                              'Je doet mee! Het spel staat nu bij '
-                              'Mijn spellen.',
+                              joinedNow
+                                  ? 'Je doet mee! Het spel staat nu bij Mijn spellen.'
+                                  : 'De deelnameperiode voor dit spel is gesloten.',
                             ),
                           ),
                         );
-                        Navigator.pop(context);
+                        if (joinedNow) Navigator.pop(context);
                       },
                 icon: Icon(joined ? Icons.check : Icons.sports_kabaddi),
                 label: Text(joined ? 'Je doet al mee' : 'Doe mee (simulatie)'),
@@ -245,7 +246,7 @@ class GameDetailScreen extends StatelessWidget {
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 12),
                 child: Text(
-                  'Demo: er vindt geen echte betaling of reservering plaats.',
+                  'Verstobbertje V1 werkt uitsluitend met punten.',
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 12),
                 ),

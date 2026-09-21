@@ -1,12 +1,18 @@
 import 'package:flutter/foundation.dart';
 
 import 'data/mock_game_repository.dart';
+import 'config/app_config.dart';
 import 'domain/countdown.dart';
 import 'domain/game_engine.dart';
+import 'domain/game_lifecycle.dart';
+import 'domain/hints.dart';
 import 'domain/models.dart';
 import 'domain/player_value_rules.dart';
+import 'domain/private_questions.dart';
 import 'domain/profile_models.dart';
 import 'domain/profile_validation.dart';
+import 'domain/scoring.dart';
+import 'domain/zones.dart';
 
 class AppState extends ChangeNotifier {
   AppState({
@@ -17,11 +23,23 @@ class AppState extends ChangeNotifier {
       countdown: GameCountdown.start(activeGameDuration),
     );
     _lastGameClockUpdate = DateTime.now();
+    _initializeV1Demo();
   }
   final MockGameRepository repository;
   final Duration activeGameDuration;
   late ActiveGameState activeGame;
   late DateTime _lastGameClockUpdate;
+  late ScoringService _scoringService;
+  late Map<String, ParticipantScore> demoScores;
+  late HintState hintState;
+  late QuestionAttempt questionAttempt;
+  late PerfectQuestionBonus _questionBonus;
+  late OutsideZoneTracker outsideZoneTracker;
+  int personallyFound = 2;
+  int questionPoints = 0;
+  int findSequence = 0;
+  bool inActiveZone = true;
+  DateTime? zoneReturnDeadline;
   bool gameFinished = false;
   int gamesPlayed = 5;
   int wins = 3;
@@ -62,9 +80,25 @@ class AppState extends ChangeNotifier {
     'Meld deelname aan eerdere vrienden': true,
   };
 
-  void join(String id) {
+  bool join(String id, [DateTime? timestamp]) {
+    Game? game;
+    for (final candidate in repository.availableGames) {
+      if (candidate.id == id) {
+        game = candidate;
+        break;
+      }
+    }
+    if (game == null) return false;
+    if (game.scheduledStart != null) {
+      final lifecycle = GameLifecycle(
+        startsAt: game.scheduledStart!,
+        duration: game.duration,
+      );
+      if (!lifecycle.canJoin(timestamp ?? DateTime.now())) return false;
+    }
     repository.join(id);
     notifyListeners();
+    return true;
   }
 
   void publish(Game game) {
@@ -72,9 +106,89 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void foundPlayer() {
+  bool foundPlayer() {
+    final hider = demoScores['hider-1'];
+    if (hider == null || !hider.active) return false;
+    final outcome = _scoringService.registerFind(
+      FindEvent(
+        id: 'demo-find-${findSequence++}',
+        finderId: 'me',
+        hiderId: 'hider-1',
+      ),
+      demoScores,
+    );
+    if (!outcome.applied) return false;
     activeGame = activeGame.playerFound();
+    personallyFound++;
     notifyListeners();
+    return true;
+  }
+
+  HintDecision useHint([DateTime? timestamp]) {
+    final elapsed = activeGame.elapsed.inMicroseconds;
+    final total = activeGame.countdown.total.inMicroseconds;
+    final quarter =
+        total == 0 ? 4 : (elapsed * 4 ~/ total).clamp(0, 3).toInt() + 1;
+    final decision = const HintService().use(
+      state: hintState,
+      now: timestamp ?? DateTime.now(),
+      quarter: quarter,
+      zoneAllowsHints: AppConfig.minZoneAreaForHintsAndQuestions == null,
+    );
+    if (decision.allowed) notifyListeners();
+    return decision;
+  }
+
+  bool startQuestionRound() {
+    final started = questionAttempt.start(
+      isPrivateGame: true,
+      questionsEnabled: true,
+      inRange: true,
+    );
+    if (started) notifyListeners();
+    return started;
+  }
+
+  void updateQuestionRange(bool inRange, [DateTime? timestamp]) {
+    questionAttempt.updateRange(
+      inRange: inRange,
+      now: timestamp ?? DateTime.now(),
+    );
+    notifyListeners();
+  }
+
+  int completeQuestionRound(int correct) {
+    final earned = questionAttempt.complete(correct);
+    final bonus = _questionBonus.award('me', [questionAttempt], 1);
+    questionPoints += earned + bonus;
+    points += earned + bonus;
+    notifyListeners();
+    return earned + bonus;
+  }
+
+  bool registerZoneMeasurement({
+    required bool inside,
+    bool reliable = true,
+    DateTime? timestamp,
+  }) {
+    final now = timestamp ?? DateTime.now();
+    final outside = outsideZoneTracker.update(
+      inside: inside,
+      reliable: reliable,
+      now: now,
+    );
+    inActiveZone = !outside;
+    zoneReturnDeadline = outside
+        ? outsideZoneTracker.confirmedOutsideAt!.add(
+            ZoneRules.returnTime(
+              distanceMeters: 120,
+              speedMetersPerSecond: 1.4,
+              gameDuration: activeGameDuration,
+            ),
+          )
+        : null;
+    notifyListeners();
+    return outside;
   }
 
   void tickActiveGame([Duration amount = const Duration(seconds: 1)]) {
@@ -96,12 +210,15 @@ class AppState extends ChangeNotifier {
     tickActiveGame(elapsed);
   }
 
-  double playerValue(PlayerRole role) => DemoPlayerValueRules.calculate(
-        role: role,
-        elapsed: activeGame.elapsed,
-        playersFound: activeGame.playersFound,
-        total: activeGame.countdown.total,
-      );
+  double playerValue(PlayerRole role) {
+    final base = DemoPlayerValueRules.calculate(
+      role: role,
+      elapsed: activeGame.elapsed,
+      playersFound: activeGame.playersFound,
+      total: activeGame.countdown.total,
+    );
+    return role == PlayerRole.seeker ? base + demoScores['me']!.value : base;
+  }
 
   String? setDisplayName(String value) {
     final trimmed = value.trim();
@@ -146,6 +263,7 @@ class AppState extends ChangeNotifier {
       countdown: GameCountdown.start(activeGameDuration),
     );
     _lastGameClockUpdate = DateTime.now();
+    _initializeV1Demo();
     gameFinished = false;
     gamesPlayed = 5;
     wins = 3;
@@ -162,5 +280,36 @@ class AppState extends ChangeNotifier {
       ..['Meld deelname aan eerdere tegenstanders'] = true
       ..['Meld deelname aan eerdere vrienden'] = true;
     notifyListeners();
+  }
+
+  void _initializeV1Demo() {
+    _scoringService = ScoringService();
+    demoScores = {
+      'me': ParticipantScore(id: 'me', role: ScoreRole.seeker, value: 0),
+      'seeker-2': ParticipantScore(
+        id: 'seeker-2',
+        role: ScoreRole.seeker,
+        value: 0,
+      ),
+      'hider-1': ParticipantScore(
+        id: 'hider-1',
+        role: ScoreRole.hider,
+        value: 100,
+      ),
+      'hider-2': ParticipantScore(
+        id: 'hider-2',
+        role: ScoreRole.hider,
+        value: 100,
+      ),
+    };
+    hintState = HintState(points: 50);
+    questionAttempt = QuestionAttempt(playerId: 'me', subjectId: 'mila');
+    _questionBonus = PerfectQuestionBonus();
+    outsideZoneTracker = OutsideZoneTracker();
+    personallyFound = 2;
+    questionPoints = 0;
+    findSequence = 0;
+    inActiveZone = true;
+    zoneReturnDeadline = null;
   }
 }

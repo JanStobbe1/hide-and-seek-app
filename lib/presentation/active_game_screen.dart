@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../app_state.dart';
 import '../domain/models.dart';
+import '../domain/private_questions.dart';
 import 'widgets.dart';
 
 class ActiveGameScreen extends StatefulWidget {
@@ -57,11 +58,33 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
                   _StatusRow(finished: state.gameFinished),
                   const SizedBox(height: 12),
                   _CountdownCard(state: state),
+                  if (!state.inActiveZone) _ZoneAlarm(state: state),
                   const SectionTitle('Zoekgebied'),
                   MapPlaceholder(playerMarker: state.playerMarker),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      OutlinedButton(
+                        onPressed: _simulateGpsSpike,
+                        child: const Text('Simuleer GPS-piek'),
+                      ),
+                      OutlinedButton(
+                        onPressed: _confirmOutsideZone,
+                        child: const Text('Bevestig buiten zone'),
+                      ),
+                      OutlinedButton(
+                        onPressed: state.inActiveZone ? null : _returnToZone,
+                        child: const Text('Keer terug in zone'),
+                      ),
+                    ],
+                  ),
                   const SectionTitle('Jouw acties'),
                   _GameActions(
-                      onNotice: (message) => _notice(context, message)),
+                    state: state,
+                    onHint: _useHint,
+                    onQuestions: _showQuestions,
+                  ),
                   const SizedBox(height: 18),
                   FilledButton.icon(
                     onPressed: state.gameFinished
@@ -119,8 +142,12 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
           FilledButton(
             onPressed: () {
               Navigator.pop(dialogContext);
-              state.foundPlayer();
-              _showFoundConfirmation(context);
+              final applied = state.foundPlayer();
+              if (applied) {
+                _showFoundConfirmation(context);
+              } else {
+                _notice(context, 'Deze vondst is al verwerkt.');
+              }
             },
             child: const Text('GEVONDEN'),
           ),
@@ -135,7 +162,11 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
       builder: (dialogContext) => AlertDialog(
         icon: const Icon(Icons.celebration, size: 46),
         title: const Text('Gevonden!'),
-        content: const Text('Je hebt speler XYZ uitgeschakeld.\nGoed gedaan!'),
+        content: const Text(
+          'Je hebt speler XYZ uitgeschakeld.\n\n'
+          'Jij ontvangt 80 punten. Iedere andere actieve zoeker ontvangt '
+          '20 punten en iedere resterende hider 10 punten.',
+        ),
         actions: [
           FilledButton(
             onPressed: () => Navigator.pop(dialogContext),
@@ -173,6 +204,100 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
     state.finishGame();
     _showSeekerResult(context);
   }
+
+  void _useHint() {
+    final decision = state.useHint();
+    if (decision.allowed) {
+      final cost = decision.cost == 0 ? 'gratis hint' : '${decision.cost} punten';
+      _notice(context, 'Hint gestart ($cost). Zoekcirkel: 60 seconden.');
+      return;
+    }
+    final message = switch (decision.reason) {
+      'cooldown' => 'Je hint heeft nog een cooldown van 10 minuten.',
+      'insufficientPoints' => 'Je hebt onvoldoende punten voor deze hint.',
+      _ => 'Hints zijn in deze fase niet beschikbaar.',
+    };
+    _notice(context, message);
+  }
+
+  void _showQuestions() {
+    if (!state.startQuestionRound() &&
+        state.questionAttempt.status != QuestionMarkerStatus.inProgress) {
+      _notice(context, 'Deze vragenronde is niet meer beschikbaar.');
+      return;
+    }
+    final answers = List<bool?>.filled(5, null);
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Vijf vragen over Mila'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: List.generate(
+                5,
+                (index) => RadioGroup<bool>(
+                  groupValue: answers[index],
+                  onChanged: (value) =>
+                      setDialogState(() => answers[index] = value),
+                  child: ListTile(
+                    title: Text('Vraag ${index + 1}: klopt deze stelling?'),
+                    subtitle: const Row(
+                      children: [
+                        Expanded(
+                          child: RadioListTile<bool>(
+                            value: true,
+                            title: Text('Ja'),
+                          ),
+                        ),
+                        Expanded(
+                          child: RadioListTile<bool>(
+                            value: false,
+                            title: Text('Nee'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Later'),
+            ),
+            FilledButton(
+              onPressed: answers.every((answer) => answer != null)
+                  ? () {
+                      final correct = answers.where((answer) => answer == true).length;
+                      final earned = state.completeQuestionRound(correct);
+                      Navigator.pop(dialogContext);
+                      _notice(context, '$correct/5 goed: +$earned punten.');
+                    }
+                  : null,
+              child: const Text('Afronden'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _simulateGpsSpike() {
+    state.registerZoneMeasurement(inside: false);
+    state.registerZoneMeasurement(inside: true);
+    _notice(context, 'Losse GPS-piek genegeerd; je blijft actief.');
+  }
+
+  void _confirmOutsideZone() {
+    state.registerZoneMeasurement(inside: false);
+    state.registerZoneMeasurement(inside: false);
+  }
+
+  void _returnToZone() => state.registerZoneMeasurement(inside: true);
 
   void _showHiderResult(BuildContext context) {
     showModalBottomSheet<void>(
@@ -223,15 +348,19 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
               style: const TextStyle(fontSize: 25, fontWeight: FontWeight.w900),
             ),
             Text(
-              '${state.activeGame.playersFound} spelers gevonden • 840 punten',
+              '${state.personallyFound} persoonlijk gevonden • '
+              '${state.points + state.playerValue(PlayerRole.seeker).round()} punten',
             ),
             const Text('Rank: Beginner • 68% naar Avonturier'),
             const SizedBox(height: 12),
-            const Card(
+            Card(
               child: ListTile(
-                leading: Icon(Icons.stars),
-                title: Text('Resultaat: 840 punten'),
-                subtitle: Text('V1 gebruikt uitsluitend punten.'),
+                leading: const Icon(Icons.stars),
+                title: Text(
+                  'Persoonlijk aandeel: ${state.personallyFound}/'
+                  '${state.activeGame.playersFound}',
+                ),
+                subtitle: const Text('V1 gebruikt uitsluitend punten.'),
               ),
             ),
             const SizedBox(height: 12),
@@ -323,6 +452,15 @@ class _CountdownCard extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           Text(
+            '${state.personallyFound} van ${state.activeGame.playersFound} '
+            'door mij gevonden',
+            style: const TextStyle(color: Colors.white),
+          ),
+          Text(
+            state.inActiveZone ? 'Binnen speelgebied' : 'Buiten speelgebied',
+            style: const TextStyle(color: Colors.white),
+          ),
+          Text(
             'Omdat je ${state.activeGame.playersFound} spelers hebt gevonden '
             'is je actuele spelwaarde ${value.toStringAsFixed(0)} punten.',
             textAlign: TextAlign.center,
@@ -338,10 +476,35 @@ class _CountdownCard extends StatelessWidget {
   }
 }
 
-class _GameActions extends StatelessWidget {
-  const _GameActions({required this.onNotice});
+class _ZoneAlarm extends StatelessWidget {
+  const _ZoneAlarm({required this.state});
 
-  final ValueChanged<String> onNotice;
+  final AppState state;
+
+  @override
+  Widget build(BuildContext context) => Card(
+        color: Theme.of(context).colorScheme.errorContainer,
+        child: ListTile(
+          leading: const Icon(Icons.warning_amber),
+          title: const Text('Je staat buiten het actieve speelveld'),
+          subtitle: Text(
+            'Keer terug vóór ${state.zoneReturnDeadline?.hour.toString().padLeft(2, '0')}:'
+            '${state.zoneReturnDeadline?.minute.toString().padLeft(2, '0')}.',
+          ),
+        ),
+      );
+}
+
+class _GameActions extends StatelessWidget {
+  const _GameActions({
+    required this.state,
+    required this.onHint,
+    required this.onQuestions,
+  });
+
+  final AppState state;
+  final VoidCallback onHint;
+  final VoidCallback onQuestions;
 
   @override
   Widget build(BuildContext context) => Wrap(
@@ -355,16 +518,17 @@ class _GameActions extends StatelessWidget {
           ),
           ActionChip(
             avatar: const Icon(Icons.lightbulb),
-            label: const Text('Gebruik hint'),
-            onPressed: () => onNotice(
-              'Hint ontgrendeld: kijk bij de grote eik. Kosten: punten.',
+            label: Text(
+              state.hintState.freeHintAvailable
+                  ? 'Gebruik gratis hint'
+                  : 'Koop hint met punten',
             ),
+            onPressed: onHint,
           ),
           ActionChip(
             avatar: const Icon(Icons.quiz),
             label: const Text('Beantwoord vraag'),
-            onPressed: () =>
-                onNotice('Goed! Amsterdam is de hoofdstad van Nederland.'),
+            onPressed: state.questionAttempt.visible ? onQuestions : null,
           ),
         ],
       );

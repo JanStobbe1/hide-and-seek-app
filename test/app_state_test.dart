@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:verstobbertje/app_state.dart';
+import 'package:verstobbertje/domain/friends.dart';
 import 'package:verstobbertje/domain/models.dart';
 import 'package:verstobbertje/domain/profile_models.dart';
 
@@ -54,5 +55,41 @@ void main() {
     expect(state.activeGame.countdown.remaining, Duration.zero);
     expect(state.gamesPlayed, 6);
     expect(initial, const Duration(seconds: 3));
+  });
+
+  test('accepted friend request is exposed as a friendship', () {
+    final state = AppState();
+    final now = DateTime(2026, 9, 21, 8);
+
+    state.seedIncomingFriendRequest(
+      playerId: 'player-mila',
+      createdAt: now.subtract(const Duration(hours: 12)),
+    );
+    final request = state.incomingFriendRequestsAt(now).single;
+    final decision = state.respondToFriendRequest(
+      request,
+      accept: true,
+      now: now,
+    );
+
+    expect(decision, FriendDecision.friends);
+    expect(state.incomingFriendRequestsAt(now), isEmpty);
+    expect(state.friendshipPlayerIds, contains('player-mila'));
+  });
+
+  test('friend requests older than two days expire', () {
+    final state = AppState();
+    final now = DateTime(2026, 9, 21, 8);
+
+    state.seedIncomingFriendRequest(
+      playerId: 'player-old',
+      createdAt: now.subtract(const Duration(days: 2, seconds: 1)),
+    );
+
+    expect(state.incomingFriendRequestsAt(now), isEmpty);
+    expect(
+      state.friendshipService.requests['player-old->me']?.decision,
+      FriendDecision.expired,
+    );
   });
 }

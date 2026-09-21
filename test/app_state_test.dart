@@ -134,5 +134,4 @@ void main() {
     expect(state.activeHiders, 15);
     expect(state.personallyFoundHiders, 0);
   });
-
 }

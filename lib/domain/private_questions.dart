@@ -24,7 +24,9 @@ class QuestionAttempt {
     if (!isPrivateGame ||
         !questionsEnabled ||
         !inRange ||
-        status != QuestionMarkerStatus.available) return false;
+        status != QuestionMarkerStatus.available) {
+      return false;
+    }
     status = QuestionMarkerStatus.inProgress;
     return true;
   }
@@ -42,8 +44,9 @@ class QuestionAttempt {
   }
 
   int complete(int correct) {
-    if (status != QuestionMarkerStatus.inProgress || correct < 0 || correct > 5)
+    if (status != QuestionMarkerStatus.inProgress || correct < 0 || correct > 5) {
       return 0;
+    }
     correctAnswers = correct;
     status = QuestionMarkerStatus.completed;
     return QuestionScoring.pointsFor(correct);
@@ -69,7 +72,9 @@ class PerfectQuestionBonus {
             attempt.playerId == playerId && attempt.subjectId != playerId)
         .toList();
     if (relevant.length != otherParticipantCount ||
-        relevant.any((attempt) => attempt.correctAnswers != 5)) return 0;
+        relevant.any((attempt) => attempt.correctAnswers != 5)) {
+      return 0;
+    }
     _awardedPlayers.add(playerId);
     return 500;
   }

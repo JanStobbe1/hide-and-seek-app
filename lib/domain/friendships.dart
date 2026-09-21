@@ -21,13 +21,15 @@ class FriendRequest {
   }
 
   void decline() {
-    if (status == FriendRequestStatus.pending)
+    if (status == FriendRequestStatus.pending) {
       status = FriendRequestStatus.declined;
+    }
   }
 
   void block() {
-    if (status == FriendRequestStatus.pending)
+    if (status == FriendRequestStatus.pending) {
       status = FriendRequestStatus.blocked;
+    }
   }
 }
 

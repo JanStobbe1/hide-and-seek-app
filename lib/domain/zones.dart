@@ -35,8 +35,9 @@ abstract final class ZoneRules {
         x: current.x + offsetX,
         y: current.y + offsetY,
         radius: current.radius * math.sqrt(AppConfig.shrinkAreaFactor));
-    if (!current.containsZone(next))
+    if (!current.containsZone(next)) {
       throw ArgumentError('New zone must fit within current zone.');
+    }
     return next;
   }
 
@@ -55,8 +56,9 @@ abstract final class ZoneRules {
       required Duration gameDuration}) {
     if (distanceMeters < 0 ||
         speedMetersPerSecond <= 0 ||
-        gameDuration <= Duration.zero)
+        gameDuration <= Duration.zero) {
       throw ArgumentError('Invalid return-time input.');
+    }
     final estimateSeconds =
         distanceMeters / speedMetersPerSecond * AppConfig.returnSafetyFactor;
     final minSeconds = AppConfig.minReturnTime.inSeconds.toDouble();

@@ -17,8 +17,9 @@ class ProfileNameValidation {
     final value = input.trim();
     if (value.isEmpty) return 'Vul een naam in.';
     if (value.runes.length > 30) return 'Gebruik maximaal 30 tekens.';
-    if (!RegExp(r'[A-Za-zÀ-ÿ\u0600-\u06FF0-9]').hasMatch(value))
+    if (!RegExp(r'[A-Za-zÀ-ÿ\u0600-\u06FF0-9]').hasMatch(value)) {
       return 'Gebruik letters of cijfers.';
+    }
     final letters = value.replaceAll(RegExp(r'[^A-Za-zÀ-ÿ\u0600-\u06FF]'), '');
     if (letters.isNotEmpty &&
         letters == letters.toUpperCase() &&
@@ -26,8 +27,9 @@ class ProfileNameValidation {
       return 'Gebruik niet uitsluitend hoofdletters.';
     }
     final normalized = value.toLowerCase();
-    if (_blocked.any((word) => normalized.contains(word)))
+    if (_blocked.any((word) => normalized.contains(word))) {
       return offensiveMessage;
+    }
     return null;
   }
 }

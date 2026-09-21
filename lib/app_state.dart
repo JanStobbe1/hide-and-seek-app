@@ -56,24 +56,29 @@ class AppState extends ChangeNotifier {
   final List<FriendProfile> friends = const [
     FriendProfile(
       name: 'Mila',
-      city: 'Almere',
+      rank: 'Avonturier',
       gamesPlayed: 12,
       gamesWon: 6,
-      points: 1840,
+      dailyStreak: 4,
+      badges: ['Scherp oog', '3 op rij'],
+      upcomingGames: ['Almere Avondspel'],
     ),
     FriendProfile(
       name: 'Sam',
-      city: 'Amsterdam',
+      rank: 'Beginner',
       gamesPlayed: 8,
       gamesWon: 3,
-      points: 1120,
+      dailyStreak: 2,
+      badges: ['Eerste winst'],
+      upcomingGames: ['Amsterdam Centrum'],
     ),
     FriendProfile(
       name: 'Noa',
-      city: 'Lelystad',
+      rank: 'Beginner',
       gamesPlayed: 5,
       gamesWon: 2,
-      points: 760,
+      dailyStreak: 1,
+      badges: ['Onvindbaar'],
     ),
   ];
   final Map<String, bool> privacy = {

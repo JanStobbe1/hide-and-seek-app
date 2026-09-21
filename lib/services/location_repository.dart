@@ -47,11 +47,16 @@ class DemoLocationRepository implements LocationRepository {
 
   @override
   List<String> provincesFor(String country) =>
-      _withAll(_locations[country]?.keys);
+      _withAll(country == 'Nederland'
+          ? dutchMunicipalitiesByProvince.keys
+          : _locations[country]?.keys);
 
   @override
   List<String> citiesFor(String country, String province) {
     if (province == 'Alle') return const ['Alle'];
+    if (country == 'Nederland') {
+      return _withAll(dutchMunicipalitiesByProvince[province]);
+    }
     return _withAll(_locations[country]?[province]?.keys);
   }
 
@@ -110,3 +115,5 @@ class LocationSelection {
     );
   }
 }
+import '../data/dutch_municipalities.dart';
+

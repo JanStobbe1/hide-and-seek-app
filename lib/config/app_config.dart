@@ -5,6 +5,8 @@ abstract final class AppConfig {
   static const joinGrace = Duration(minutes: 5);
   static const shrinkDuration = Duration(minutes: 5);
   static const shrinkAreaFactor = .95;
+  // CFG-04: circular activation area centered on the question marker.
+  static const questionRangeMeters = 20.0;
   static const questionReturnGrace = Duration(seconds: 5);
   static const hintDuration = Duration(seconds: 60);
   static const hintShrinkStart = Duration(seconds: 30);

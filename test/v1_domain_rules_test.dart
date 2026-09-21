@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:verstobbertje/config/app_config.dart';
 import 'package:verstobbertje/domain/game_lifecycle.dart';
 import 'package:verstobbertje/domain/hints.dart';
 import 'package:verstobbertje/domain/private_questions.dart';
@@ -9,6 +10,10 @@ import 'package:verstobbertje/domain/scoring.dart';
 import 'package:verstobbertje/domain/zones.dart';
 
 void main() {
+  test('CFG-04 question marker uses a twenty-meter radius', () {
+    expect(AppConfig.questionRangeMeters, 20);
+  });
+
   group('AC-005 scoring', () {
     test('80% finder, 20% per other seeker, +10 remaining hiders, idempotent',
         () {

@@ -18,6 +18,40 @@ void main() {
     );
   });
 
+  test('all Dutch provinces and 342 municipalities are available', () {
+    final provinces = repository.provincesFor('Nederland');
+    expect(provinces.length, 13);
+    expect(
+        provinces,
+        containsAll(<String>[
+          'Drenthe',
+          'Flevoland',
+          'Friesland',
+          'Gelderland',
+          'Groningen',
+          'Limburg',
+          'Noord-Brabant',
+          'Noord-Holland',
+          'Overijssel',
+          'Utrecht',
+          'Zeeland',
+          'Zuid-Holland',
+        ]));
+    final municipalityCount = provinces
+        .where((province) => province != 'Alle')
+        .map((province) =>
+            repository.citiesFor('Nederland', province).length - 1)
+        .fold<int>(0, (total, count) => total + count);
+    expect(municipalityCount, 342);
+  });
+
+  test('municipalities without demo neighbourhoods still allow all', () {
+    expect(
+      repository.neighbourhoodsFor('Nederland', 'Gelderland', 'Arnhem'),
+      ['Alle'],
+    );
+  });
+
   test('changing a parent clears incompatible children', () {
     const initial = LocationSelection(
       country: 'Nederland',
@@ -41,6 +75,6 @@ void main() {
       'dam',
     );
 
-    expect(filtered, ['Amsterdam']);
+    expect(filtered, ['Amsterdam', 'Edam-Volendam']);
   });
 }

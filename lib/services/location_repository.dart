@@ -1,3 +1,5 @@
+import '../data/dutch_municipalities.dart';
+
 abstract interface class LocationRepository {
   List<String> get countries;
   List<String> provincesFor(String country);
@@ -46,12 +48,16 @@ class DemoLocationRepository implements LocationRepository {
   List<String> get countries => _locations.keys.toList(growable: false);
 
   @override
-  List<String> provincesFor(String country) =>
-      _withAll(_locations[country]?.keys);
+  List<String> provincesFor(String country) => _withAll(country == 'Nederland'
+      ? dutchMunicipalitiesByProvince.keys
+      : _locations[country]?.keys);
 
   @override
   List<String> citiesFor(String country, String province) {
     if (province == 'Alle') return const ['Alle'];
+    if (country == 'Nederland') {
+      return _withAll(dutchMunicipalitiesByProvince[province]);
+    }
     return _withAll(_locations[country]?[province]?.keys);
   }
 

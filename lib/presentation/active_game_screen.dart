@@ -84,7 +84,9 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
                       _HintCircle(
                         startedAt: _hintStartedAt!,
                         now: DateTime.now(),
-                        playerCount: state.activeHiders,
+                        role: state.activeRole,
+                        activeHiders: state.activeHiders,
+                        activeSeekers: state.activeSeekers,
                       ),
                     const SectionTitle('Jouw acties'),
                     _GameActions(
@@ -94,14 +96,18 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
                       onNotice: (message) => _notice(context, message),
                     ),
                     const SizedBox(height: 18),
-                    FilledButton.icon(
-                      onPressed: state.gameFinished
-                          ? null
-                          : () => _showProximity(context),
-                      icon: const Icon(Icons.sensors),
-                      label: const Text('Simuleer speler binnen 5 meter'),
-                    ),
-                    const SizedBox(height: 10),
+                    if (state.activeRole == PlayerRole.seeker) ...[
+                      FilledButton.icon(
+                        onPressed: state.gameFinished
+                            ? null
+                            : () => _showProximity(context),
+                        icon: const Icon(Icons.sensors),
+                        label: const Text(
+                          'Simuleer verstopper binnen 5 meter',
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                    ],
                     OutlinedButton.icon(
                       onPressed: state.gameFinished ||
                               state.activeRole != PlayerRole.hider
@@ -305,8 +311,9 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
 
   void _showHiderResult(BuildContext context) {
     final elapsed = state.activeGame.elapsed;
-    final minutes = elapsed.inMinutes;
     final found = state.currentHiderFound;
+    final survivalTime = state.currentHiderFoundAt ?? elapsed;
+    final minutes = survivalTime.inMinutes;
     final tone = const ResultService().hiderTone(
       found: found,
       foundAt: state.currentHiderFoundAt,
@@ -505,7 +512,7 @@ class _CountdownCard extends StatelessWidget {
     final remaining = state.activeGame.countdown.remaining;
     final hours = remaining.inHours;
     final minutes = remaining.inMinutes.remainder(60);
-    final value = state.playerValue(PlayerRole.seeker);
+    final value = state.playerValue(state.activeRole);
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -534,18 +541,24 @@ class _CountdownCard extends StatelessWidget {
           ),
           const Divider(color: Colors.white24, height: 28),
           Text(
-            'Jij vond ${state.activeGame.playersFound} • '
-            '${state.activeHiders} verstoppers nog actief',
+            state.activeRole == PlayerRole.seeker
+                ? 'Door mij gevonden: ${state.personallyFoundHiders} / '
+                    '${state.foundHiders} • totaal: '
+                    '${state.foundHiders} / ${state.totalHiders}'
+                : 'Gevonden verstoppers: ${state.foundHiders} / '
+                    '${state.totalHiders}',
             style: const TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.w900,
               fontSize: 20,
             ),
+            textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
           LinearProgressIndicator(
-            value: state.activeGame.playersFound /
-                (state.activeGame.playersFound + state.activeHiders),
+            value: state.totalHiders == 0
+                ? 0
+                : state.foundHiders / state.totalHiders,
             minHeight: 9,
             borderRadius: BorderRadius.circular(8),
           ),
@@ -612,12 +625,16 @@ class _HintCircle extends StatelessWidget {
   const _HintCircle({
     required this.startedAt,
     required this.now,
-    required this.playerCount,
+    required this.role,
+    required this.activeHiders,
+    required this.activeSeekers,
   });
 
   final DateTime startedAt;
   final DateTime now;
-  final int playerCount;
+  final PlayerRole role;
+  final int activeHiders;
+  final int activeSeekers;
 
   @override
   Widget build(BuildContext context) {
@@ -649,8 +666,11 @@ class _HintCircle extends StatelessWidget {
           ),
           alignment: Alignment.center,
           child: Text(
-            '$playerCount verstoppers in hintgebied\n'
-            '$remaining sec resterend',
+            role == PlayerRole.seeker
+                ? '$activeHiders verstoppers in hintgebied\n'
+                    '$remaining sec resterend'
+                : '$activeSeekers zoekers • $activeHiders verstoppers\n'
+                    '$remaining sec resterend',
             textAlign: TextAlign.center,
             style: const TextStyle(fontWeight: FontWeight.w800),
           ),

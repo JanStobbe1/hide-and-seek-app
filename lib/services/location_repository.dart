@@ -1,3 +1,5 @@
+import '../data/dutch_municipalities.dart';
+
 abstract interface class LocationRepository {
   List<String> get countries;
   List<String> provincesFor(String country);
@@ -115,5 +117,3 @@ class LocationSelection {
     );
   }
 }
-import '../data/dutch_municipalities.dart';
-

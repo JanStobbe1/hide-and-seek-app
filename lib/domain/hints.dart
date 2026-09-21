@@ -22,11 +22,18 @@ class HintService {
 
   int priceForQuarter(int quarter) {
     if (quarter < 1 || quarter > 4) throw RangeError.range(quarter, 1, 4);
-    return (AppConfig.hintBaseCost * math.pow(AppConfig.hintQuarterMultiplier, quarter - 1)).ceil();
+    return (AppConfig.hintBaseCost *
+            math.pow(AppConfig.hintQuarterMultiplier, quarter - 1))
+        .ceil();
   }
 
-  HintDecision use({required HintState state, required DateTime now, required int quarter, required bool zoneAllowsHints}) {
-    if (state.lastUsedAt != null && now.difference(state.lastUsedAt!) < AppConfig.hintCooldown) {
+  HintDecision use(
+      {required HintState state,
+      required DateTime now,
+      required int quarter,
+      required bool zoneAllowsHints}) {
+    if (state.lastUsedAt != null &&
+        now.difference(state.lastUsedAt!) < AppConfig.hintCooldown) {
       return const HintDecision(allowed: false, reason: 'cooldown');
     }
     if (!zoneAllowsHints || quarter == 4) {
@@ -47,5 +54,6 @@ class HintService {
     return HintDecision(allowed: true, cost: cost);
   }
 
-  int resultPenalty(HintState state) => state.boughtHints * AppConfig.hintResultPenalty;
+  int resultPenalty(HintState state) =>
+      state.boughtHints * AppConfig.hintResultPenalty;
 }

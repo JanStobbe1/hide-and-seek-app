@@ -4,17 +4,27 @@ enum QuestionMarkerStatus { own, available, inProgress, completed, failed }
 
 class QuestionAttempt {
   QuestionAttempt({required this.playerId, required this.subjectId})
-      : status = playerId == subjectId ? QuestionMarkerStatus.own : QuestionMarkerStatus.available;
+      : status = playerId == subjectId
+            ? QuestionMarkerStatus.own
+            : QuestionMarkerStatus.available;
   final String playerId;
   final String subjectId;
   QuestionMarkerStatus status;
   DateTime? leftRangeAt;
   int? correctAnswers;
 
-  bool get visible => status != QuestionMarkerStatus.own && status != QuestionMarkerStatus.failed;
+  bool get visible =>
+      status != QuestionMarkerStatus.own &&
+      status != QuestionMarkerStatus.failed;
 
-  bool start({required bool isPrivateGame, required bool questionsEnabled, required bool inRange}) {
-    if (!isPrivateGame || !questionsEnabled || !inRange || status != QuestionMarkerStatus.available) return false;
+  bool start(
+      {required bool isPrivateGame,
+      required bool questionsEnabled,
+      required bool inRange}) {
+    if (!isPrivateGame ||
+        !questionsEnabled ||
+        !inRange ||
+        status != QuestionMarkerStatus.available) return false;
     status = QuestionMarkerStatus.inProgress;
     return true;
   }
@@ -32,7 +42,8 @@ class QuestionAttempt {
   }
 
   int complete(int correct) {
-    if (status != QuestionMarkerStatus.inProgress || correct < 0 || correct > 5) return 0;
+    if (status != QuestionMarkerStatus.inProgress || correct < 0 || correct > 5)
+      return 0;
     correctAnswers = correct;
     status = QuestionMarkerStatus.completed;
     return QuestionScoring.pointsFor(correct);
@@ -50,10 +61,15 @@ abstract final class QuestionScoring {
 class PerfectQuestionBonus {
   final Set<String> _awardedPlayers = {};
 
-  int award(String playerId, Iterable<QuestionAttempt> attempts, int otherParticipantCount) {
+  int award(String playerId, Iterable<QuestionAttempt> attempts,
+      int otherParticipantCount) {
     if (_awardedPlayers.contains(playerId)) return 0;
-    final relevant = attempts.where((attempt) => attempt.playerId == playerId && attempt.subjectId != playerId).toList();
-    if (relevant.length != otherParticipantCount || relevant.any((attempt) => attempt.correctAnswers != 5)) return 0;
+    final relevant = attempts
+        .where((attempt) =>
+            attempt.playerId == playerId && attempt.subjectId != playerId)
+        .toList();
+    if (relevant.length != otherParticipantCount ||
+        relevant.any((attempt) => attempt.correctAnswers != 5)) return 0;
     _awardedPlayers.add(playerId);
     return 500;
   }

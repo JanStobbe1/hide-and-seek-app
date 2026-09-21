@@ -39,7 +39,8 @@ class DemoIntroductionService implements IntroductionService {
     ];
     final extras =
         mechanics.isEmpty ? 'pure verstopactie' : mechanics.join(' en ');
-    final context = '${request.gameName} in ${request.region}, georganiseerd door ${request.organizer}';
+    final context =
+        '${request.gameName} in ${request.region}, georganiseerd door ${request.organizer}';
     final variants = [
       'Welkom bij ${request.gameName} van ${request.organizer}! Verken ${request.region} tijdens een '
           'spannend spel van ${request.durationMinutes} minuten met maximaal '
@@ -67,13 +68,17 @@ class DemoIntroductionService implements IntroductionService {
 enum IntroductionOrigin { none, manual, generated }
 
 class IntroductionDraft {
-  const IntroductionDraft({this.text = '', this.origin = IntroductionOrigin.none, this.sourceFingerprint});
+  const IntroductionDraft(
+      {this.text = '',
+      this.origin = IntroductionOrigin.none,
+      this.sourceFingerprint});
   final String text;
   final IntroductionOrigin origin;
   final String? sourceFingerprint;
 
   IntroductionDraft invalidateFor(String newFingerprint) {
-    if (origin == IntroductionOrigin.generated && sourceFingerprint != newFingerprint) {
+    if (origin == IntroductionOrigin.generated &&
+        sourceFingerprint != newFingerprint) {
       return const IntroductionDraft();
     }
     return this;

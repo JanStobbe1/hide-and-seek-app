@@ -57,8 +57,15 @@ void main() {
       organizer: 'Jan',
       region: 'Noord-Holland, Haarlem',
     );
-    final variants = {for (var index = 0; index < 10; index++) service.generate(request, variant: index)};
+    final variants = {
+      for (var index = 0; index < 10; index++)
+        service.generate(request, variant: index)
+    };
     expect(variants, hasLength(10));
-    expect(variants.every((text) => text.contains('Bosjacht') && (text.contains('Haarlem') || text.contains('Noord-Holland'))), isTrue);
+    expect(
+        variants.every((text) =>
+            text.contains('Bosjacht') &&
+            (text.contains('Haarlem') || text.contains('Noord-Holland'))),
+        isTrue);
   });
 }

@@ -363,7 +363,8 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
       hintsEnabled: hints,
       questionsEnabled: questions,
       organizer: widget.state.displayName,
-      region: '${selectedArea.country}, ${selectedArea.province}, ${selectedArea.city}',
+      region:
+          '${selectedArea.country}, ${selectedArea.province}, ${selectedArea.city}',
     );
     intro.text = introductionService.generate(
       request,

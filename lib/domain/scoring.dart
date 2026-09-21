@@ -11,7 +11,8 @@ class ParticipantScore {
 }
 
 class FindEvent {
-  const FindEvent({required this.id, required this.finderId, required this.hiderId});
+  const FindEvent(
+      {required this.id, required this.finderId, required this.hiderId});
   final String id;
   final String finderId;
   final String hiderId;
@@ -26,14 +27,19 @@ class FindOutcome {
 class ScoringService {
   final Set<String> _processedFinds = {};
 
-  FindOutcome registerFind(FindEvent event, Map<String, ParticipantScore> players) {
+  FindOutcome registerFind(
+      FindEvent event, Map<String, ParticipantScore> players) {
     if (_processedFinds.contains(event.id)) {
       return const FindOutcome(applied: false, deltas: {});
     }
     final finder = players[event.finderId];
     final hider = players[event.hiderId];
-    if (finder == null || hider == null || !finder.active || !hider.active ||
-        finder.role != ScoreRole.seeker || hider.role != ScoreRole.hider) {
+    if (finder == null ||
+        hider == null ||
+        !finder.active ||
+        !hider.active ||
+        finder.role != ScoreRole.seeker ||
+        hider.role != ScoreRole.hider) {
       return const FindOutcome(applied: false, deltas: {});
     }
     _processedFinds.add(event.id);
@@ -43,6 +49,7 @@ class ScoringService {
       player.value += amount;
       deltas[player.id] = amount;
     }
+
     reward(finder, hiderValue * AppConfig.finderRewardRate);
     for (final player in players.values) {
       if (!player.active || player.id == finder.id) continue;
@@ -61,7 +68,10 @@ abstract final class SeekerDecay {
   static const _factors = [1.0, 1.5, 2.25, 3.375];
   static const _factorSum = 8.125;
 
-  static double valueAt({required double startValue, required Duration total, required Duration elapsed}) {
+  static double valueAt(
+      {required double startValue,
+      required Duration total,
+      required Duration elapsed}) {
     if (startValue < 0 || total <= Duration.zero || elapsed.isNegative) {
       throw ArgumentError('Values and durations must be valid.');
     }

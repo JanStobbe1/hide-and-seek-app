@@ -1,6 +1,7 @@
 import '../config/app_config.dart';
 
 enum LifecycleStatus { available, waiting, active, completed }
+
 enum EndReason { timeExpired, allHidersFound, allSeekersEliminated }
 
 class GameLifecycle {
@@ -13,7 +14,10 @@ class GameLifecycle {
 
   bool canJoin(DateTime now) => !now.isAfter(startsAt.add(AppConfig.joinGrace));
 
-  bool finishIfNeeded({required DateTime now, required int activeHiders, required int activeSeekers}) {
+  bool finishIfNeeded(
+      {required DateTime now,
+      required int activeHiders,
+      required int activeSeekers}) {
     if (status == LifecycleStatus.completed) return false;
     final EndReason? reason;
     if (!now.isBefore(startsAt.add(duration))) {

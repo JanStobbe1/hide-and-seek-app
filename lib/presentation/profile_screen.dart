@@ -139,25 +139,24 @@ class ProfileScreen extends StatelessWidget {
               style: TextStyle(fontSize: 12),
             ),
           ),
-          const SectionTitle('Demo financiën'),
+          const SectionTitle('Punten'),
           const Card(
             child: Column(
               children: [
                 ListTile(
-                  leading: Icon(Icons.account_balance_wallet_outlined),
-                  title: Text('Mocksaldo'),
-                  trailing: Text('€ 12,50'),
+                  leading: Icon(Icons.stars),
+                  title: Text('Puntensaldo'),
+                  trailing: Text('840'),
                 ),
                 ListTile(
-                  leading: Icon(Icons.payments_outlined),
-                  title: Text('Gesimuleerd uitgekeerd'),
-                  trailing: Text('€ 0,00'),
+                  leading: Icon(Icons.info_outline),
+                  title: Text('Spelvaluta'),
+                  trailing: Text('Alleen punten'),
                 ),
                 Padding(
                   padding: EdgeInsets.all(12),
                   child: Text(
-                    'Alle bedragen zijn demonstratiedata. Er is geen echte '
-                    'wallet en er wordt niets overgemaakt.',
+                    'Verstobbertje V1 gebruikt uitsluitend punten.',
                     style: TextStyle(fontSize: 12),
                   ),
                 ),
@@ -204,8 +203,14 @@ class ProfileScreen extends StatelessWidget {
           ),
           FilledButton(
             onPressed: () {
-              state.setDisplayName(controller.text);
-              Navigator.pop(dialogContext);
+              final error = state.setDisplayName(controller.text);
+              if (error == null) {
+                Navigator.pop(dialogContext);
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(error)),
+                );
+              }
             },
             child: const Text('Opslaan'),
           ),

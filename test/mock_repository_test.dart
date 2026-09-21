@@ -31,7 +31,6 @@ void main() {
       area: area,
       status: GameStatus.available,
       duration: Duration(hours: 1),
-      entryFee: 0,
       participants: 1,
       maxParticipants: 12,
       distanceKm: 1,

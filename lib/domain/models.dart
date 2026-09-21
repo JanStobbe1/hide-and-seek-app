@@ -63,7 +63,6 @@ class Game {
     required this.area,
     required this.status,
     required this.duration,
-    required this.entryFee,
     required this.participants,
     required this.maxParticipants,
     required this.distanceKm,
@@ -89,7 +88,6 @@ class Game {
   final SearchArea area;
   final GameStatus status;
   final Duration duration;
-  final double entryFee;
   final int participants;
   final int maxParticipants;
   final double distanceKm;
@@ -109,7 +107,6 @@ class Game {
         area: area,
         status: status ?? this.status,
         duration: duration,
-        entryFee: entryFee,
         participants: participants ?? this.participants,
         maxParticipants: maxParticipants,
         distanceKm: distanceKm,
@@ -139,24 +136,10 @@ class GameResult {
     required this.points,
     this.playersFound = 0,
     this.survivalTime,
-    this.mockReward = 0,
   });
 
   final PlayerRole role;
   final int points;
   final int playersFound;
   final Duration? survivalTime;
-  final double mockReward;
-}
-
-class FinancialSummary {
-  const FinancialSummary({
-    required this.grossPool,
-    required this.platformFee,
-    required this.prizePool,
-  });
-
-  final double grossPool;
-  final double platformFee;
-  final double prizePool;
 }

@@ -3,7 +3,7 @@ import 'package:verstobbertje/domain/models.dart';
 import 'package:verstobbertje/domain/player_value_rules.dart';
 
 void main() {
-  test('seeker value rises when another player is found', () {
+  test('seeker elapsed value is independent of UI find counters', () {
     final before = DemoPlayerValueRules.calculate(
       role: PlayerRole.seeker,
       elapsed: const Duration(minutes: 5),
@@ -15,7 +15,7 @@ void main() {
       playersFound: 3,
     );
 
-    expect(after, greaterThan(before));
+    expect(after, before);
   });
 
   test('seeker value falls over time and hider value rises', () {

@@ -353,31 +353,49 @@ class FriendsScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-              ...friends.map((friend) => Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Row(
-                        children: [
-                          CircleAvatar(child: Text(friend.name[0])),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(friend.name,
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.w800)),
-                                Text(friend.city),
-                                const SizedBox(height: 8),
+              ...friends.map(
+                (friend) => Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CircleAvatar(child: Text(friend.name[0])),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                friend.name,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              Text('Rang: ${friend.rank}'),
+                              const SizedBox(height: 8),
+                              Text(
+                                '${friend.gamesWon} gewonnen / '
+                                '${friend.gamesPlayed} gespeeld',
+                              ),
+                              Text(
+                                'Dagelijkse streak: ${friend.dailyStreak}',
+                              ),
+                              if (friend.badges.isNotEmpty)
+                                Text('Badges: ${friend.badges.join(', ')}'),
+                              if (friend.upcomingGames.isNotEmpty)
                                 Text(
-                                    '${friend.gamesPlayed} gespeeld • ${friend.gamesWon} gewonnen • ${friend.points} punten'),
-                              ],
-                            ),
+                                  'Aangemeld voor: '
+                                  '${friend.upcomingGames.join(', ')}',
+                                ),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  )),
+                  ),
+                ),
+              ),
             ],
           ),
         ),

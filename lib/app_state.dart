@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 
 import 'data/mock_game_repository.dart';
-import 'config/app_config.dart';
 import 'domain/countdown.dart';
 import 'domain/game_engine.dart';
 import 'domain/game_lifecycle.dart';

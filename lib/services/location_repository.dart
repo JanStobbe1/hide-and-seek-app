@@ -94,9 +94,12 @@ class DemoLocationRepository implements LocationRepository {
       if (parts.length != 2) continue;
       final city = parts.first;
       final district = parts.last;
-      final neighbourhoods = country == 'Nederland'
-          ? dutchDistrictsAndNeighbourhoods[city]?[district]
-          : _locations[country]?[province]?[city];
+      Iterable<String>? neighbourhoods;
+      if (country == 'Nederland') {
+        neighbourhoods = dutchDistrictsAndNeighbourhoods[city]?[district];
+      } else {
+        neighbourhoods = _locations[country]?[province]?[city];
+      }
       if (neighbourhoods == null) continue;
       result.addAll(
         neighbourhoods.map(

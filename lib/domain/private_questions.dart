@@ -44,7 +44,9 @@ class QuestionAttempt {
   }
 
   int complete(int correct) {
-    if (status != QuestionMarkerStatus.inProgress || correct < 0 || correct > 5) {
+    if (status != QuestionMarkerStatus.inProgress ||
+        correct < 0 ||
+        correct > 5) {
       return 0;
     }
     correctAnswers = correct;

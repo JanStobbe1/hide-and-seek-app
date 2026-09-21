@@ -27,12 +27,23 @@ void main() {
       MaterialApp(home: ActiveGameScreen(state: state)),
     );
 
-    await tester.ensureVisible(find.text('Bevestig buiten zone'));
-    await tester.tap(find.text('Bevestig buiten zone'));
+    final confirmOutside = find.text('Bevestig buiten zone');
+    await tester.scrollUntilVisible(
+      confirmOutside,
+      200,
+      scrollable: find.byType(Scrollable),
+    );
+    await tester.tap(confirmOutside);
     await tester.pump();
     expect(find.text('Je staat buiten het actieve speelveld'), findsOneWidget);
 
-    await tester.tap(find.text('Keer terug in zone'));
+    final returnToZone = find.text('Keer terug in zone');
+    await tester.scrollUntilVisible(
+      returnToZone,
+      -100,
+      scrollable: find.byType(Scrollable),
+    );
+    await tester.tap(returnToZone);
     await tester.pump();
     expect(find.text('Je staat buiten het actieve speelveld'), findsNothing);
 

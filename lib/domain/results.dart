@@ -57,29 +57,68 @@ class ParticipantView {
     this.gamesPlayed,
     this.badges = const [],
     this.streak,
+    this.upcomingGames = const [],
+    this.currentGame,
+    this.points,
+    this.pointsToNextRank,
   });
-  final String name, rank;
-  final int? age, gamesWon, gamesPlayed, streak;
+
+  final String name;
+  final String rank;
+  final int? age;
   final String? photo;
+  final int? gamesWon;
+  final int? gamesPlayed;
   final List<String> badges;
+  final int? streak;
+  final List<String> upcomingGames;
+
+  // These fields exist in the source model so the privacy projection can
+  // explicitly prove they never reach friend/non-friend UI payloads.
+  final String? currentGame;
+  final int? points;
+  final int? pointsToNextRank;
 }
 
 class PrivacyService {
   const PrivacyService();
-  Map<String, Object?> payload(
-    ParticipantView p, {
+
+  Map<String, Object> payload(
+    ParticipantView participant, {
     required bool friend,
     required bool shareAge,
     required bool sharePhoto,
-  }) =>
-      {
-        'name': p.name,
-        'rank': p.rank,
-        if (friend && shareAge) 'age': p.age,
-        if (friend && sharePhoto) 'photo': p.photo,
-        if (friend) 'gamesWon': p.gamesWon,
-        if (friend) 'gamesPlayed': p.gamesPlayed,
-        if (friend) 'badges': p.badges,
-        if (friend) 'streak': p.streak,
-      };
+  }) {
+    final result = <String, Object>{
+      'name': participant.name,
+      'rank': participant.rank,
+    };
+    if (!friend) return result;
+
+    if (shareAge && participant.age != null) {
+      result['age'] = participant.age!;
+    }
+    if (sharePhoto && participant.photo != null) {
+      result['photo'] = participant.photo!;
+    }
+    if (participant.gamesWon != null) {
+      result['gamesWon'] = participant.gamesWon!;
+    }
+    if (participant.gamesPlayed != null) {
+      result['gamesPlayed'] = participant.gamesPlayed!;
+    }
+    if (participant.badges.isNotEmpty) {
+      result['badges'] = List<String>.unmodifiable(participant.badges);
+    }
+    if (participant.streak != null) {
+      result['streak'] = participant.streak!;
+    }
+    if (participant.upcomingGames.isNotEmpty) {
+      result['upcomingGames'] =
+          List<String>.unmodifiable(participant.upcomingGames);
+    }
+
+    // Deliberately omitted: currentGame, points and pointsToNextRank.
+    return result;
+  }
 }

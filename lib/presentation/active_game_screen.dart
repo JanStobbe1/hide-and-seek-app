@@ -91,7 +91,10 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
                         ? null
                         : () => _showProximity(context),
                     icon: const Icon(Icons.sensors),
-                    label: const Text('Simuleer speler binnen 5 meter'),
+                    label: Text(
+                      'Simuleer speler binnen '
+                      '${state.findDistanceMeters.toStringAsFixed(0)} meter',
+                    ),
                   ),
                   const SizedBox(height: 10),
                   OutlinedButton.icon(
@@ -133,7 +136,10 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
       builder: (dialogContext) => AlertDialog(
         icon: const Icon(Icons.radar, size: 42),
         title: const Text('Speler dichtbij!'),
-        content: const Text('Er is een speler binnen 5 meter.'),
+        content: Text(
+          'Er is een speler binnen '
+          '${state.findDistanceMeters.toStringAsFixed(0)} meter.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
@@ -185,7 +191,8 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
         icon: const Icon(Icons.warning_amber, size: 44),
         title: const Text('Let op!'),
         content: Text(
-          'Zoeker ${state.displayName} zit binnen 5 meter van jou.\n\n'
+          'Zoeker ${state.displayName} zit binnen '
+          '${state.findDistanceMeters.toStringAsFixed(0)} meter van jou.\n\n'
           'Omdat er ${state.activeGame.playersFound} spelers zijn gevonden '
           'is je actuele spelwaarde ${hiderValue.toStringAsFixed(0)} punten.'
           '\n\nBlijf bewegen en houd afstand.',

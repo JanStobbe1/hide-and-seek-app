@@ -50,6 +50,20 @@ abstract final class ZoneRules {
     return 0;
   }
 
+  static double findDistance(double activeZoneRadiusMeters) {
+    if (activeZoneRadiusMeters <= 0) {
+      throw ArgumentError.value(activeZoneRadiusMeters);
+    }
+    return math.max(
+      AppConfig.minFindDistanceMeters,
+      activeZoneRadiusMeters * AppConfig.findDistanceRadiusRatio,
+    );
+  }
+
+  static bool allowsHintsAndQuestions(double activeZoneRadiusMeters) =>
+      activeZoneRadiusMeters >
+      AppConfig.minZoneRadiusForHintsAndQuestionsMeters;
+
   static Duration returnTime(
       {required double distanceMeters,
       required double speedMetersPerSecond,

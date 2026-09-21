@@ -40,6 +40,7 @@ class AppState extends ChangeNotifier {
   int findSequence = 0;
   bool inActiveZone = true;
   DateTime? zoneReturnDeadline;
+  double activeZoneRadiusMeters = 5000;
   bool gameFinished = false;
   int gamesPlayed = 5;
   int wins = 3;
@@ -133,7 +134,8 @@ class AppState extends ChangeNotifier {
       state: hintState,
       now: timestamp ?? DateTime.now(),
       quarter: quarter,
-      zoneAllowsHints: AppConfig.minZoneAreaForHintsAndQuestions == null,
+      zoneAllowsHints:
+          ZoneRules.allowsHintsAndQuestions(activeZoneRadiusMeters),
     );
     if (decision.allowed) notifyListeners();
     return decision;
@@ -142,7 +144,8 @@ class AppState extends ChangeNotifier {
   bool startQuestionRound() {
     final started = questionAttempt.start(
       isPrivateGame: true,
-      questionsEnabled: true,
+      questionsEnabled:
+          ZoneRules.allowsHintsAndQuestions(activeZoneRadiusMeters),
       inRange: true,
     );
     if (started) notifyListeners();
@@ -219,6 +222,9 @@ class AppState extends ChangeNotifier {
     );
     return role == PlayerRole.seeker ? base + demoScores['me']!.value : base;
   }
+
+  double get findDistanceMeters =>
+      ZoneRules.findDistance(activeZoneRadiusMeters);
 
   String? setDisplayName(String value) {
     final trimmed = value.trim();
@@ -311,5 +317,6 @@ class AppState extends ChangeNotifier {
     findSequence = 0;
     inActiveZone = true;
     zoneReturnDeadline = null;
+    activeZoneRadiusMeters = 5000;
   }
 }

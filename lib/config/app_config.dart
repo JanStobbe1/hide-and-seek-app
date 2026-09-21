@@ -23,7 +23,7 @@ abstract final class AppConfig {
   static const maxReturnTimeFraction = .1;
   static const outsideConfirmationSamples = 2;
 
-  // Product values CFG-18/CFG-19 are deliberately not invented.
-  static const List<double>? findDistanceByPhase = null;
-  static const double? minZoneAreaForHintsAndQuestions = null;
+  static const findDistanceRadiusRatio = .01;
+  static const minFindDistanceMeters = 10.0;
+  static const minZoneRadiusForHintsAndQuestionsMeters = 100.0;
 }

@@ -98,6 +98,20 @@ void main() {
   });
 
   group('AC-ZONE/GPS', () {
+    test('CFG-18 find distance is one percent with a ten-meter floor', () {
+      expect(ZoneRules.findDistance(100000), 1000);
+      expect(ZoneRules.findDistance(50000), 500);
+      expect(ZoneRules.findDistance(5000), 50);
+      expect(ZoneRules.findDistance(1000), 10);
+      expect(ZoneRules.findDistance(100), 10);
+    });
+
+    test('CFG-19 hints and questions stop at a 100-meter radius', () {
+      expect(ZoneRules.allowsHintsAndQuestions(100.01), isTrue);
+      expect(ZoneRules.allowsHintsAndQuestions(100), isFalse);
+      expect(ZoneRules.allowsHintsAndQuestions(50), isFalse);
+    });
+
     test('shrink reduces area by 5% and remains contained', () {
       const original = CircleZone(x: 0, y: 0, radius: 100);
       final next = ZoneRules.shrink(original, offsetX: 1, offsetY: 0);

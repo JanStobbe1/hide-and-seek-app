@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:verstobbertje/data/dutch_neighbourhoods.dart';
 import 'package:verstobbertje/services/location_repository.dart';
 
 void main() {
@@ -12,9 +13,20 @@ void main() {
       repository.citiesFor('Nederland', 'Noord-Holland'),
       contains('Amsterdam'),
     );
+
+    final districts = repository.districtsFor(
+      'Nederland',
+      'Noord-Holland',
+      ['Amsterdam'],
+    );
+    expect(districts, contains('Amsterdam › Aetsveld/Oostelijke Vechtoever'));
     expect(
-      repository.neighbourhoodsFor('Nederland', 'Noord-Holland', 'Amsterdam'),
-      contains('Centrum'),
+      repository.neighbourhoodsFor(
+        'Nederland',
+        'Noord-Holland',
+        ['Amsterdam › Aetsveld/Oostelijke Vechtoever'],
+      ),
+      contains('Amsterdam › Aetsveld/Oostelijke Vechtoever › Aetsveld-Noord'),
     );
   });
 
@@ -43,30 +55,48 @@ void main() {
             repository.citiesFor('Nederland', province).length - 1)
         .fold<int>(0, (total, count) => total + count);
     expect(municipalityCount, 342);
+    expect(dutchDistrictsAndNeighbourhoods.length, 342);
   });
 
-  test('municipalities without demo neighbourhoods still allow all', () {
+  test('multiple municipalities in one province can be selected together', () {
+    const initial = LocationSelection(
+      country: 'Nederland',
+      province: 'Noord-Holland',
+    );
+    final selected = initial.selectCities(['Amsterdam', 'Haarlemmermeer']);
+
+    expect(selected.cities, ['Amsterdam', 'Haarlemmermeer']);
     expect(
-      repository.neighbourhoodsFor('Nederland', 'Gelderland', 'Arnhem'),
-      ['Alle'],
+      repository.districtsFor(
+        'Nederland',
+        'Noord-Holland',
+        selected.cities,
+      ),
+      containsAll([
+        'Amsterdam › Aetsveld/Oostelijke Vechtoever',
+        'Haarlemmermeer › Aalsmeerderbrug/ Oude Meer/ Rozenburg / Schiphol Rijk',
+      ]),
     );
   });
 
-  test('changing a parent clears incompatible children', () {
+  test('all is exclusive and changing a parent clears descendants', () {
     const initial = LocationSelection(
       country: 'Nederland',
       province: 'Flevoland',
-      city: 'Almere',
-      neighbourhood: 'Almere Stad',
+      cities: ['Almere'],
+      districts: ['Almere › Almere Stad'],
+      neighbourhoods: ['Almere › Almere Stad › Centrum Almere Stad'],
     );
 
+    final allCities = initial.selectCities(['Almere', 'Alle']);
     final changedProvince = initial.selectProvince('Noord-Holland');
-    final allProvince = initial.selectProvince('Alle');
 
-    expect(changedProvince.city, isNull);
-    expect(changedProvince.neighbourhood, isNull);
-    expect(allProvince.city, 'Alle');
-    expect(allProvince.neighbourhood, 'Alle');
+    expect(allCities.cities, ['Alle']);
+    expect(allCities.districts, ['Alle']);
+    expect(allCities.neighbourhoods, ['Alle']);
+    expect(changedProvince.cities, isEmpty);
+    expect(changedProvince.districts, isEmpty);
+    expect(changedProvince.neighbourhoods, isEmpty);
   });
 
   test('type filtering limits location choices case-insensitively', () {

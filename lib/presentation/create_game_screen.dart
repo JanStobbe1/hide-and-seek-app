@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../app_state.dart';
 import '../domain/models.dart';
-import '../services/financial_service.dart';
 import '../services/introduction_service.dart';
 import '../services/location_repository.dart';
 import 'widgets.dart';
@@ -31,11 +30,11 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
     neighbourhood: 'Alle',
   );
   int introductionVariant = 0;
+  bool introductionWasGenerated = false;
 
   bool isPublic = true;
   bool hints = true;
   bool questions = true;
-  double entry = 10;
   int players = 30;
   int duration = 120;
   int participantThreshold = 10;
@@ -117,7 +116,6 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
                     name: name.text,
                     isPublic: isPublic,
                     duration: duration,
-                    entry: entry,
                     players: players,
                     hints: hints,
                     questions: questions,
@@ -160,6 +158,7 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
         children: [
           TextField(
             controller: name,
+            onChanged: (_) => _sourceChanged(),
             decoration: const InputDecoration(
               labelText: 'Naam van het spel',
               floatingLabelBehavior: FloatingLabelBehavior.always,
@@ -182,16 +181,10 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
             max: 360,
             divisions: 11,
             suffix: ' minuten',
-            onChanged: (value) => setState(() => duration = value.round()),
-          ),
-          _SettingSlider(
-            label: 'Demo-inleg',
-            value: entry,
-            min: 0,
-            max: 25,
-            divisions: 25,
-            suffix: ' euro',
-            onChanged: (value) => setState(() => entry = value),
+            onChanged: (value) {
+              _sourceChanged();
+              setState(() => duration = value.round());
+            },
           ),
           _SettingSlider(
             label: 'Maximum deelnemers',
@@ -229,6 +222,7 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
             value: location.country,
             options: locations.countries,
             onSelected: (value) {
+              _sourceChanged();
               setState(() => location = location.selectCountry(value));
             },
           ),
@@ -240,6 +234,7 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
                 : locations.provincesFor(location.country!),
             enabled: location.country != null,
             onSelected: (value) {
+              _sourceChanged();
               setState(() => location = location.selectProvince(value));
             },
           ),
@@ -251,6 +246,7 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
                 : locations.citiesFor(location.country!, location.province!),
             enabled: location.province != null && location.province != 'Alle',
             onSelected: (value) {
+              _sourceChanged();
               setState(() => location = location.selectCity(value));
             },
           ),
@@ -268,6 +264,7 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
                   ),
             enabled: location.city != null && location.city != 'Alle',
             onSelected: (value) {
+              _sourceChanged();
               setState(() => location = location.selectNeighbourhood(value));
             },
           ),
@@ -338,6 +335,7 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
             const SizedBox(height: 16),
             TextField(
               controller: intro,
+              onChanged: (_) => introductionWasGenerated = false,
               maxLines: 5,
               decoration: const InputDecoration(
                 labelText: 'Spelintroductie',
@@ -364,12 +362,22 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
       maxParticipants: players,
       hintsEnabled: hints,
       questionsEnabled: questions,
+      organizer: widget.state.displayName,
+      region: '${selectedArea.country}, ${selectedArea.province}, ${selectedArea.city}',
     );
     intro.text = introductionService.generate(
       request,
       variant: introductionVariant,
     );
+    introductionWasGenerated = true;
     introductionVariant++;
+  }
+
+  void _sourceChanged() {
+    if (introductionWasGenerated && intro.text.isNotEmpty) {
+      intro.clear();
+      introductionWasGenerated = false;
+    }
   }
 
   Future<void> _pickDate() async {
@@ -405,7 +413,6 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
         area: selectedArea,
         status: GameStatus.available,
         duration: Duration(minutes: duration),
-        entryFee: entry,
         participants: 1,
         maxParticipants: players,
         distanceKm: 1.2,
@@ -549,7 +556,6 @@ class _Review extends StatelessWidget {
     required this.name,
     required this.isPublic,
     required this.duration,
-    required this.entry,
     required this.players,
     required this.hints,
     required this.questions,
@@ -567,7 +573,6 @@ class _Review extends StatelessWidget {
   final bool questions;
   final int duration;
   final int players;
-  final double entry;
   final SearchArea area;
   final StartCondition startCondition;
   final DateTime? scheduledStart;
@@ -575,10 +580,6 @@ class _Review extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final money = const FinancialService().calculate(
-      players: players,
-      entryFee: entry,
-    );
     final startLabel = startCondition == StartCondition.scheduled
         ? _formatScheduledStart(scheduledStart!)
         : 'Bij $participantThreshold deelnemers';
@@ -607,35 +608,10 @@ class _Review extends StatelessWidget {
           value: [if (hints) 'Hints', if (questions) 'Vragen'].join(' • '),
         ),
         const SizedBox(height: 10),
-        Card(
+        const Card(
           child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Gesimuleerde prijzenpot',
-                  style: TextStyle(fontWeight: FontWeight.w800),
-                ),
-                Text(
-                  '$players × € ${entry.toStringAsFixed(2)} = '
-                  '€ ${money.grossPool.toStringAsFixed(2)} bruto',
-                ),
-                Text(
-                  'Voorbeeld platformkosten: '
-                  '€ ${money.platformFee.toStringAsFixed(2)}',
-                ),
-                Text(
-                  'Getoonde prijzenpot: '
-                  '€ ${money.prizePool.toStringAsFixed(2)}',
-                  style: const TextStyle(fontWeight: FontWeight.w800),
-                ),
-                const Text(
-                  'Demo — geen echt geld',
-                  style: TextStyle(fontSize: 12),
-                ),
-              ],
-            ),
+            padding: EdgeInsets.all(16),
+            child: Text('V1 gebruikt uitsluitend punten.'),
           ),
         ),
         if (intro.isNotEmpty) ...[const SizedBox(height: 12), Text(intro)],

@@ -5,9 +5,6 @@ import '../domain/models.dart';
 import 'active_game_screen.dart';
 import 'widgets.dart';
 
-String euro(double value) =>
-    '€ ${value.toStringAsFixed(value.truncateToDouble() == value ? 0 : 2).replaceAll('.', ',')}';
-
 class AvailableGamesScreen extends StatefulWidget {
   const AvailableGamesScreen({required this.state, super.key});
 
@@ -128,8 +125,7 @@ class GameCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 5),
                         Text(
-                          '${game.participants}/${game.maxParticipants} spelers'
-                          '  •  ${euro(game.entryFee)} demo-inleg',
+                          '${game.participants}/${game.maxParticipants} spelers',
                         ),
                         Text(
                           _startSummary(game),
@@ -194,7 +190,6 @@ class GameDetailScreen extends StatelessWidget {
                       '${game.participants}/${game.maxParticipants} spelers',
                     ),
                   ),
-                  Chip(label: Text('${euro(game.entryFee)} demo-inleg')),
                 ],
               ),
               Text(
@@ -374,7 +369,7 @@ class CompletedGamesScreen extends StatelessWidget {
                     'Game X • ${state.activeGame.playersFound} '
                     'spelers gevonden',
                   ),
-                  subtitle: const Text('840 punten • demo-beloning € 4,50'),
+                  subtitle: const Text('840 punten'),
                 ),
               ),
             ),

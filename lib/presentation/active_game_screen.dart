@@ -147,9 +147,6 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
   }
 
   void _showHiderWarning(BuildContext context) {
-    final warning = state.activeGame.invisibilityAvailable
-        ? _invisibilityAvailableText
-        : _invisibilityUsedText;
     final hiderValue = state.playerValue(PlayerRole.hider);
     showDialog<void>(
       context: context,
@@ -159,36 +156,18 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
         content: Text(
           'Zoeker ${state.displayName} zit binnen 5 meter van jou.\n\n'
           'Omdat er ${state.activeGame.playersFound} spelers zijn gevonden '
-          'ben je € ${hiderValue.toStringAsFixed(2).replaceAll('.', ',')} '
-          'waard (demo).\n\n$warning',
+          'is je actuele spelwaarde ${hiderValue.toStringAsFixed(0)} punten.'
+          '\n\nBlijf bewegen en houd afstand.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Sluiten'),
           ),
-          FilledButton(
-            onPressed: state.activeGame.invisibilityAvailable
-                ? () {
-                    state.useInvisibility();
-                    Navigator.pop(dialogContext);
-                    _notice(
-                      context,
-                      'Je bent tijdelijk onzichtbaar (simulatie).',
-                    );
-                  }
-                : null,
-            child: const Text('Onzichtbaar maken'),
-          ),
         ],
       ),
     );
   }
-
-  static const _invisibilityAvailableText =
-      'Je onzichtbaarheidskracht is nog beschikbaar.';
-  static const _invisibilityUsedText =
-      'Je onzichtbaarheidskracht is al gebruikt.';
 
   void _finish(BuildContext context) {
     state.finishGame();
@@ -250,11 +229,9 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
             const SizedBox(height: 12),
             const Card(
               child: ListTile(
-                leading: Icon(Icons.account_balance_wallet_outlined),
-                title: Text('Demoresultaat: € 4,50'),
-                subtitle: Text(
-                  'Mockbedrag — er is geen geld ontvangen of overgemaakt.',
-                ),
+                leading: Icon(Icons.stars),
+                title: Text('Resultaat: 840 punten'),
+                subtitle: Text('V1 gebruikt uitsluitend punten.'),
               ),
             ),
             const SizedBox(height: 12),
@@ -347,12 +324,12 @@ class _CountdownCard extends StatelessWidget {
           const SizedBox(height: 14),
           Text(
             'Omdat je ${state.activeGame.playersFound} spelers hebt gevonden '
-            'ben je € ${value.toStringAsFixed(2).replaceAll('.', ',')} waard.',
+            'is je actuele spelwaarde ${value.toStringAsFixed(0)} punten.',
             textAlign: TextAlign.center,
             style: const TextStyle(color: Colors.white),
           ),
           const Text(
-            'DEMO-waarde • geen echte uitbetaling',
+            'Actuele puntenwaarde',
             style: TextStyle(color: Colors.white60, fontSize: 11),
           ),
         ],
@@ -378,9 +355,9 @@ class _GameActions extends StatelessWidget {
           ),
           ActionChip(
             avatar: const Icon(Icons.lightbulb),
-            label: const Text('Koop hint (demo)'),
+            label: const Text('Gebruik hint'),
             onPressed: () => onNotice(
-              'Hint ontgrendeld: kijk bij de grote eik. Geen echte betaling.',
+              'Hint ontgrendeld: kijk bij de grote eik. Kosten: punten.',
             ),
           ),
           ActionChip(

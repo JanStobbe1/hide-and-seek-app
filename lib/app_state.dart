@@ -6,6 +6,7 @@ import 'domain/game_engine.dart';
 import 'domain/models.dart';
 import 'domain/player_value_rules.dart';
 import 'domain/profile_models.dart';
+import 'domain/profile_validation.dart';
 
 class AppState extends ChangeNotifier {
   AppState({
@@ -76,11 +77,6 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void useInvisibility() {
-    activeGame = activeGame.useInvisibility();
-    notifyListeners();
-  }
-
   void tickActiveGame([Duration amount = const Duration(seconds: 1)]) {
     final next = activeGame.tick(amount);
     if (identical(next, activeGame)) return;
@@ -104,13 +100,16 @@ class AppState extends ChangeNotifier {
         role: role,
         elapsed: activeGame.elapsed,
         playersFound: activeGame.playersFound,
+        total: activeGame.countdown.total,
       );
 
-  void setDisplayName(String value) {
+  String? setDisplayName(String value) {
     final trimmed = value.trim();
-    if (trimmed.isEmpty) return;
+    final error = ProfileNameValidation.validate(trimmed);
+    if (error != null) return error;
     displayName = trimmed;
     notifyListeners();
+    return null;
   }
 
   void setProfileAvatar(String value) {

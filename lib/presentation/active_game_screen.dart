@@ -3,7 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../app_state.dart';
+import '../domain/hints.dart';
+import '../domain/friends.dart';
 import '../domain/models.dart';
+import '../domain/private_questions.dart';
+import '../domain/results.dart';
 import 'widgets.dart';
 
 class ActiveGameScreen extends StatefulWidget {
@@ -17,6 +21,8 @@ class ActiveGameScreen extends StatefulWidget {
 
 class _ActiveGameScreenState extends State<ActiveGameScreen> {
   late final Timer _timer;
+  bool _resultScheduled = false;
+  DateTime? _hintStartedAt;
 
   AppState get state => widget.state;
 
@@ -26,9 +32,19 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
     state.syncActiveGameClock();
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       state.syncActiveGameClock();
-      if (state.activeGame.countdown.isFinished) {
+      _scheduleAutomaticResultIfNeeded();
+      if (state.gameFinished) {
         _timer.cancel();
       }
+    });
+  }
+
+  void _scheduleAutomaticResultIfNeeded() {
+    if (_resultScheduled || !state.shouldAutoShowResult()) return;
+    _resultScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _showRoleResult(context);
     });
   }
 
@@ -41,64 +57,189 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
   @override
   Widget build(BuildContext context) => ListenableBuilder(
         listenable: state,
-        builder: (context, _) => Scaffold(
-          appBar: AppBar(
-            title: const Text('Game X'),
-            actions: const [
-              Padding(padding: EdgeInsets.all(12), child: DemoBadge()),
-            ],
-          ),
-          body: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 760),
-              child: ListView(
-                padding: const EdgeInsets.all(20),
-                children: [
-                  _StatusRow(finished: state.gameFinished),
-                  const SizedBox(height: 12),
-                  _CountdownCard(state: state),
-                  const SectionTitle('Zoekgebied'),
-                  MapPlaceholder(playerMarker: state.playerMarker),
-                  const SectionTitle('Jouw acties'),
-                  _GameActions(
-                      onNotice: (message) => _notice(context, message)),
-                  const SizedBox(height: 18),
-                  FilledButton.icon(
-                    onPressed: state.gameFinished
-                        ? null
-                        : () => _showProximity(context),
-                    icon: const Icon(Icons.sensors),
-                    label: const Text('Simuleer speler binnen 5 meter'),
-                  ),
-                  const SizedBox(height: 10),
-                  OutlinedButton.icon(
-                    onPressed: state.gameFinished
-                        ? null
-                        : () => _showHiderWarning(context),
-                    icon: const Icon(Icons.visibility_off),
-                    label: const Text('Bekijk hider-scenario'),
-                  ),
-                  TextButton(
-                    onPressed: () => _showHiderResult(context),
-                    child: const Text('Bekijk hider-resultaat'),
-                  ),
-                  const SizedBox(height: 10),
-                  TextButton(
-                    onPressed: state.gameFinished
-                        ? () => _showSeekerResult(context)
-                        : () => _finish(context),
-                    child: Text(
-                      state.gameFinished
-                          ? 'Bekijk zoeker-resultaat'
-                          : 'Beëindig demo-spel',
+        builder: (context, _) {
+          _scheduleAutomaticResultIfNeeded();
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('Game X'),
+              actions: const [
+                Padding(padding: EdgeInsets.all(12), child: DemoBadge()),
+              ],
+            ),
+            body: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 760),
+                child: ListView(
+                  padding: const EdgeInsets.all(20),
+                  children: [
+                    _StatusRow(
+                      finished: state.gameFinished,
+                      role: state.activeRole,
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 12),
+                    _CountdownCard(state: state),
+                    const SectionTitle('Zoekgebied'),
+                    MapPlaceholder(playerMarker: state.playerMarker),
+                    if (_hintStartedAt != null)
+                      _HintCircle(
+                        startedAt: _hintStartedAt!,
+                        now: DateTime.now(),
+                        role: state.activeRole,
+                        activeHiders: state.activeHiders,
+                        activeSeekers: state.activeSeekers,
+                      ),
+                    const SectionTitle('Jouw acties'),
+                    _GameActions(
+                      state: state,
+                      onHint: () => _useHint(context),
+                      onQuestion: () => _showPrivateQuestion(context),
+                      onNotice: (message) => _notice(context, message),
+                    ),
+                    const SizedBox(height: 18),
+                    if (state.activeRole == PlayerRole.seeker) ...[
+                      FilledButton.icon(
+                        onPressed: state.gameFinished
+                            ? null
+                            : () => _showProximity(context),
+                        icon: const Icon(Icons.sensors),
+                        label: const Text(
+                          'Simuleer verstopper binnen 5 meter',
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                    ],
+                    OutlinedButton.icon(
+                      onPressed: state.gameFinished ||
+                              state.activeRole != PlayerRole.hider
+                          ? null
+                          : () {
+                              state.markCurrentHiderFound();
+                              _showHiderWarning(context);
+                            },
+                      icon: const Icon(Icons.warning_amber),
+                      label: const Text('Simuleer zoeker dichtbij'),
+                    ),
+                    TextButton(
+                      onPressed: state.activeRole == PlayerRole.hider
+                          ? () => _showHiderResult(context)
+                          : null,
+                      child: const Text('Bekijk hider-resultaat'),
+                    ),
+                    const SizedBox(height: 10),
+                    TextButton(
+                      onPressed: state.gameFinished
+                          ? () => _showRoleResult(context)
+                          : () => _finish(context),
+                      child: Text(
+                        state.gameFinished
+                            ? 'Bekijk resultaat'
+                            : 'Beëindig demo-spel',
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
+          );
+        },
+      );
+
+  void _showPrivateQuestion(BuildContext context) {
+    const subjectId = 'friend-mila';
+    final visibility = state.questionVisibility(
+      subjectId: subjectId,
+      privateGame: true,
+      enabled: true,
+      inRange: true,
+    );
+    if (visibility == QuestionMarkerStatus.completed ||
+        visibility == QuestionMarkerStatus.failed) {
+      _notice(context, 'Deze persoonlijke vraag is al afgerond.');
+      return;
+    }
+    state.startQuestion(subjectId);
+    var selected = 0;
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        icon: const Icon(Icons.quiz),
+        title: const Text('Persoonlijke vragen over Mila'),
+        content: StatefulBuilder(
+          builder: (context, setDialogState) => Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Je bent binnen bereik. Beantwoord vijf persoonlijke vragen. '
+                'In deze V1-simulatie kies je hoeveel antwoorden juist waren.',
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<int>(
+                initialValue: selected,
+                decoration: const InputDecoration(
+                  labelText: 'Juiste antwoorden',
+                ),
+                items: [
+                  for (var i = 0; i <= 5; i++)
+                    DropdownMenuItem(value: i, child: Text('$i van 5')),
+                ],
+                onChanged: (value) =>
+                    setDialogState(() => selected = value ?? 0),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Verlaat je het bereik, dan heb je 5 seconden om terug te '
+                'keren.',
+                style: TextStyle(fontSize: 12),
+              ),
+            ],
           ),
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Later'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final awarded = state.completeQuestion(subjectId, selected);
+              Navigator.pop(dialogContext);
+              _notice(
+                context,
+                'Vraag afgerond: +$awarded punten. Totaal: ${state.points}.',
+              );
+            },
+            child: const Text('Afronden'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _useHint(BuildContext context) {
+    final result = state.useHint();
+    if (result.started) {
+      setState(() => _hintStartedAt = DateTime.now());
+      final kind = result.purchasedHints == 0 ? 'gratis hint' : 'gekochte hint';
+      _notice(
+        context,
+        'Je $kind is gestart. De hintcirkel blijft 1 minuut zichtbaar '
+        'en begint na 30 seconden te krimpen. Puntensaldo: ${result.points}.',
       );
+      return;
+    }
+    final message = switch (result.reason) {
+      HintBlockReason.cooldown =>
+        'Wacht 10 minuten voordat je weer een hint gebruikt.',
+      HintBlockReason.insufficientPoints =>
+        'Je hebt niet genoeg punten voor deze hint.',
+      HintBlockReason.finalQuarter =>
+        'Hints zijn niet beschikbaar in het laatste kwart.',
+      HintBlockReason.zoneTooSmall =>
+        'Het zoekgebied is te klein voor een bruikbare hint.',
+      null => 'Deze hint kan nu niet worden gebruikt.',
+    };
+    _notice(context, message);
+  }
 
   void _notice(BuildContext context, String text) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
@@ -119,8 +260,15 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
           FilledButton(
             onPressed: () {
               Navigator.pop(dialogContext);
-              state.foundPlayer();
-              _showFoundConfirmation(context);
+              final registered = state.foundPlayer();
+              if (registered) {
+                _showFoundConfirmation(context);
+              } else {
+                _notice(
+                  context,
+                  'Deze speler kan niet opnieuw worden gevonden.',
+                );
+              }
             },
             child: const Text('GEVONDEN'),
           ),
@@ -135,7 +283,10 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
       builder: (dialogContext) => AlertDialog(
         icon: const Icon(Icons.celebration, size: 46),
         title: const Text('Gevonden!'),
-        content: const Text('Je hebt speler XYZ uitgeschakeld.\nGoed gedaan!'),
+        content: Text(
+          'De vondst is verwerkt volgens de V1-puntenregels.\\n'
+          'Jouw puntensaldo is nu ${state.points}.',
+        ),
         actions: [
           FilledButton(
             onPressed: () => Navigator.pop(dialogContext),
@@ -147,55 +298,40 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
   }
 
   void _showHiderWarning(BuildContext context) {
-    final warning = state.activeGame.invisibilityAvailable
-        ? _invisibilityAvailableText
-        : _invisibilityUsedText;
-    final hiderValue = state.playerValue(PlayerRole.hider);
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        icon: const Icon(Icons.warning_amber, size: 44),
-        title: const Text('Let op!'),
-        content: Text(
-          'Zoeker ${state.displayName} zit binnen 5 meter van jou.\n\n'
-          'Omdat er ${state.activeGame.playersFound} spelers zijn gevonden '
-          'ben je € ${hiderValue.toStringAsFixed(2).replaceAll('.', ',')} '
-          'waard (demo).\n\n$warning',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Sluiten'),
-          ),
-          FilledButton(
-            onPressed: state.activeGame.invisibilityAvailable
-                ? () {
-                    state.useInvisibility();
-                    Navigator.pop(dialogContext);
-                    _notice(
-                      context,
-                      'Je bent tijdelijk onzichtbaar (simulatie).',
-                    );
-                  }
-                : null,
-            child: const Text('Onzichtbaar maken'),
-          ),
-        ],
-      ),
+    _notice(
+      context,
+      'Een zoeker is dichtbij. Blijf binnen het actieve zoekgebied.',
     );
   }
 
-  static const _invisibilityAvailableText =
-      'Je onzichtbaarheidskracht is nog beschikbaar.';
-  static const _invisibilityUsedText =
-      'Je onzichtbaarheidskracht is al gebruikt.';
-
   void _finish(BuildContext context) {
     state.finishGame();
-    _showSeekerResult(context);
+    _showRoleResult(context);
   }
 
   void _showHiderResult(BuildContext context) {
+    final elapsed = state.activeGame.elapsed;
+    final found = state.currentHiderFound;
+    final survivalTime = state.currentHiderFoundAt ?? elapsed;
+    final minutes = survivalTime.inMinutes;
+    final tone = const ResultService().hiderTone(
+      found: found,
+      foundAt: state.currentHiderFoundAt,
+      total: state.activeGameDuration,
+      survivors: state.activeHiders,
+    );
+    final feedback = switch (tone) {
+      ResultTone.mostNegative =>
+        'Je werd vroeg gevonden. Volgende ronde biedt een nieuwe kans.',
+      ResultTone.veryNegative => 'Je werd vrij vroeg gevonden.',
+      ResultTone.negative => 'Je hield het een deel van het spel vol.',
+      ResultTone.neutral => 'Je bleef een flink deel van het spel verborgen.',
+      ResultTone.positive => 'Sterk verstopt: je hield het lang vol.',
+      ResultTone.veryPositive =>
+        'Maa shaa Allah, je bleef tot het einde verborgen.',
+      ResultTone.mostPositive =>
+        'Maa shaa Allah, jij bent de enige overgebleven verstopper.',
+    };
     showModalBottomSheet<void>(
       context: context,
       builder: (sheetContext) => Padding(
@@ -203,20 +339,27 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.sentiment_dissatisfied, size: 58),
-            const Text(
-              'Helaas, je bent gevonden!',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
+            Icon(
+              found ? Icons.sentiment_dissatisfied : Icons.celebration,
+              size: 58,
+            ),
+            Text(
+              found ? 'Je bent gevonden' : 'Je bent niet gevonden!',
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 10),
-            const Text('Overlevingstijd: 1 uur en 42 minuten'),
-            const Text('Ontvangen: 100 punten'),
-            const Text('Rank: Beginner • 54% naar Avonturier'),
+            Text('Overlevingstijd: $minutes minuten'),
+            Text('Puntensaldo: ${state.finalPointsAfterHints} punten'),
+            const SizedBox(height: 8),
+            Text(feedback, textAlign: TextAlign.center),
             const SizedBox(height: 16),
             FilledButton(
-              onPressed: () => Navigator.pop(sheetContext),
-              child: const Text('Sluiten'),
+              onPressed: () {
+                Navigator.pop(sheetContext);
+                _showFriendQuestion(context);
+              },
+              child: const Text('Verder'),
             ),
           ],
         ),
@@ -224,7 +367,72 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
     );
   }
 
+  void _showFriendQuestion(BuildContext context) {
+    const playerId = 'seeker-2';
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        icon: const Icon(Icons.person_add_alt_1),
+        title: const Text('Vrienden worden?'),
+        content: const Text(
+          'Wil je een vriendschapsverzoek sturen naar een speler uit dit spel? '
+          'Een verzoek blijft 2 dagen geldig en kan na verzenden niet worden ingetrokken.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Niet nu'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final decision = state.requestFriend(playerId);
+              Navigator.pop(dialogContext);
+              final message = decision == FriendDecision.friends
+                  ? 'Jullie zijn nu vrienden.'
+                  : 'Vriendschapsverzoek verzonden. Het blijft 2 dagen geldig.';
+              _notice(context, message);
+            },
+            child: const Text('Stuur verzoek'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _seekerFeedback() {
+    final totalHiders = state.activeGame.playersFound + state.activeHiders;
+    final tone = const ResultService().seekerTone(
+      personallyFound: state.activeGame.playersFound,
+      totalFound: state.activeGame.playersFound,
+      totalHiders: totalHiders,
+    );
+    return switch (tone) {
+      ResultTone.mostNegative =>
+        'Volgende ronde biedt nieuwe kansen, in shaa Allah.',
+      ResultTone.veryNegative => 'Blijf zoeken en verfijn je aanpak.',
+      ResultTone.negative =>
+        'Je bijdrage telt; probeer volgende keer meer te vinden.',
+      ResultTone.neutral => 'Je hebt een nuttige bijdrage geleverd.',
+      ResultTone.positive =>
+        'Mooi gezocht, je had een duidelijk aandeel in het resultaat.',
+      ResultTone.veryPositive =>
+        'Sterk gezocht, je vond een groot deel van de verstoppers.',
+      ResultTone.mostPositive =>
+        'Maa shaa Allah, jij vond alle gevonden verstoppers.',
+    };
+  }
+
+  void _showRoleResult(BuildContext context) {
+    if (state.activeRole == PlayerRole.hider) {
+      _showHiderResult(context);
+    } else {
+      _showSeekerResult(context);
+    }
+  }
+
   void _showSeekerResult(BuildContext context) {
+    final finalPoints = state.finalPointsAfterHints;
+    final hintPenalty = state.hintState.purchasedHints;
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -244,23 +452,20 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
               style: const TextStyle(fontSize: 25, fontWeight: FontWeight.w900),
             ),
             Text(
-              '${state.activeGame.playersFound} spelers gevonden • 840 punten',
+              '${state.activeGame.playersFound} verstoppers gevonden • '
+              '$finalPoints punten',
             ),
-            const Text('Rank: Beginner • 68% naar Avonturier'),
-            const SizedBox(height: 12),
-            const Card(
-              child: ListTile(
-                leading: Icon(Icons.account_balance_wallet_outlined),
-                title: Text('Demoresultaat: € 4,50'),
-                subtitle: Text(
-                  'Mockbedrag — er is geen geld ontvangen of overgemaakt.',
-                ),
-              ),
-            ),
+            if (hintPenalty > 0)
+              Text('Hintcorrectie eindresultaat: -$hintPenalty punt(en)'),
+            const SizedBox(height: 8),
+            Text(_seekerFeedback(), textAlign: TextAlign.center),
             const SizedBox(height: 12),
             FilledButton(
-              onPressed: () => Navigator.pop(sheetContext),
-              child: const Text('Terug naar het spel'),
+              onPressed: () {
+                Navigator.pop(sheetContext);
+                _showFriendQuestion(context);
+              },
+              child: const Text('Verder'),
             ),
           ],
         ),
@@ -270,16 +475,25 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
 }
 
 class _StatusRow extends StatelessWidget {
-  const _StatusRow({required this.finished});
+  const _StatusRow({required this.finished, required this.role});
 
   final bool finished;
+  final PlayerRole role;
 
   @override
   Widget build(BuildContext context) => Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Chip(
-              avatar: Icon(Icons.person_search), label: Text('ROL: ZOEKER')),
+          Chip(
+            avatar: Icon(
+              role == PlayerRole.seeker
+                  ? Icons.person_search
+                  : Icons.hide_source,
+            ),
+            label: Text(
+              role == PlayerRole.seeker ? 'ROL: ZOEKER' : 'ROL: VERSTOPPER',
+            ),
+          ),
           Chip(
             avatar: const Icon(Icons.circle, size: 12),
             label: Text(finished ? 'AFGEROND' : 'SPEL ACTIEF'),
@@ -298,8 +512,7 @@ class _CountdownCard extends StatelessWidget {
     final remaining = state.activeGame.countdown.remaining;
     final hours = remaining.inHours;
     final minutes = remaining.inMinutes.remainder(60);
-    final seconds = remaining.inSeconds.remainder(60);
-    final value = state.playerValue(PlayerRole.seeker);
+    final value = state.playerValue(state.activeRole);
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -318,9 +531,8 @@ class _CountdownCard extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             '${hours.toString().padLeft(2, '0')}:'
-            '${minutes.toString().padLeft(2, '0')}:'
-            '${seconds.toString().padLeft(2, '0')}',
-            semanticsLabel: '$hours uur, $minutes minuten en $seconds seconden',
+            '${minutes.toString().padLeft(2, '0')}',
+            semanticsLabel: '$hours uur en $minutes minuten',
             style: const TextStyle(
               color: Colors.white,
               fontSize: 34,
@@ -329,30 +541,37 @@ class _CountdownCard extends StatelessWidget {
           ),
           const Divider(color: Colors.white24, height: 28),
           Text(
-            '${state.activeGame.playersFound} van de '
-            '${state.activeGame.totalPlayers} gevonden',
+            state.activeRole == PlayerRole.seeker
+                ? 'Door mij gevonden: ${state.personallyFoundHiders} / '
+                    '${state.foundHiders} • totaal: '
+                    '${state.foundHiders} / ${state.totalHiders}'
+                : 'Gevonden verstoppers: ${state.foundHiders} / '
+                    '${state.totalHiders}',
             style: const TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.w900,
               fontSize: 20,
             ),
+            textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
           LinearProgressIndicator(
-            value:
-                state.activeGame.playersFound / state.activeGame.totalPlayers,
+            value: state.totalHiders == 0
+                ? 0
+                : state.foundHiders / state.totalHiders,
             minHeight: 9,
             borderRadius: BorderRadius.circular(8),
           ),
           const SizedBox(height: 14),
           Text(
-            'Omdat je ${state.activeGame.playersFound} spelers hebt gevonden '
-            'ben je € ${value.toStringAsFixed(2).replaceAll('.', ',')} waard.',
+            'Jouw huidige spelwaarde is '
+            '${value.toStringAsFixed(2).replaceAll('.', ',')} punten. '
+            'Puntensaldo: ${state.points}.',
             textAlign: TextAlign.center,
             style: const TextStyle(color: Colors.white),
           ),
           const Text(
-            'DEMO-waarde • geen echte uitbetaling',
+            'Actuele spelwaarde',
             style: TextStyle(color: Colors.white60, fontSize: 11),
           ),
         ],
@@ -362,8 +581,16 @@ class _CountdownCard extends StatelessWidget {
 }
 
 class _GameActions extends StatelessWidget {
-  const _GameActions({required this.onNotice});
+  const _GameActions({
+    required this.state,
+    required this.onHint,
+    required this.onQuestion,
+    required this.onNotice,
+  });
 
+  final AppState state;
+  final VoidCallback onHint;
+  final VoidCallback onQuestion;
   final ValueChanged<String> onNotice;
 
   @override
@@ -378,17 +605,77 @@ class _GameActions extends StatelessWidget {
           ),
           ActionChip(
             avatar: const Icon(Icons.lightbulb),
-            label: const Text('Koop hint (demo)'),
-            onPressed: () => onNotice(
-              'Hint ontgrendeld: kijk bij de grote eik. Geen echte betaling.',
+            label: Text(
+              state.hintState.freeAvailable
+                  ? 'Gebruik gratis hint'
+                  : 'Hint: ${5} punten + kwartaaltoeslag',
             ),
+            onPressed: onHint,
           ),
           ActionChip(
             avatar: const Icon(Icons.quiz),
-            label: const Text('Beantwoord vraag'),
-            onPressed: () =>
-                onNotice('Goed! Amsterdam is de hoofdstad van Nederland.'),
+            label: const Text('Persoonlijke vraag'),
+            onPressed: onQuestion,
           ),
         ],
       );
+}
+
+class _HintCircle extends StatelessWidget {
+  const _HintCircle({
+    required this.startedAt,
+    required this.now,
+    required this.role,
+    required this.activeHiders,
+    required this.activeSeekers,
+  });
+
+  final DateTime startedAt;
+  final DateTime now;
+  final PlayerRole role;
+  final int activeHiders;
+  final int activeSeekers;
+
+  @override
+  Widget build(BuildContext context) {
+    final elapsed = now.difference(startedAt);
+    if (elapsed >= const Duration(seconds: 60)) {
+      return const SizedBox.shrink();
+    }
+    final shrinkSeconds = (elapsed.inMilliseconds - 30000).clamp(0, 30000);
+    final scale = 1 - (shrinkSeconds / 30000) * 0.55;
+    final remaining = 60 - elapsed.inSeconds;
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Center(
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          width: 220.0 * scale,
+          height: 220.0 * scale,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Theme.of(context)
+                .colorScheme
+                .primaryContainer
+                .withValues(alpha: 0.55),
+            border: Border.all(
+              color: Theme.of(context).colorScheme.primary,
+              width: 3,
+            ),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            role == PlayerRole.seeker
+                ? '$activeHiders verstoppers in hintgebied\n'
+                    '$remaining sec resterend'
+                : '$activeSeekers zoekers • $activeHiders verstoppers\n'
+                    '$remaining sec resterend',
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontWeight: FontWeight.w800),
+          ),
+        ),
+      ),
+    );
+  }
 }

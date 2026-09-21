@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../app_state.dart';
 import '../domain/models.dart';
-import '../services/financial_service.dart';
+import '../domain/profile_validation.dart';
 import '../services/introduction_service.dart';
 import '../services/location_repository.dart';
 import 'widgets.dart';
@@ -24,18 +24,18 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
   final LocationRepository locations = const DemoLocationRepository();
   final IntroductionService introductionService =
       const DemoIntroductionService();
-  LocationSelection location = const LocationSelection(
-    country: 'Nederland',
-    province: 'Flevoland',
-    city: 'Almere',
-    neighbourhood: 'Alle',
+  MultiLocationSelection multiLocation = const MultiLocationSelection(
+    countries: {'Nederland'},
+    provinces: {'Flevoland'},
+    cities: {'Almere'},
   );
   int introductionVariant = 0;
+  final IntroductionDraft introductionDraft = IntroductionDraft();
+  final ProfileNameValidator nameValidator = const ProfileNameValidator();
 
   bool isPublic = true;
   bool hints = true;
   bool questions = true;
-  double entry = 10;
   int players = 30;
   int duration = 120;
   int participantThreshold = 10;
@@ -52,10 +52,16 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
   }
 
   SearchArea get selectedArea => SearchArea(
-        country: location.country ?? 'Nederland',
-        province: location.province ?? 'Alle',
-        city: location.city ?? 'Alle',
-        neighbourhood: location.neighbourhood ?? 'Alle',
+        country: multiLocation.countries.join(', '),
+        province: multiLocation.provinces.isEmpty
+            ? 'Alle'
+            : multiLocation.provinces.join(', '),
+        city: multiLocation.cities.isEmpty
+            ? 'Alle'
+            : multiLocation.cities.join(', '),
+        neighbourhood: multiLocation.neighbourhoods.isEmpty
+            ? 'Alle'
+            : multiLocation.neighbourhoods.join(', '),
         specificArea: specificArea.text.trim(),
       );
 
@@ -117,7 +123,6 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
                     name: name.text,
                     isPublic: isPublic,
                     duration: duration,
-                    entry: entry,
                     players: players,
                     hints: hints,
                     questions: questions,
@@ -160,6 +165,7 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
         children: [
           TextField(
             controller: name,
+            onChanged: (_) => _sourcesChanged(),
             decoration: const InputDecoration(
               labelText: 'Naam van het spel',
               floatingLabelBehavior: FloatingLabelBehavior.always,
@@ -173,7 +179,11 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
             title: Text(isPublic ? 'Openbaar spel' : 'Privéspel'),
             subtitle: const Text('Wie kan dit spel ontdekken?'),
             value: isPublic,
-            onChanged: (value) => setState(() => isPublic = value),
+            onChanged: (value) => setState(() {
+              isPublic = value;
+              if (isPublic) questions = false;
+              _sourcesChanged();
+            }),
           ),
           _SettingSlider(
             label: 'Duur',
@@ -182,16 +192,10 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
             max: 360,
             divisions: 11,
             suffix: ' minuten',
-            onChanged: (value) => setState(() => duration = value.round()),
-          ),
-          _SettingSlider(
-            label: 'Demo-inleg',
-            value: entry,
-            min: 0,
-            max: 25,
-            divisions: 25,
-            suffix: ' euro',
-            onChanged: (value) => setState(() => entry = value),
+            onChanged: (value) => setState(() {
+              duration = value.round();
+              _sourcesChanged();
+            }),
           ),
           _SettingSlider(
             label: 'Maximum deelnemers',
@@ -205,71 +209,98 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
               if (participantThreshold > players) {
                 participantThreshold = players;
               }
+              _sourcesChanged();
             }),
           ),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
             title: const Text('Hints kunnen worden gekocht'),
             value: hints,
-            onChanged: (value) => setState(() => hints = value),
+            onChanged: (value) => setState(() {
+              hints = value;
+              _sourcesChanged();
+            }),
           ),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
             title: const Text('Vragen kunnen worden beantwoord'),
             value: questions,
-            onChanged: (value) => setState(() => questions = value),
+            subtitle: Text(
+              isPublic
+                  ? 'Persoonlijke vragen zijn alleen beschikbaar in privéspellen.'
+                  : 'Vijf persoonlijke vragen per speler.',
+            ),
+            onChanged: isPublic
+                ? null
+                : (value) => setState(() {
+                      questions = value;
+                      _sourcesChanged();
+                    }),
           ),
         ],
       );
 
   Widget _buildSearchArea() => Column(
         children: [
-          _LocationAutocomplete(
+          _MultiLocationPicker(
             label: 'Land(en)',
-            value: location.country,
+            selected: multiLocation.countries,
             options: locations.countries,
-            onSelected: (value) {
-              setState(() => location = location.selectCountry(value));
-            },
+            onToggle: (value) => setState(() {
+              multiLocation = multiLocation.toggleCountry(value, locations);
+              _sourcesChanged();
+            }),
           ),
-          _LocationAutocomplete(
+          _MultiLocationPicker(
             label: 'Provincie(s)',
-            value: location.province,
-            options: location.country == null
-                ? const []
-                : locations.provincesFor(location.country!),
-            enabled: location.country != null,
-            onSelected: (value) {
-              setState(() => location = location.selectProvince(value));
-            },
+            selected: multiLocation.provinces,
+            options: {
+              for (final country in multiLocation.countries)
+                ...locations
+                    .provincesFor(country)
+                    .where((value) => value != 'Alle'),
+            }.toList(),
+            enabled: multiLocation.countries.isNotEmpty,
+            onToggle: (value) => setState(() {
+              multiLocation = multiLocation.toggleProvince(value, locations);
+              _sourcesChanged();
+            }),
           ),
-          _LocationAutocomplete(
+          _MultiLocationPicker(
             label: 'Stad/steden',
-            value: location.city,
-            options: location.country == null || location.province == null
-                ? const []
-                : locations.citiesFor(location.country!, location.province!),
-            enabled: location.province != null && location.province != 'Alle',
-            onSelected: (value) {
-              setState(() => location = location.selectCity(value));
-            },
+            selected: multiLocation.cities,
+            options: {
+              for (final country in multiLocation.countries)
+                for (final province in multiLocation.provinces)
+                  if (locations.provincesFor(country).contains(province))
+                    ...locations
+                        .citiesFor(country, province)
+                        .where((value) => value != 'Alle'),
+            }.toList(),
+            enabled: multiLocation.provinces.isNotEmpty,
+            onToggle: (value) => setState(() {
+              multiLocation = multiLocation.toggleCity(value, locations);
+              _sourcesChanged();
+            }),
           ),
-          _LocationAutocomplete(
+          _MultiLocationPicker(
             label: 'Wijk(en)',
-            value: location.neighbourhood,
-            options: location.country == null ||
-                    location.province == null ||
-                    location.city == null
-                ? const []
-                : locations.neighbourhoodsFor(
-                    location.country!,
-                    location.province!,
-                    location.city!,
-                  ),
-            enabled: location.city != null && location.city != 'Alle',
-            onSelected: (value) {
-              setState(() => location = location.selectNeighbourhood(value));
-            },
+            selected: multiLocation.neighbourhoods,
+            options: {
+              for (final country in multiLocation.countries)
+                for (final province in multiLocation.provinces)
+                  for (final city in multiLocation.cities)
+                    if (locations.containsCity(country, province, city))
+                      ...locations
+                          .neighbourhoodsFor(country, province, city)
+                          .where((value) => value != 'Alle'),
+            }.toList(),
+            enabled: multiLocation.cities.isNotEmpty,
+            onToggle: (value) => setState(() {
+              multiLocation =
+                  multiLocation.toggleNeighbourhood(value, locations);
+              _sourcesChanged();
+            }),
           ),
           _AreaField(label: 'Specifiek gebied', controller: specificArea),
           const SizedBox(height: 4),
@@ -277,8 +308,8 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
           const Padding(
             padding: EdgeInsets.all(8),
             child: Text(
-              'Mockselectie: meerdere gebieden kun je met komma’s invoeren. '
-              'Later vervangbaar door een echte kaartservice.',
+              'Je kunt meerdere gebieden selecteren. Lagere keuzes worden '
+              'automatisch opgeschoond wanneer een bovenliggend gebied wijzigt.',
               style: TextStyle(fontSize: 12),
               textAlign: TextAlign.center,
             ),
@@ -338,6 +369,7 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
             const SizedBox(height: 16),
             TextField(
               controller: intro,
+              onChanged: introductionDraft.setManual,
               maxLines: 5,
               decoration: const InputDecoration(
                 labelText: 'Spelintroductie',
@@ -354,21 +386,45 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
         ),
       );
 
-  void _generateIntroduction() {
-    final selectedCity =
-        location.city ?? location.province ?? location.country ?? 'Nederland';
-    final request = IntroductionRequest(
+  IntroductionRequest _introductionRequest() {
+    String selectedCity = 'Nederland';
+    if (multiLocation.countries.isNotEmpty) {
+      selectedCity = multiLocation.countries.join(', ');
+    }
+    if (multiLocation.provinces.isNotEmpty) {
+      selectedCity = multiLocation.provinces.join(', ');
+    }
+    if (multiLocation.cities.isNotEmpty) {
+      selectedCity = multiLocation.cities.join(', ');
+    }
+    return IntroductionRequest(
       gameName: name.text.trim().isEmpty ? 'dit spel' : name.text.trim(),
-      city: selectedCity,
+      region: selectedCity,
+      organizer: widget.state.displayName,
       durationMinutes: duration,
       maxParticipants: players,
       hintsEnabled: hints,
       questionsEnabled: questions,
     );
-    intro.text = introductionService.generate(
+  }
+
+  void _sourcesChanged() {
+    final request = _introductionRequest();
+    introductionDraft.sourcesChanged(request);
+    if (introductionDraft.origin == IntroductionOrigin.empty &&
+        intro.text.isNotEmpty) {
+      intro.clear();
+    }
+  }
+
+  void _generateIntroduction() {
+    final request = _introductionRequest();
+    final generated = introductionService.generate(
       request,
       variant: introductionVariant,
     );
+    introductionDraft.setGenerated(generated, request);
+    intro.text = generated;
     introductionVariant++;
   }
 
@@ -393,19 +449,26 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
   }
 
   void _publish() {
+    final validation = nameValidator.validate(name.text);
+    if (!validation.valid) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(validation.message ?? 'Ongeldige spelnaam.')),
+      );
+      setState(() => step = 0);
+      return;
+    }
     final now = DateTime.now();
     widget.state.publish(
       Game(
         id: 'created-${now.millisecondsSinceEpoch}',
         name: name.text.trim().isEmpty ? 'Naamloos spel' : name.text.trim(),
-        organizer: 'Arie',
+        organizer: widget.state.displayName,
         description: intro.text.trim().isEmpty
-            ? 'Een nieuw avontuur in Almere.'
+            ? 'Een nieuw avontuur in ${selectedArea.city}.'
             : intro.text.trim(),
         area: selectedArea,
         status: GameStatus.available,
         duration: Duration(minutes: duration),
-        entryFee: entry,
         participants: 1,
         maxParticipants: players,
         distanceKm: 1.2,
@@ -413,7 +476,10 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
         scheduledStart: selectedScheduledStart,
         participantThreshold: selectedParticipantThreshold,
         isPublic: isPublic,
-        rules: GameRules(hintsEnabled: hints, questionsEnabled: questions),
+        rules: GameRules(
+          hintsEnabled: hints,
+          questionsEnabled: !isPublic && questions,
+        ),
       ),
     );
     showDialog<void>(
@@ -495,53 +561,73 @@ class _AreaField extends StatelessWidget {
       );
 }
 
-class _LocationAutocomplete extends StatelessWidget {
-  const _LocationAutocomplete({
+class _MultiLocationPicker extends StatefulWidget {
+  const _MultiLocationPicker({
     required this.label,
-    required this.value,
+    required this.selected,
     required this.options,
-    required this.onSelected,
+    required this.onToggle,
     this.enabled = true,
   });
 
   final String label;
-  final String? value;
+  final Set<String> selected;
   final List<String> options;
-  final ValueChanged<String> onSelected;
+  final ValueChanged<String> onToggle;
   final bool enabled;
 
   @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(bottom: 12),
-        child: Autocomplete<String>(
-          key: ValueKey('$label-$value-$enabled'),
-          initialValue: TextEditingValue(text: value ?? ''),
-          optionsBuilder: (text) {
-            if (!enabled) return const Iterable<String>.empty();
-            return filterLocationOptions(options, text.text);
-          },
-          onSelected: onSelected,
-          fieldViewBuilder:
-              (context, controller, focusNode, onFieldSubmitted) =>
-                  TextFormField(
-            controller: controller,
-            focusNode: focusNode,
-            enabled: enabled,
-            onFieldSubmitted: (_) => onFieldSubmitted(),
-            decoration: InputDecoration(
-              labelText: label,
-              hintText: enabled ? 'Typ om te zoeken' : 'Kies eerst hierboven',
-              prefixIcon: const Icon(Icons.location_on_outlined),
-              suffixIcon: const Icon(Icons.arrow_drop_down),
-              floatingLabelBehavior: FloatingLabelBehavior.always,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 18,
+  State<_MultiLocationPicker> createState() => _MultiLocationPickerState();
+}
+
+class _MultiLocationPickerState extends State<_MultiLocationPicker> {
+  String query = '';
+
+  @override
+  Widget build(BuildContext context) {
+    final filtered = filterLocationOptions(widget.options, query).toList();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: InputDecorator(
+        decoration: InputDecoration(
+          labelText: widget.label,
+          floatingLabelBehavior: FloatingLabelBehavior.always,
+          enabled: widget.enabled,
+        ),
+        child: Column(
+          children: [
+            TextField(
+              enabled: widget.enabled,
+              onChanged: (value) => setState(() => query = value),
+              decoration: const InputDecoration(
+                hintText: 'Zoek binnen deze opties',
+                prefixIcon: Icon(Icons.search),
+                isDense: true,
               ),
             ),
-          ),
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                children: [
+                  for (final option in filtered)
+                    FilterChip(
+                      label: Text(option),
+                      selected: widget.selected.contains(option),
+                      onSelected: widget.enabled
+                          ? (_) => widget.onToggle(option)
+                          : null,
+                    ),
+                ],
+              ),
+            ),
+          ],
         ),
-      );
+      ),
+    );
+  }
 }
 
 class _Review extends StatelessWidget {
@@ -549,7 +635,6 @@ class _Review extends StatelessWidget {
     required this.name,
     required this.isPublic,
     required this.duration,
-    required this.entry,
     required this.players,
     required this.hints,
     required this.questions,
@@ -567,21 +652,17 @@ class _Review extends StatelessWidget {
   final bool questions;
   final int duration;
   final int players;
-  final double entry;
   final SearchArea area;
   final StartCondition startCondition;
   final DateTime? scheduledStart;
   final int? participantThreshold;
 
+  String get startLabel => startCondition == StartCondition.scheduled
+      ? _formatScheduledStart(scheduledStart!)
+      : 'Bij $participantThreshold deelnemers';
+
   @override
   Widget build(BuildContext context) {
-    final money = const FinancialService().calculate(
-      players: players,
-      entryFee: entry,
-    );
-    final startLabel = startCondition == StartCondition.scheduled
-        ? _formatScheduledStart(scheduledStart!)
-        : 'Bij $participantThreshold deelnemers';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -607,37 +688,6 @@ class _Review extends StatelessWidget {
           value: [if (hints) 'Hints', if (questions) 'Vragen'].join(' • '),
         ),
         const SizedBox(height: 10),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Gesimuleerde prijzenpot',
-                  style: TextStyle(fontWeight: FontWeight.w800),
-                ),
-                Text(
-                  '$players × € ${entry.toStringAsFixed(2)} = '
-                  '€ ${money.grossPool.toStringAsFixed(2)} bruto',
-                ),
-                Text(
-                  'Voorbeeld platformkosten: '
-                  '€ ${money.platformFee.toStringAsFixed(2)}',
-                ),
-                Text(
-                  'Getoonde prijzenpot: '
-                  '€ ${money.prizePool.toStringAsFixed(2)}',
-                  style: const TextStyle(fontWeight: FontWeight.w800),
-                ),
-                const Text(
-                  'Demo — geen echt geld',
-                  style: TextStyle(fontSize: 12),
-                ),
-              ],
-            ),
-          ),
-        ),
         if (intro.isNotEmpty) ...[const SizedBox(height: 12), Text(intro)],
       ],
     );

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../app_state.dart';
 import '../config/app_theme.dart';
 import '../domain/profile_models.dart';
+import '../domain/profile_validation.dart';
 import 'widgets.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -83,7 +84,7 @@ class ProfileScreen extends StatelessWidget {
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => FriendsScreen(friends: state.friends),
+                builder: (_) => FriendsScreen(state: state),
               ),
             ),
           ),
@@ -139,31 +140,6 @@ class ProfileScreen extends StatelessWidget {
               style: TextStyle(fontSize: 12),
             ),
           ),
-          const SectionTitle('Demo financiën'),
-          const Card(
-            child: Column(
-              children: [
-                ListTile(
-                  leading: Icon(Icons.account_balance_wallet_outlined),
-                  title: Text('Mocksaldo'),
-                  trailing: Text('€ 12,50'),
-                ),
-                ListTile(
-                  leading: Icon(Icons.payments_outlined),
-                  title: Text('Gesimuleerd uitgekeerd'),
-                  trailing: Text('€ 0,00'),
-                ),
-                Padding(
-                  padding: EdgeInsets.all(12),
-                  child: Text(
-                    'Alle bedragen zijn demonstratiedata. Er is geen echte '
-                    'wallet en er wordt niets overgemaakt.',
-                    style: TextStyle(fontSize: 12),
-                  ),
-                ),
-              ],
-            ),
-          ),
           const SectionTitle('Privacy & voorkeuren'),
           ...state.privacy.entries.map(
             (entry) => SwitchListTile(
@@ -204,6 +180,16 @@ class ProfileScreen extends StatelessWidget {
           ),
           FilledButton(
             onPressed: () {
+              const validator = ProfileNameValidator();
+              final validation = validator.validate(controller.text);
+              if (!validation.valid) {
+                ScaffoldMessenger.of(dialogContext).showSnackBar(
+                  SnackBar(
+                    content: Text(validation.message ?? 'Ongeldige naam.'),
+                  ),
+                );
+                return;
+              }
               state.setDisplayName(controller.text);
               Navigator.pop(dialogContext);
             },
@@ -285,49 +271,133 @@ class ProfileScreen extends StatelessWidget {
 }
 
 class FriendsScreen extends StatelessWidget {
-  const FriendsScreen({required this.friends, super.key});
+  const FriendsScreen({required this.state, super.key});
 
-  final List<FriendProfile> friends;
+  final AppState state;
+
+  List<FriendProfile> get friends => state.friends;
 
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(title: const Text('Vrienden')),
-        body: ListView.separated(
-          padding: const EdgeInsets.all(20),
-          itemCount: friends.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 12),
-          itemBuilder: (context, index) {
-            final friend = friends[index];
-            return Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    CircleAvatar(child: Text(friend.name[0])),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+        body: ListenableBuilder(
+          listenable: state,
+          builder: (context, _) => ListView(
+            padding: const EdgeInsets.all(20),
+            children: [
+              if (state.incomingFriendRequests.isNotEmpty) ...[
+                const SectionTitle('Vriendschapsverzoeken'),
+                ...state.incomingFriendRequests.map(
+                  (request) => Card(
+                    child: ListTile(
+                      leading: const Icon(Icons.person_add_alt_1),
+                      title: Text(request.sender),
+                      subtitle:
+                          const Text('Verzoek is maximaal 2 dagen geldig'),
+                      trailing: Wrap(
                         children: [
-                          Text(
-                            friend.name,
-                            style: const TextStyle(fontWeight: FontWeight.w800),
+                          IconButton(
+                            tooltip: 'Weigeren',
+                            onPressed: () => state.respondToFriendRequest(
+                              request,
+                              accept: false,
+                            ),
+                            icon: const Icon(Icons.close),
                           ),
-                          Text(friend.city),
-                          const SizedBox(height: 8),
-                          Text(
-                            '${friend.gamesPlayed} gespeeld • '
-                            '${friend.gamesWon} gewonnen • '
-                            '${friend.points} punten',
+                          IconButton(
+                            tooltip: 'Blokkeren',
+                            onPressed: () => state.blockFriendRequest(request),
+                            icon: const Icon(Icons.block),
+                          ),
+                          IconButton(
+                            tooltip: 'Accepteren',
+                            onPressed: () => state.respondToFriendRequest(
+                              request,
+                              accept: true,
+                            ),
+                            icon: const Icon(Icons.check),
                           ),
                         ],
                       ),
                     ),
-                  ],
+                  ),
+                ),
+              ],
+              if (state.outgoingFriendRequests.isNotEmpty) ...[
+                const SectionTitle('Verzonden verzoeken'),
+                ...state.outgoingFriendRequests.map(
+                  (request) => ListTile(
+                    leading: const Icon(Icons.schedule_send),
+                    title: Text(request.receiver),
+                    subtitle: const Text('In afwachting • niet intrekbaar'),
+                  ),
+                ),
+              ],
+              const SectionTitle('Mijn vrienden'),
+              ...state.friendshipPlayerIds
+                  .where(
+                    (playerId) => !friends.any((friend) =>
+                        friend.name.toLowerCase() == playerId.toLowerCase()),
+                  )
+                  .map(
+                    (playerId) => Card(
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          child: Text(playerId.characters.first.toUpperCase()),
+                        ),
+                        title: Text(playerId),
+                        subtitle: const Text(
+                          'Vriend geworden via een spel • '
+                          'verdere profielstatistieken zijn privé',
+                        ),
+                      ),
+                    ),
+                  ),
+              ...friends.map(
+                (friend) => Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CircleAvatar(child: Text(friend.name[0])),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                friend.name,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              Text('Rang: ${friend.rank}'),
+                              const SizedBox(height: 8),
+                              Text(
+                                '${friend.gamesWon} gewonnen / '
+                                '${friend.gamesPlayed} gespeeld',
+                              ),
+                              Text(
+                                'Dagelijkse streak: ${friend.dailyStreak}',
+                              ),
+                              if (friend.badges.isNotEmpty)
+                                Text('Badges: ${friend.badges.join(', ')}'),
+                              if (friend.upcomingGames.isNotEmpty)
+                                Text(
+                                  'Aangemeld voor: '
+                                  '${friend.upcomingGames.join(', ')}',
+                                ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
-            );
-          },
+            ],
+          ),
         ),
       );
 }

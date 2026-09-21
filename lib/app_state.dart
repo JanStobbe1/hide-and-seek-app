@@ -3,9 +3,15 @@ import 'package:flutter/foundation.dart';
 import 'data/mock_game_repository.dart';
 import 'domain/countdown.dart';
 import 'domain/game_engine.dart';
+import 'domain/game_lifecycle.dart';
+import 'domain/friends.dart';
+import 'domain/hints.dart';
 import 'domain/models.dart';
-import 'domain/player_value_rules.dart';
+import 'domain/private_questions.dart';
+import 'domain/profile_validation.dart';
 import 'domain/profile_models.dart';
+import 'domain/scoring.dart';
+import 'domain/seeker_decay.dart';
 
 class AppState extends ChangeNotifier {
   AppState({
@@ -13,15 +19,33 @@ class AppState extends ChangeNotifier {
     this.activeGameDuration = const Duration(minutes: 30),
   }) : repository = repository ?? MockGameRepository() {
     activeGame = ActiveGameState(
+      playersFound: 0,
+      totalPlayers: 15,
       countdown: GameCountdown.start(activeGameDuration),
     );
     _lastGameClockUpdate = DateTime.now();
+    _resetFindingState();
+    seekerStartValue = points.toDouble();
+    _resetHintState();
   }
   final MockGameRepository repository;
   final Duration activeGameDuration;
   late ActiveGameState activeGame;
   late DateTime _lastGameClockUpdate;
   bool gameFinished = false;
+  final ResultPresentationTracker resultPresentation =
+      ResultPresentationTracker();
+  final FriendshipService friendshipService = FriendshipService();
+  late FindingState findingState;
+  late HintState hintState;
+  int _findingEventSequence = 0;
+  PlayerRole activeRole = PlayerRole.seeker;
+  int personallyFoundHiders = 0;
+  bool currentHiderFound = false;
+  Duration? currentHiderFoundAt;
+  late double seekerStartValue;
+  final Map<String, QuestionAttempt> questionAttempts = {};
+  final Map<String, int> questionResults = {};
   int gamesPlayed = 5;
   int wins = 3;
   int points = 840;
@@ -32,24 +56,29 @@ class AppState extends ChangeNotifier {
   final List<FriendProfile> friends = const [
     FriendProfile(
       name: 'Mila',
-      city: 'Almere',
+      rank: 'Avonturier',
       gamesPlayed: 12,
       gamesWon: 6,
-      points: 1840,
+      dailyStreak: 4,
+      badges: ['Scherp oog', '3 op rij'],
+      upcomingGames: ['Almere Avondspel'],
     ),
     FriendProfile(
       name: 'Sam',
-      city: 'Amsterdam',
+      rank: 'Beginner',
       gamesPlayed: 8,
       gamesWon: 3,
-      points: 1120,
+      dailyStreak: 2,
+      badges: ['Eerste winst'],
+      upcomingGames: ['Amsterdam Centrum'],
     ),
     FriendProfile(
       name: 'Noa',
-      city: 'Lelystad',
+      rank: 'Beginner',
       gamesPlayed: 5,
       gamesWon: 2,
-      points: 760,
+      dailyStreak: 1,
+      badges: ['Onvindbaar'],
     ),
   ];
   final Map<String, bool> privacy = {
@@ -61,9 +90,36 @@ class AppState extends ChangeNotifier {
     'Meld deelname aan eerdere vrienden': true,
   };
 
-  void join(String id) {
+  String? joinBlockReason(String id, {DateTime? now}) {
+    final game = repository.availableGames
+        .where((candidate) => candidate.id == id)
+        .firstOrNull;
+    if (game == null) return 'Dit spel is niet meer beschikbaar.';
+    if (repository.joinedGames.any((candidate) => candidate.id == id)) {
+      return 'Je doet al mee aan dit spel.';
+    }
+    if (game.participants >= game.maxParticipants) {
+      return 'Dit spel heeft het maximum aantal deelnemers bereikt.';
+    }
+    final start = game.scheduledStart;
+    if (start != null &&
+        !const GameLifecycle().canJoin(
+          startedAt: start,
+          now: now ?? DateTime.now(),
+        )) {
+      return 'De instapperiode is voorbij. Je kunt tot 5 minuten na de start meedoen.';
+    }
+    return null;
+  }
+
+  bool join(String id, {DateTime? now}) {
+    if (joinBlockReason(id, now: now) != null) return false;
     repository.join(id);
-    notifyListeners();
+    final joined = repository.joinedGames.any(
+      (candidate) => candidate.id == id,
+    );
+    if (joined) notifyListeners();
+    return joined;
   }
 
   void publish(Game game) {
@@ -71,9 +127,145 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void foundPlayer() {
+  bool foundPlayer() {
+    if (activeRole != PlayerRole.seeker) return false;
+    final hider = findingState.players.values
+        .where((player) => player.role == PlayerRole.hider && player.active)
+        .firstOrNull;
+    if (hider == null || activeGame.status != GameStatus.active) return false;
+    final registered = const FindingService().register(
+      state: findingState,
+      eventId: 'find-${_findingEventSequence++}',
+      finderId: 'me',
+      hiderId: hider.id,
+    );
+    if (!registered) return false;
     activeGame = activeGame.playerFound();
+    personallyFoundHiders++;
+    assert(
+      activeGame.playersFound == foundHiders,
+      'Active-game and scoring hider counts must stay in sync.',
+    );
+    points = findingState.players['me']!.points;
+    hintState.points = points;
+    _evaluateGameEnd();
     notifyListeners();
+    return true;
+  }
+
+  int get activeHiders => findingState.players.values
+      .where((player) => player.role == PlayerRole.hider && player.active)
+      .length;
+
+  int get totalHiders => findingState.players.values
+      .where((player) => player.role == PlayerRole.hider)
+      .length;
+
+  int get foundHiders => totalHiders - activeHiders;
+
+  int get activeSeekers => findingState.players.values
+      .where((player) => player.role == PlayerRole.seeker && player.active)
+      .length;
+
+  HintUseResult useHint({DateTime? now, bool zoneLargeEnough = true}) {
+    final elapsed = activeGame.elapsed;
+    final totalMicros = activeGameDuration.inMicroseconds;
+    final quarter = totalMicros == 0
+        ? 3
+        : ((elapsed.inMicroseconds * 4) ~/ totalMicros).clamp(0, 3);
+    final result = const HintService().use(
+      state: hintState,
+      now: now ?? DateTime.now(),
+      quarter: quarter,
+      zoneLargeEnough: zoneLargeEnough,
+    );
+    if (result.started) {
+      points = result.points;
+      notifyListeners();
+    }
+    return result;
+  }
+
+  int get finalPointsAfterHints => const HintService().finalPoints(hintState);
+
+  QuestionAttempt questionAttemptFor(String subjectId) =>
+      questionAttempts.putIfAbsent(
+        subjectId,
+        () => QuestionAttempt(playerId: 'me', subjectId: subjectId),
+      );
+
+  QuestionMarkerStatus questionVisibility({
+    required String subjectId,
+    required bool privateGame,
+    required bool enabled,
+    required bool inRange,
+  }) =>
+      const PrivateQuestionService().visibility(
+        privateGame: privateGame,
+        enabled: enabled,
+        inRange: inRange,
+        playerId: 'me',
+        subjectId: subjectId,
+        attempt: questionAttempts[subjectId],
+      );
+
+  void startQuestion(String subjectId) {
+    final attempt = questionAttemptFor(subjectId);
+    const PrivateQuestionService().start(attempt);
+    notifyListeners();
+  }
+
+  int completeQuestion(String subjectId, int correct) {
+    final attempt = questionAttemptFor(subjectId);
+    final awarded = const PrivateQuestionService().complete(attempt, correct);
+    if (attempt.status == QuestionMarkerStatus.completed) {
+      questionResults[subjectId] = correct;
+      points += awarded;
+      hintState.points = points;
+      notifyListeners();
+    }
+    return awarded;
+  }
+
+  void updateQuestionRange(
+    String subjectId, {
+    required bool inRange,
+    DateTime? now,
+  }) {
+    final attempt = questionAttemptFor(subjectId);
+    const PrivateQuestionService().updateRange(
+      attempt,
+      inRange: inRange,
+      now: now ?? DateTime.now(),
+    );
+    notifyListeners();
+  }
+
+  void _resetHintState() {
+    hintState = HintState(points: points);
+  }
+
+  void _resetFindingState() {
+    findingState = FindingState([
+      ScoringPlayer(id: 'me', role: activeRole, points: points),
+      if (activeRole == PlayerRole.hider)
+        const ScoringPlayer(
+          id: 'seeker-1',
+          role: PlayerRole.seeker,
+          points: 0,
+        ),
+      const ScoringPlayer(id: 'seeker-2', role: PlayerRole.seeker, points: 0),
+      for (var i = 0; i < (activeRole == PlayerRole.hider ? 14 : 15); i++)
+        ScoringPlayer(
+          id: 'hider-$i',
+          role: PlayerRole.hider,
+          points: 50 + i * 2,
+        ),
+    ]);
+    _findingEventSequence = 0;
+    personallyFoundHiders = 0;
+    questionAttempts.clear();
+    questionResults.clear();
   }
 
   void useInvisibility() {
@@ -85,12 +277,28 @@ class AppState extends ChangeNotifier {
     final next = activeGame.tick(amount);
     if (identical(next, activeGame)) return;
     activeGame = next;
-    if (next.status == GameStatus.completed && !gameFinished) {
+    _evaluateGameEnd();
+    notifyListeners();
+  }
+
+  void _evaluateGameEnd() {
+    final status = const GameLifecycle().statusFor(
+      remaining: activeGame.countdown.remaining,
+      activeHiders: activeHiders,
+      activeSeekers: activeSeekers,
+    );
+    if (status == GameStatus.completed && !gameFinished) {
+      activeGame = activeGame.finish();
       gameFinished = true;
       gamesPlayed++;
     }
-    notifyListeners();
   }
+
+  bool shouldAutoShowResult() =>
+      gameFinished && resultPresentation.shouldAutoShow('active-demo');
+
+  bool canOpenResultManually() =>
+      resultPresentation.canOpenManually('active-demo');
 
   void syncActiveGameClock([DateTime? timestamp]) {
     final now = timestamp ?? DateTime.now();
@@ -100,17 +308,66 @@ class AppState extends ChangeNotifier {
     tickActiveGame(elapsed);
   }
 
-  double playerValue(PlayerRole role) => DemoPlayerValueRules.calculate(
-        role: role,
+  double playerValue(PlayerRole role) {
+    if (role == PlayerRole.seeker) {
+      return const SeekerDecay().valueAt(
+        startValue: seekerStartValue,
+        gameDuration: activeGameDuration,
         elapsed: activeGame.elapsed,
-        playersFound: activeGame.playersFound,
       );
+    }
+    return findingState.players['me']?.points.toDouble() ?? points.toDouble();
+  }
 
-  void setDisplayName(String value) {
-    final trimmed = value.trim();
-    if (trimmed.isEmpty) return;
-    displayName = trimmed;
+  void setActiveRole(PlayerRole role) {
+    if (activeRole == role) return;
+    activeRole = role;
+    currentHiderFound = false;
+    currentHiderFoundAt = null;
+    _resetFindingState();
+    activeGame = ActiveGameState(
+      playersFound: 0,
+      totalPlayers: totalHiders,
+      countdown: activeGame.countdown,
+    );
+    seekerStartValue = points.toDouble();
+    _resetHintState();
     notifyListeners();
+  }
+
+  bool markCurrentHiderFound() {
+    if (activeRole != PlayerRole.hider ||
+        currentHiderFound ||
+        activeGame.status != GameStatus.active) {
+      return false;
+    }
+    final registered = const FindingService().register(
+      state: findingState,
+      eventId: 'find-${_findingEventSequence++}',
+      finderId: 'seeker-1',
+      hiderId: 'me',
+    );
+    if (!registered) return false;
+    currentHiderFound = true;
+    currentHiderFoundAt = activeGame.elapsed;
+    activeGame = activeGame.playerFound();
+    assert(
+      activeGame.playersFound == foundHiders,
+      'Active-game and scoring hider counts must stay in sync.',
+    );
+    points = findingState.players['me']!.points;
+    hintState.points = points;
+    _evaluateGameEnd();
+    notifyListeners();
+    return true;
+  }
+
+  NameValidationResult setDisplayName(String value) {
+    final validation = const ProfileNameValidator().validate(value);
+    if (!validation.valid) return validation;
+    displayName = value.trim();
+    notifyListeners();
+    return validation;
   }
 
   void setProfileAvatar(String value) {
@@ -136,6 +393,104 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  FriendDecision requestFriend(String playerId, {DateTime? now}) {
+    final decision = friendshipService.choose(
+      from: 'me',
+      to: playerId,
+      now: now ?? DateTime.now(),
+    );
+    notifyListeners();
+    return decision;
+  }
+
+  FriendDecision respondToFriendRequest(
+    FriendRequest request, {
+    required bool accept,
+    DateTime? now,
+  }) {
+    final decision = accept
+        ? friendshipService.accept(request, now ?? DateTime.now())
+        : friendshipService.reject(request);
+    notifyListeners();
+    return decision;
+  }
+
+  FriendDecision blockFriendRequest(FriendRequest request) {
+    final decision = friendshipService.block(request);
+    notifyListeners();
+    return decision;
+  }
+
+  bool canWithdrawFriendRequest(FriendRequest request) =>
+      friendshipService.canWithdraw(request);
+
+  void inviteFriend(String playerId) {
+    friendshipService.invite(inviter: 'me', invitee: playerId);
+    notifyListeners();
+  }
+
+  List<FriendRequest> incomingFriendRequestsAt([DateTime? now]) {
+    final timestamp = now ?? DateTime.now();
+    _expireFriendRequests(timestamp);
+    return friendshipService.requests.values
+        .where(
+          (request) =>
+              request.receiver == 'me' &&
+              request.decision == FriendDecision.pending,
+        )
+        .toList(growable: false);
+  }
+
+  List<FriendRequest> get incomingFriendRequests => incomingFriendRequestsAt();
+
+  List<FriendRequest> outgoingFriendRequestsAt([DateTime? now]) {
+    final timestamp = now ?? DateTime.now();
+    _expireFriendRequests(timestamp);
+    return friendshipService.requests.values
+        .where(
+          (request) =>
+              request.sender == 'me' &&
+              request.decision == FriendDecision.pending,
+        )
+        .toList(growable: false);
+  }
+
+  List<FriendRequest> get outgoingFriendRequests => outgoingFriendRequestsAt();
+
+  List<String> get friendshipPlayerIds {
+    final ids = <String>{};
+    for (final pair in friendshipService.friendships) {
+      final parts = pair.split('::');
+      if (parts.length != 2 || !parts.contains('me')) continue;
+      ids.add(parts.first == 'me' ? parts.last : parts.first);
+    }
+    return ids.toList(growable: false)..sort();
+  }
+
+  void _expireFriendRequests(DateTime now) {
+    for (final request in friendshipService.requests.values) {
+      if (request.decision == FriendDecision.pending &&
+          now.difference(request.createdAt) > const Duration(days: 2)) {
+        request.decision = FriendDecision.expired;
+      }
+    }
+  }
+
+  void seedIncomingFriendRequest({
+    String playerId = 'player-mila',
+    DateTime? createdAt,
+  }) {
+    friendshipService.requests.putIfAbsent(
+      '$playerId->me',
+      () => FriendRequest(
+        sender: playerId,
+        receiver: 'me',
+        createdAt: createdAt ?? DateTime.now(),
+      ),
+    );
+    notifyListeners();
+  }
+
   void setPrivacy(String key, bool value) {
     privacy[key] = value;
     notifyListeners();
@@ -144,13 +499,22 @@ class AppState extends ChangeNotifier {
   void reset() {
     repository.reset();
     activeGame = ActiveGameState(
+      playersFound: 0,
+      totalPlayers: 15,
       countdown: GameCountdown.start(activeGameDuration),
     );
     _lastGameClockUpdate = DateTime.now();
     gameFinished = false;
+    activeRole = PlayerRole.seeker;
+    personallyFoundHiders = 0;
+    currentHiderFound = false;
+    currentHiderFoundAt = null;
     gamesPlayed = 5;
     wins = 3;
     points = 840;
+    _resetFindingState();
+    seekerStartValue = points.toDouble();
+    _resetHintState();
     displayName = 'Arie';
     profileAvatar = 'A';
     themePreference = ThemePreference.forest;

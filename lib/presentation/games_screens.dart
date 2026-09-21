@@ -5,9 +5,6 @@ import '../domain/models.dart';
 import 'active_game_screen.dart';
 import 'widgets.dart';
 
-String euro(double value) =>
-    '€ ${value.toStringAsFixed(value.truncateToDouble() == value ? 0 : 2).replaceAll('.', ',')}';
-
 class AvailableGamesScreen extends StatefulWidget {
   const AvailableGamesScreen({required this.state, super.key});
 
@@ -128,8 +125,7 @@ class GameCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 5),
                         Text(
-                          '${game.participants}/${game.maxParticipants} spelers'
-                          '  •  ${euro(game.entryFee)} demo-inleg',
+                          '${game.participants}/${game.maxParticipants} spelers',
                         ),
                         Text(
                           _startSummary(game),
@@ -194,7 +190,6 @@ class GameDetailScreen extends StatelessWidget {
                       '${game.participants}/${game.maxParticipants} spelers',
                     ),
                   ),
-                  Chip(label: Text('${euro(game.entryFee)} demo-inleg')),
                 ],
               ),
               Text(
@@ -233,7 +228,14 @@ class GameDetailScreen extends StatelessWidget {
                 onPressed: joined
                     ? null
                     : () {
-                        state.join(game.id);
+                        final reason = state.joinBlockReason(game.id);
+                        if (reason != null) {
+                          ScaffoldMessenger.of(context)
+                              .showSnackBar(SnackBar(content: Text(reason)));
+                          return;
+                        }
+                        final joinedNow = state.join(game.id);
+                        if (!joinedNow) return;
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text(
@@ -245,7 +247,7 @@ class GameDetailScreen extends StatelessWidget {
                         Navigator.pop(context);
                       },
                 icon: Icon(joined ? Icons.check : Icons.sports_kabaddi),
-                label: Text(joined ? 'Je doet al mee' : 'Doe mee (simulatie)'),
+                label: Text(joined ? 'Je doet al mee' : 'Doe mee'),
               ),
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 12),
@@ -374,7 +376,7 @@ class CompletedGamesScreen extends StatelessWidget {
                     'Game X • ${state.activeGame.playersFound} '
                     'spelers gevonden',
                   ),
-                  subtitle: const Text('840 punten • demo-beloning € 4,50'),
+                  subtitle: const Text('840 punten'),
                 ),
               ),
             ),

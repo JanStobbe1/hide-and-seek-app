@@ -92,4 +92,47 @@ void main() {
       FriendDecision.expired,
     );
   });
+
+  test('hider role cannot register finds and counts as hider', () {
+    final state = AppState();
+    state.setActiveRole(PlayerRole.hider);
+
+    expect(state.findingState.players['me']?.role, PlayerRole.hider);
+    expect(state.activeSeekers, 2);
+    expect(state.totalHiders, 15);
+    expect(state.foundPlayer(), isFalse);
+    expect(state.personallyFoundHiders, 0);
+  });
+
+  test('hider found event updates hider state without seeker leakage', () {
+    final state = AppState();
+    state.setActiveRole(PlayerRole.hider);
+
+    final registered = state.markCurrentHiderFound();
+
+    expect(registered, isTrue);
+    expect(state.currentHiderFound, isTrue);
+    expect(state.currentHiderFoundAt, isNotNull);
+    expect(state.foundHiders, 1);
+    expect(state.activeHiders, 14);
+    expect(state.activeGame.playersFound, 1);
+    expect(state.personallyFoundHiders, 0);
+  });
+
+  test('switching back to seeker resets role-specific round state', () {
+    final state = AppState();
+    state.setActiveRole(PlayerRole.hider);
+    state.markCurrentHiderFound();
+
+    state.setActiveRole(PlayerRole.seeker);
+
+    expect(state.activeRole, PlayerRole.seeker);
+    expect(state.findingState.players['me']?.role, PlayerRole.seeker);
+    expect(state.currentHiderFound, isFalse);
+    expect(state.currentHiderFoundAt, isNull);
+    expect(state.foundHiders, 0);
+    expect(state.activeHiders, 15);
+    expect(state.personallyFoundHiders, 0);
+  });
+
 }

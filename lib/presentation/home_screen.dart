@@ -132,7 +132,7 @@ class _ContentsHeading extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         Text(
-          'Waar begint jouw\\nvolgende avontuur?',
+          'Waar begint jouw\nvolgende avontuur?',
           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                 fontWeight: FontWeight.w900,
                 height: 1.08,

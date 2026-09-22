@@ -471,7 +471,7 @@ class CompletedGamesScreen extends StatelessWidget {
 }
 
 class _CompletedGameDetailScreen extends StatelessWidget {
-  const _CompletedGameDetailScreen({required this.game, super.key});
+  const _CompletedGameDetailScreen({required this.game});
 
   final _CompletedGameData game;
 

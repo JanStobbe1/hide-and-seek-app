@@ -436,7 +436,8 @@ class CompletedGamesScreen extends StatelessWidget {
               .headlineSmall
               ?.copyWith(fontWeight: FontWeight.w900),
         ),
-        const Text('Open een avontuur om je uitslag en medespelers te bekijken.'),
+        const Text(
+            'Open een avontuur om je uitslag en medespelers te bekijken.'),
         const SizedBox(height: 16),
         ...visibleGames.map(
           (game) => Padding(
@@ -445,9 +446,7 @@ class CompletedGamesScreen extends StatelessWidget {
               child: ListTile(
                 leading: CircleAvatar(
                   child: Icon(
-                    game.result == 'Gewonnen'
-                        ? Icons.emoji_events
-                        : Icons.flag,
+                    game.result == 'Gewonnen' ? Icons.emoji_events : Icons.flag,
                   ),
                 ),
                 title: Text(

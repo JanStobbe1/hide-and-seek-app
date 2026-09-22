@@ -48,4 +48,43 @@ void main() {
 
     await tester.pumpWidget(const SizedBox());
   });
+  testWidgets('map uses buttons and supports zoom, catch and detective help', (
+    tester,
+  ) async {
+    final state = AppState();
+    await tester.pumpWidget(
+      MaterialApp(home: ActiveGameScreen(state: state)),
+    );
+
+    expect(find.byType(PageView), findsNothing);
+    expect(find.byType(InteractiveViewer), findsOneWidget);
+    expect(find.text('PAK SPELER'), findsOneWidget);
+    expect(find.byTooltip('Inzoomen'), findsOneWidget);
+    expect(find.byTooltip('Uitzoomen'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Vraag het de Stobbedetective'));
+    await tester.pump();
+    expect(find.text('Het speelveld'), findsOneWidget);
+    expect(find.textContaining('knijp met twee vingers'), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('Stobbetas shows collected power tokens', (tester) async {
+    final state = AppState();
+    await tester.pumpWidget(
+      MaterialApp(home: ActiveGameScreen(state: state)),
+    );
+
+    await tester.tap(find.byIcon(Icons.auto_awesome_outlined));
+    await tester.pump();
+
+    expect(find.text('Jouw Stobbetas'), findsOneWidget);
+    expect(find.text('Digitale drone'), findsOneWidget);
+    expect(find.text('Arm van de Stobbe'), findsOneWidget);
+    expect(find.text('Onzichtbaar'), findsOneWidget);
+    expect(find.text('Puntenkisten'), findsNothing);
+
+    await tester.pumpWidget(const SizedBox());
+  });
 }

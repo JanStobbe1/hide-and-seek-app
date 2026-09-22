@@ -61,72 +61,73 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 760),
                   child: ListView(
-                padding: const EdgeInsets.all(20),
-                children: [
-                  _StatusRow(finished: state.gameFinished),
-                  const SizedBox(height: 12),
-                  _CountdownCard(state: state),
-                  if (!state.inActiveZone) _ZoneAlarm(state: state),
-                  const SectionTitle('Zoekgebied'),
-                  MapPlaceholder(playerMarker: state.playerMarker),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
+                    padding: const EdgeInsets.all(20),
                     children: [
-                      OutlinedButton(
-                        onPressed: _simulateGpsSpike,
-                        child: const Text('Simuleer GPS-piek'),
+                      _StatusRow(finished: state.gameFinished),
+                      const SizedBox(height: 12),
+                      _CountdownCard(state: state),
+                      if (!state.inActiveZone) _ZoneAlarm(state: state),
+                      const SectionTitle('Zoekgebied'),
+                      MapPlaceholder(playerMarker: state.playerMarker),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          OutlinedButton(
+                            onPressed: _simulateGpsSpike,
+                            child: const Text('Simuleer GPS-piek'),
+                          ),
+                          OutlinedButton(
+                            onPressed: _confirmOutsideZone,
+                            child: const Text('Bevestig buiten zone'),
+                          ),
+                          OutlinedButton(
+                            onPressed:
+                                state.inActiveZone ? null : _returnToZone,
+                            child: const Text('Keer terug in zone'),
+                          ),
+                        ],
                       ),
-                      OutlinedButton(
-                        onPressed: _confirmOutsideZone,
-                        child: const Text('Bevestig buiten zone'),
+                      const SectionTitle('Jouw acties'),
+                      _GameActions(
+                        state: state,
+                        onHint: _useHint,
+                        onQuestions: _showQuestions,
                       ),
-                      OutlinedButton(
-                        onPressed: state.inActiveZone ? null : _returnToZone,
-                        child: const Text('Keer terug in zone'),
+                      const SizedBox(height: 18),
+                      FilledButton.icon(
+                        onPressed: state.gameFinished
+                            ? null
+                            : () => _showProximity(context),
+                        icon: const Icon(Icons.sensors),
+                        label: Text(
+                          'Simuleer speler binnen '
+                          '${state.findDistanceMeters.toStringAsFixed(0)} meter',
+                        ),
                       ),
-                    ],
-                  ),
-                  const SectionTitle('Jouw acties'),
-                  _GameActions(
-                    state: state,
-                    onHint: _useHint,
-                    onQuestions: _showQuestions,
-                  ),
-                  const SizedBox(height: 18),
-                  FilledButton.icon(
-                    onPressed: state.gameFinished
-                        ? null
-                        : () => _showProximity(context),
-                    icon: const Icon(Icons.sensors),
-                    label: Text(
-                      'Simuleer speler binnen '
-                      '${state.findDistanceMeters.toStringAsFixed(0)} meter',
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  OutlinedButton.icon(
-                    onPressed: state.gameFinished
-                        ? null
-                        : () => _showHiderWarning(context),
-                    icon: const Icon(Icons.visibility_off),
-                    label: const Text('Bekijk hider-scenario'),
-                  ),
-                  TextButton(
-                    onPressed: () => _showHiderResult(context),
-                    child: const Text('Bekijk hider-resultaat'),
-                  ),
-                  const SizedBox(height: 10),
-                  TextButton(
-                    onPressed: state.gameFinished
-                        ? () => _showSeekerResult(context)
-                        : () => _finish(context),
-                    child: Text(
-                      state.gameFinished
-                          ? 'Bekijk zoeker-resultaat'
-                          : 'Beëindig demo-spel',
-                    ),
-                  ),
+                      const SizedBox(height: 10),
+                      OutlinedButton.icon(
+                        onPressed: state.gameFinished
+                            ? null
+                            : () => _showHiderWarning(context),
+                        icon: const Icon(Icons.visibility_off),
+                        label: const Text('Bekijk hider-scenario'),
+                      ),
+                      TextButton(
+                        onPressed: () => _showHiderResult(context),
+                        child: const Text('Bekijk hider-resultaat'),
+                      ),
+                      const SizedBox(height: 10),
+                      TextButton(
+                        onPressed: state.gameFinished
+                            ? () => _showSeekerResult(context)
+                            : () => _finish(context),
+                        child: Text(
+                          state.gameFinished
+                              ? 'Bekijk zoeker-resultaat'
+                              : 'Beëindig demo-spel',
+                        ),
+                      ),
                     ],
                   ),
                 ),

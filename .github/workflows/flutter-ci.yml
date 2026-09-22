@@ -9,7 +9,7 @@ on:
       - main
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   validate:
@@ -30,11 +30,14 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Apply formatting
-        run: |
-          dart format lib/presentation/games_screens.dart lib/presentation/profile_screen.dart lib/presentation/create_game_screen.dart test/completed_games_screen_test.dart
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add lib/presentation/games_screens.dart lib/presentation/profile_screen.dart lib/presentation/create_game_screen.dart test/completed_games_screen_test.dart
-          git commit -m "Pas dart format toe"
-          git push
+      - name: Check formatting
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Run tests
+        run: flutter test
+
+      - name: Build web
+        run: flutter build web

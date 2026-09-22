@@ -497,7 +497,8 @@ class _ActiveMapPageState extends State<_ActiveMapPage> {
   void zoom(double factor) {
     final currentScale = controller.value.getMaxScaleOnAxis();
     final nextScale = (currentScale * factor).clamp(.55, 3.0);
-    controller.value = Matrix4.identity()..scaleByDouble(nextScale, nextScale, nextScale, 1);
+    controller.value = Matrix4.identity()
+      ..scaleByDouble(nextScale, nextScale, nextScale, 1);
   }
 
   void recenter() => controller.value = Matrix4.identity();

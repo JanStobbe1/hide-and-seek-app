@@ -2,10 +2,53 @@ import 'package:flutter/material.dart';
 
 import '../config/app_config.dart';
 
-class CoverScreen extends StatelessWidget {
+class CoverScreen extends StatefulWidget {
   const CoverScreen({required this.onEnter, super.key});
 
   final VoidCallback onEnter;
+
+  @override
+  State<CoverScreen> createState() => _CoverScreenState();
+}
+
+class _CoverScreenState extends State<CoverScreen>
+    with TickerProviderStateMixin {
+  late final AnimationController _welcomeController;
+  late final AnimationController _idleController;
+
+  @override
+  void initState() {
+    super.initState();
+    _welcomeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2400),
+    );
+    _idleController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 3600),
+    );
+    _welcomeController.forward().whenComplete(() {
+      if (mounted) {
+        _idleController.repeat(reverse: true);
+      }
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    precacheImage(
+      const AssetImage('assets/images/stobbekarakter_welkom.webp'),
+      context,
+    );
+  }
+
+  @override
+  void dispose() {
+    _welcomeController.dispose();
+    _idleController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,21 +90,11 @@ class CoverScreen extends StatelessWidget {
                             fontWeight: FontWeight.w700,
                           ),
                     ),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        child: Image.asset(
-                          'assets/images/stobbekarakter.png',
-                          fit: BoxFit.contain,
-                          semanticLabel:
-                              'Stobbekarakter met vergrootglas en speellijst',
-                        ),
-                      ),
-                    ),
+                    Expanded(child: _buildAnimatedCharacter()),
                     SizedBox(
                       width: double.infinity,
                       child: FilledButton.icon(
-                        onPressed: onEnter,
+                        onPressed: widget.onEnter,
                         icon: const Icon(Icons.auto_stories),
                         label: const Text('Aan de slag'),
                       ),
@@ -79,6 +112,83 @@ class CoverScreen extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildAnimatedCharacter() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: AnimatedBuilder(
+        animation: Listenable.merge([_welcomeController, _idleController]),
+        builder: (context, child) {
+          final reduceMotion = MediaQuery.disableAnimationsOf(context);
+          final welcomeValue = reduceMotion ? 1.0 : _welcomeController.value;
+          final entrance = Curves.easeOutBack.transform(
+            (welcomeValue / 0.32).clamp(0.0, 1.0).toDouble(),
+          );
+          final greetingOpacity = reduceMotion
+              ? 0.0
+              : TweenSequence<double>([
+                  TweenSequenceItem(
+                    tween: ConstantTween(0.0),
+                    weight: 30,
+                  ),
+                  TweenSequenceItem(
+                    tween: Tween<double>(begin: 0, end: 1),
+                    weight: 12,
+                  ),
+                  TweenSequenceItem(
+                    tween: ConstantTween(1.0),
+                    weight: 28,
+                  ),
+                  TweenSequenceItem(
+                    tween: Tween<double>(begin: 1, end: 0),
+                    weight: 12,
+                  ),
+                  TweenSequenceItem(
+                    tween: ConstantTween(0.0),
+                    weight: 18,
+                  ),
+                ]).transform(welcomeValue);
+          final idleLift = reduceMotion ? 0.0 : _idleController.value * 3;
+          final greetingTilt = greetingOpacity * -0.025;
+
+          return Transform.translate(
+            offset: Offset(0, (1 - entrance) * 34 - idleLift),
+            child: Transform.rotate(
+              angle: greetingTilt,
+              child: Transform.scale(
+                scale: 0.9 + (0.1 * entrance),
+                child: Opacity(
+                  opacity: entrance.clamp(0.0, 1.0).toDouble(),
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Image.asset(
+                        'assets/images/stobbekarakter.png',
+                        key: const Key('stobbekarakter-normaal'),
+                        fit: BoxFit.contain,
+                        semanticLabel:
+                            'Stobbekarakter met vergrootglas en speellijst',
+                      ),
+                      Opacity(
+                        key: const Key('stobbekarakter-welkom-opacity'),
+                        opacity: greetingOpacity,
+                        child: Image.asset(
+                          'assets/images/stobbekarakter_welkom.webp',
+                          key: const Key('stobbekarakter-welkom'),
+                          fit: BoxFit.contain,
+                          excludeFromSemantics: true,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }

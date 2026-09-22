@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../app_state.dart';
 import '../domain/models.dart';
 import 'active_game_screen.dart';
-import 'widgets.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({
@@ -18,80 +17,141 @@ class HomeScreen extends StatelessWidget {
   final VoidCallback onCreate;
 
   @override
-  Widget build(BuildContext context) => ListView(
-        padding: const EdgeInsets.fromLTRB(20, 18, 20, 110),
-        children: [
-          Text(
-            'Hoi ${state.displayName} 👋',
-            style: Theme.of(context)
-                .textTheme
-                .headlineMedium
-                ?.copyWith(fontWeight: FontWeight.w900),
-          ),
-          const Text('Kies waar je jouw avontuur wilt vervolgen.'),
-          const SizedBox(height: 20),
-          _ActiveGameCard(state: state),
-          SectionTitle(
-            'Inhoud',
-            action: TextButton(
-              onPressed: onCreate,
-              child: const Text('Nieuw spel'),
+  Widget build(BuildContext context) => LayoutBuilder(
+        builder: (context, constraints) {
+          final isWide = constraints.maxWidth >= 680;
+          final chapters = [
+            _ContentsChapter(
+              number: '01',
+              icon: Icons.add_location_alt_outlined,
+              title: 'Nieuw spel',
+              description: 'Bepaal het speelgebied en nodig spelers uit.',
+              onTap: onCreate,
             ),
-          ),
-          GridView.count(
-            crossAxisCount: MediaQuery.sizeOf(context).width > 600 ? 4 : 2,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            mainAxisSpacing: 12,
-            crossAxisSpacing: 12,
-            childAspectRatio: 1.35,
+            _ContentsChapter(
+              number: '02',
+              icon: Icons.sports_kabaddi_outlined,
+              title: 'Mijn spellen',
+              description: 'Bekijk de spellen waaraan je al meedoet.',
+              count: state.repository.joinedGames.length + 1,
+              onTap: () => onNavigate(1),
+            ),
+            _ContentsChapter(
+              number: '03',
+              icon: Icons.travel_explore,
+              title: 'Spellen ontdekken',
+              description: 'Vind een nieuw avontuur bij jou in de buurt.',
+              count: state.repository.availableGames.length,
+              onTap: () => onNavigate(2),
+            ),
+            _ContentsChapter(
+              number: '04',
+              icon: Icons.emoji_events_outlined,
+              title: 'Resultaten',
+              description: 'Herbeleef afgeronde spellen en overwinningen.',
+              count: state.gamesPlayed,
+              onTap: () => onNavigate(3),
+            ),
+            _ContentsChapter(
+              number: '05',
+              icon: Icons.person_outline,
+              title: 'Mijn profiel',
+              description: 'Bekijk je vrienden, instellingen en voortgang.',
+              onTap: () => onNavigate(4),
+            ),
+          ];
+
+          return ListView(
+            padding: EdgeInsets.fromLTRB(
+              isWide ? 32 : 20,
+              isWide ? 30 : 22,
+              isWide ? 32 : 20,
+              110,
+            ),
             children: [
-              _QuickAction(
-                icon: Icons.group,
-                label: 'Ik speel al mee met',
-                count: '${state.repository.joinedGames.length + 1}',
-                onTap: () => onNavigate(1),
+              const _ContentsHeading(),
+              const SizedBox(height: 22),
+              _ContinuePlayingCard(state: state),
+              const SizedBox(height: 28),
+              Text(
+                'Kies je volgende hoofdstuk',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w900,
+                    ),
               ),
-              _QuickAction(
-                icon: Icons.travel_explore,
-                label: 'Beschikbare spellen',
-                count: '${state.repository.availableGames.length}',
-                onTap: () => onNavigate(2),
+              const SizedBox(height: 12),
+              GridView.builder(
+                itemCount: chapters.length,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: isWide ? 2 : 1,
+                  mainAxisSpacing: 12,
+                  crossAxisSpacing: 12,
+                  childAspectRatio: isWide ? 2.45 : 3.15,
+                ),
+                itemBuilder: (context, index) => chapters[index],
               ),
-              _QuickAction(
-                icon: Icons.flag,
-                label: 'Afgeronde spellen',
-                count: '${state.gamesPlayed}',
-                onTap: () => onNavigate(3),
-              ),
-              _QuickAction(
-                icon: Icons.person,
-                label: 'Persoonlijke omgeving',
-                count: 'Beginner',
-                onTap: () => onNavigate(4),
-              ),
+              const SizedBox(height: 28),
+              _ProgressSummary(state: state),
             ],
-          ),
-          const SectionTitle('Jouw voortgang'),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(18),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _Metric('${state.gamesPlayed}', 'gespeeld'),
-                  _Metric('${state.wins}', 'gewonnen'),
-                  _Metric('${state.friends.length}', 'vrienden'),
-                ],
-              ),
-            ),
-          ),
-        ],
+          );
+        },
       );
 }
 
-class _ActiveGameCard extends StatelessWidget {
-  const _ActiveGameCard({required this.state});
+class _ContentsHeading extends StatelessWidget {
+  const _ContentsHeading();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              width: 34,
+              height: 4,
+              decoration: BoxDecoration(
+                color: colors.primary,
+                borderRadius: BorderRadius.circular(99),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Text(
+              'INHOUDSOPGAVE',
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: colors.primary,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.2,
+                  ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Text(
+          'Waar begint jouw\\nvolgende avontuur?',
+          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                fontWeight: FontWeight.w900,
+                height: 1.08,
+              ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Kies een hoofdstuk en ga meteen verder.',
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: colors.onSurfaceVariant,
+              ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ContinuePlayingCard extends StatelessWidget {
+  const _ContinuePlayingCard({required this.state});
 
   final AppState state;
 
@@ -102,128 +162,240 @@ class _ActiveGameCard extends StatelessWidget {
         .playerValue(PlayerRole.seeker)
         .toStringAsFixed(2)
         .replaceAll('.', ',');
-    return Container(
-      padding: const EdgeInsets.all(22),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(colors: [colors.primary, colors.secondary]),
-        borderRadius: BorderRadius.circular(28),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Row(
-            children: [
-              Icon(Icons.radar, color: Color(0xffffd267)),
-              SizedBox(width: 8),
-              Text(
-                'NU ACTIEF',
-                style: TextStyle(
-                  color: Color(0xffffd267),
-                  fontWeight: FontWeight.w900,
+
+    return Card(
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => ActiveGameScreen(state: state)),
+        ),
+        child: Ink(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [colors.primary, colors.secondary],
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(22),
+            child: Row(
+              children: [
+                Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.16),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Icon(
+                    Icons.play_arrow_rounded,
+                    size: 34,
+                    color: Colors.white,
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          const Text(
-            'Game X',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 28,
-              fontWeight: FontWeight.w900,
+                const SizedBox(width: 16),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'VERDER SPELEN',
+                        style: TextStyle(
+                          color: Color(0xffffd267),
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'Game X',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 23,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      Text(
+                        'Jij bent zoeker',
+                        style: TextStyle(color: Colors.white70),
+                      ),
+                    ],
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      '${state.activeGame.playersFound}/20',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const Text(
+                      'gevonden',
+                      style: TextStyle(color: Colors.white70, fontSize: 12),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      playerValue,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const Text(
+                      'puntenwaarde',
+                      style: TextStyle(color: Colors.white70, fontSize: 12),
+                    ),
+                  ],
+                ),
+                const SizedBox(width: 4),
+                const Icon(Icons.chevron_right, color: Colors.white),
+              ],
             ),
           ),
-          const Text(
-            'Jij bent ZOEKER • live countdown',
-            style: TextStyle(color: Colors.white70),
-          ),
-          const SizedBox(height: 18),
-          Row(
-            children: [
-              StatPill(
-                icon: Icons.person_search,
-                value: '${state.activeGame.playersFound}/20',
-                label: 'gevonden',
-              ),
-              const SizedBox(width: 10),
-              StatPill(
-                icon: Icons.stars,
-                value: playerValue,
-                label: 'puntenwaarde',
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          FilledButton.icon(
-            style: FilledButton.styleFrom(
-              backgroundColor: colors.tertiaryContainer,
-              foregroundColor: colors.onTertiaryContainer,
-            ),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => ActiveGameScreen(state: state)),
-            ),
-            icon: const Icon(Icons.play_arrow),
-            label: const Text('Open Game X'),
-          ),
-        ],
+        ),
       ),
     );
   }
 }
 
-class _QuickAction extends StatelessWidget {
-  const _QuickAction({
+class _ContentsChapter extends StatelessWidget {
+  const _ContentsChapter({
+    required this.number,
     required this.icon,
-    required this.label,
-    required this.count,
+    required this.title,
+    required this.description,
     required this.onTap,
+    this.count,
   });
 
+  final String number;
   final IconData icon;
-  final String label;
-  final String count;
+  final String title;
+  final String description;
   final VoidCallback onTap;
+  final int? count;
 
   @override
-  Widget build(BuildContext context) => Card(
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.all(14),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Icon(icon, color: Theme.of(context).colorScheme.primary),
-                Text(
-                  count,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.w900, fontSize: 18),
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Card(
+      margin: EdgeInsets.zero,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    number,
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: colors.primary,
+                          fontWeight: FontWeight.w900,
+                        ),
+                  ),
+                  Icon(icon, color: colors.primary),
+                ],
+              ),
+              const SizedBox(width: 16),
+              Container(width: 1, color: colors.outlineVariant),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            title,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(fontWeight: FontWeight.w900),
+                          ),
+                        ),
+                        if (count != null)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: colors.primaryContainer,
+                              borderRadius: BorderRadius.circular(99),
+                            ),
+                            child: Text(
+                              '$count',
+                              style: TextStyle(
+                                color: colors.onPrimaryContainer,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      description,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(color: colors.onSurfaceVariant),
+                    ),
+                  ],
                 ),
-                Text(label, maxLines: 2),
-              ],
-            ),
+              ),
+              const SizedBox(width: 4),
+              const Icon(Icons.chevron_right),
+            ],
           ),
         ),
-      );
+      ),
+    );
+  }
 }
 
-class _Metric extends StatelessWidget {
-  const _Metric(this.value, this.label);
+class _ProgressSummary extends StatelessWidget {
+  const _ProgressSummary({required this.state});
 
-  final String value;
-  final String label;
+  final AppState state;
 
   @override
-  Widget build(BuildContext context) => Column(
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Row(
         children: [
-          Text(
-            value,
-            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 24),
+          Icon(Icons.auto_stories_outlined, color: colors.primary),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Jouw verhaal tot nu toe',
+              style: Theme.of(context)
+                  .textTheme
+                  .titleSmall
+                  ?.copyWith(fontWeight: FontWeight.w900),
+            ),
           ),
-          Text(label),
+          Text(
+            '${state.gamesPlayed} gespeeld  •  ${state.wins} gewonnen',
+            style: TextStyle(color: colors.onSurfaceVariant),
+          ),
         ],
-      );
+      ),
+    );
+  }
 }

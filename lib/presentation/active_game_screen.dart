@@ -209,7 +209,6 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
       ),
     );
   }
-
 }
 
 class _ActiveMapPage extends StatefulWidget {
@@ -552,21 +551,24 @@ class _StobbePowersPage extends StatelessWidget {
                         _PowerToken(
                             icon: Icons.flight,
                             name: 'Digitale drone',
-                            description: 'Geeft je tijdelijk een ruimer zicht op het speelveld en laat meer van de omgeving zien.',
+                            description:
+                                'Geeft je tijdelijk een ruimer zicht op het speelveld en laat meer van de omgeving zien.',
                             count: 1,
                             color: const Color(0xff3f6f91),
                             enabled: !finished),
                         _PowerToken(
                             icon: Icons.precision_manufacturing,
                             name: 'Arm van de Stobbe',
-                            description: 'Verkleint tijdelijk jouw zichtbaarheid en maakt het voor zoekers moeilijker om je te vinden.',
+                            description:
+                                'Verkleint tijdelijk jouw zichtbaarheid en maakt het voor zoekers moeilijker om je te vinden.',
                             count: 2,
                             color: const Color(0xff477653),
                             enabled: !finished),
                         _PowerToken(
                             icon: Icons.visibility_off,
                             name: 'Onzichtbaar',
-                            description: 'Verbergt jouw digitale positie gedurende een korte periode op de kaart van andere spelers.',
+                            description:
+                                'Verbergt jouw digitale positie gedurende een korte periode op de kaart van andere spelers.',
                             count: 1,
                             color: const Color(0xff74558c),
                             enabled: !finished),

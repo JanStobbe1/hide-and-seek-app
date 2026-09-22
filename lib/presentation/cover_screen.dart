@@ -153,6 +153,7 @@ class _CoverScreenState extends State<CoverScreen>
                 ]).transform(welcomeValue);
           final idleLift = reduceMotion ? 0.0 : _idleController.value * 3;
           final greetingTilt = greetingOpacity * -0.025;
+          final isGreeting = greetingOpacity >= 0.5;
 
           return Transform.translate(
             offset: Offset(0, (1 - entrance) * 34 - idleLift),
@@ -162,27 +163,19 @@ class _CoverScreenState extends State<CoverScreen>
                 scale: 0.9 + (0.1 * entrance),
                 child: Opacity(
                   opacity: entrance.clamp(0.0, 1.0).toDouble(),
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      Image.asset(
-                        'assets/images/stobbekarakter.png',
-                        key: const Key('stobbekarakter-normaal'),
-                        fit: BoxFit.contain,
-                        semanticLabel:
-                            'Stobbekarakter met vergrootglas en speellijst',
-                      ),
-                      Opacity(
-                        key: const Key('stobbekarakter-welkom-opacity'),
-                        opacity: greetingOpacity,
-                        child: Image.asset(
-                          'assets/images/stobbekarakter_welkom.webp',
-                          key: const Key('stobbekarakter-welkom'),
-                          fit: BoxFit.contain,
-                          excludeFromSemantics: true,
-                        ),
-                      ),
-                    ],
+                  child: Image.asset(
+                    isGreeting
+                        ? 'assets/images/stobbekarakter_welkom.webp'
+                        : 'assets/images/stobbekarakter.png',
+                    key: ValueKey(
+                      isGreeting
+                          ? 'stobbekarakter-welkom'
+                          : 'stobbekarakter-normaal',
+                    ),
+                    fit: BoxFit.contain,
+                    semanticLabel: isGreeting
+                        ? 'Stobbekarakter licht zijn hoed en knipoogt'
+                        : 'Stobbekarakter met vergrootglas en speellijst',
                   ),
                 ),
               ),

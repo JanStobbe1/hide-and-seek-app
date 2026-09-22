@@ -102,22 +102,22 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
                 Step(
                   title: const Text('Basis'),
                   isActive: step >= 0,
-                  content: _buildBasics(),
+                  content: _withStepSpacing(_buildBasics()),
                 ),
                 Step(
                   title: const Text('Zoekgebied'),
                   isActive: step >= 1,
-                  content: _buildSearchArea(),
+                  content: _withStepSpacing(_buildSearchArea()),
                 ),
                 Step(
                   title: const Text('Start & introductie'),
                   isActive: step >= 2,
-                  content: _buildStartAndIntroduction(),
+                  content: _withStepSpacing(_buildStartAndIntroduction()),
                 ),
                 Step(
                   title: const Text('Controleren'),
                   isActive: step >= 3,
-                  content: _Review(
+                  content: _withStepSpacing(_Review(
                     name: name.text,
                     isPublic: isPublic,
                     duration: duration,
@@ -129,12 +129,17 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
                     startCondition: condition,
                     scheduledStart: selectedScheduledStart,
                     participantThreshold: selectedParticipantThreshold,
-                  ),
+                  )),
                 ),
               ],
             ),
           ),
         ),
+      );
+
+  Widget _withStepSpacing(Widget child) => Padding(
+        padding: const EdgeInsets.only(top: 12),
+        child: child,
       );
 
   Widget _buildControls(BuildContext context, ControlsDetails details) =>

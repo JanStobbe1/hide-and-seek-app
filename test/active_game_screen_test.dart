@@ -12,6 +12,7 @@ void main() {
       MaterialApp(home: ActiveGameScreen(state: state)),
     );
     await tester.tap(find.byIcon(Icons.dashboard_outlined));
+    await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.textContaining('5 van de 20 gevonden'), findsOneWidget);
@@ -29,6 +30,7 @@ void main() {
       MaterialApp(home: ActiveGameScreen(state: state)),
     );
     await tester.tap(find.byIcon(Icons.dashboard_outlined));
+    await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
     state.registerZoneMeasurement(inside: false);

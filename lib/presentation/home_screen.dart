@@ -28,11 +28,11 @@ class HomeScreen extends StatelessWidget {
                 .headlineMedium
                 ?.copyWith(fontWeight: FontWeight.w900),
           ),
-          const Text('Klaar voor je volgende avontuur?'),
+          const Text('Kies waar je jouw avontuur wilt vervolgen.'),
           const SizedBox(height: 20),
           _ActiveGameCard(state: state),
           SectionTitle(
-            'Snel naar',
+            'Inhoud',
             action: TextButton(
               onPressed: onCreate,
               child: const Text('Nieuw spel'),

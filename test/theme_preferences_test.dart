@@ -6,6 +6,7 @@ void main() {
   test('theme choices use muted names', () {
     expect(ThemePreference.values, hasLength(6));
     expect(AppTheme.labelFor(ThemePreference.forest), 'Mat saliegroen');
+    expect(AppTheme.labelFor(ThemePreference.ocean), 'Leisteenblauw');
     expect(AppTheme.labelFor(ThemePreference.violet), 'Fluweelpaars');
     expect(AppTheme.labelFor(ThemePreference.graphite), 'Zacht grafiet');
     expect(AppTheme.labelFor(ThemePreference.rosewood), 'Mat rozenhout');

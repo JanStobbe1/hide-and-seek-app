@@ -107,4 +107,103 @@ void main() {
 
     expect(filtered, ['Amsterdam', 'Edam-Volendam']);
   });
+
+  group('natural introduction location', () {
+    test('uses only the deepest explicitly selected level', () {
+      expect(
+        introductionLocationLabel(
+          const LocationSelection(
+            country: 'Nederland',
+            province: 'Flevoland',
+            cities: ['Almere'],
+            districts: ['Almere › Filmwijk'],
+            neighbourhoods: [
+              'Almere › Filmwijk › Filmwijk Noord',
+              'Almere › Filmwijk › Filmwijk Midden',
+            ],
+          ),
+        ),
+        'Filmwijk Noord en Filmwijk Midden',
+      );
+    });
+
+    test('falls back through all selections to the relevant parent', () {
+      expect(
+        introductionLocationLabel(
+          const LocationSelection(
+            country: 'Nederland',
+            province: 'Noord-Holland',
+            cities: ['Amsterdam'],
+            districts: ['Alle'],
+            neighbourhoods: ['Alle'],
+          ),
+        ),
+        'Amsterdam',
+      );
+      expect(
+        introductionLocationLabel(
+          const LocationSelection(
+            country: 'Nederland',
+            province: 'Noord-Holland',
+            cities: ['Alle'],
+            districts: ['Alle'],
+            neighbourhoods: ['Alle'],
+          ),
+        ),
+        'Noord-Holland',
+      );
+      expect(
+        introductionLocationLabel(
+          const LocationSelection(
+            country: 'Nederland',
+            province: 'Alle',
+            cities: ['Alle'],
+            districts: ['Alle'],
+            neighbourhoods: ['Alle'],
+          ),
+        ),
+        'Nederland',
+      );
+    });
+
+    test('joins up to three places naturally and summarizes larger lists', () {
+      expect(
+        introductionLocationLabel(
+          const LocationSelection(
+            country: 'Nederland',
+            province: 'Noord-Holland',
+            cities: ['Amsterdam', 'Haarlemmermeer'],
+          ),
+        ),
+        'Amsterdam en Haarlemmermeer',
+      );
+      expect(
+        introductionLocationLabel(
+          const LocationSelection(
+            country: 'Nederland',
+            province: 'Noord-Holland',
+            cities: ['Amsterdam', 'Haarlem', 'Zandvoort', 'Aalsmeer'],
+          ),
+        ),
+        'Noord-Holland',
+      );
+      expect(
+        introductionLocationLabel(
+          const LocationSelection(
+            country: 'Nederland',
+            province: 'Flevoland',
+            cities: ['Almere'],
+            districts: [
+              'Almere › Filmwijk',
+              'Almere › Parkwijk',
+              'Almere › Waterwijk',
+              'Almere › Verzetswijk',
+            ],
+          ),
+        ),
+        'Almere',
+      );
+    });
+  });
+
 }

@@ -182,3 +182,63 @@ class LocationSelection {
     return unique.contains('Alle') ? const ['Alle'] : unique;
   }
 }
+
+
+/// Returns the most specific useful location without repeating its hierarchy.
+///
+/// Up to three selected places are named. For larger selections the nearest
+/// shared parent is used, keeping generated copy short and natural.
+String introductionLocationLabel(LocationSelection selection) {
+  final country = selection.country ?? 'Nederland';
+  final province = selection.province;
+  if (province == null || province == 'Alle') return country;
+
+  final neighbourhoods = _explicitLocations(selection.neighbourhoods);
+  if (neighbourhoods != null) {
+    return _naturalLocationList(
+      neighbourhoods,
+      manyFallback: _sharedMunicipality(neighbourhoods) ?? province,
+    );
+  }
+
+  final districts = _explicitLocations(selection.districts);
+  if (districts != null) {
+    return _naturalLocationList(
+      districts,
+      manyFallback: _sharedMunicipality(districts) ?? province,
+    );
+  }
+
+  final cities = _explicitLocations(selection.cities);
+  if (cities != null) {
+    return _naturalLocationList(cities, manyFallback: province);
+  }
+
+  return province;
+}
+
+List<String>? _explicitLocations(List<String> values) {
+  if (values.isEmpty || values.contains('Alle')) return null;
+  return values;
+}
+
+String? _sharedMunicipality(List<String> qualifiedLocations) {
+  final municipalities = qualifiedLocations
+      .map((location) => location.split(locationSeparator).first)
+      .toSet();
+  return municipalities.length == 1 ? municipalities.single : null;
+}
+
+String _naturalLocationList(
+  List<String> qualifiedLocations, {
+  required String manyFallback,
+}) {
+  final names = qualifiedLocations
+      .map((location) => location.split(locationSeparator).last)
+      .toSet()
+      .toList(growable: false);
+  if (names.length > 3) return manyFallback;
+  if (names.length == 1) return names.single;
+  if (names.length == 2) return '${names.first} en ${names.last}';
+  return '${names[0]}, ${names[1]} en ${names[2]}';
+}

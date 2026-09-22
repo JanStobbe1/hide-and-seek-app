@@ -425,7 +425,6 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
   }
 }
 
-
 class _ActiveMapPage extends StatefulWidget {
   const _ActiveMapPage({required this.state});
 
@@ -580,7 +579,8 @@ class _PowerCard extends StatelessWidget {
         child: ListTile(
           enabled: enabled,
           leading: CircleAvatar(child: Icon(icon)),
-          title: Text(name, style: const TextStyle(fontWeight: FontWeight.w700)),
+          title:
+              Text(name, style: const TextStyle(fontWeight: FontWeight.w700)),
           subtitle: Text(detail),
           trailing: FilledButton.tonal(
             onPressed: enabled

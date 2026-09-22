@@ -457,7 +457,7 @@ class _ActiveMapPageState extends State<_ActiveMapPage> {
             ),
           ),
           if (showLegend)
-            Positioned(
+            const Positioned(
               left: 24,
               right: 84,
               bottom: 24,
@@ -528,13 +528,13 @@ class _StobbePowersPage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          _PowerCard(
+          const _PowerCard(
             icon: Icons.visibility_off_outlined,
             name: 'Onzichtbaarheidsdrankje',
             detail: '0 in voorraad • maximaal 1× per spel',
             enabled: false,
           ),
-          _PowerCard(
+          const _PowerCard(
             icon: Icons.precision_manufacturing_outlined,
             name: 'Arm van de Stobbe',
             detail: '0 in voorraad • maximaal 2× per spel',

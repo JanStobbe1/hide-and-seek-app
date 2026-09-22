@@ -463,11 +463,11 @@ class _ActiveMapPageState extends State<_ActiveMapPage> {
               bottom: 24,
               child: Card(
                 child: Padding(
-                  padding: const EdgeInsets.all(12),
+                  padding: EdgeInsets.all(12),
                   child: Wrap(
                     spacing: 16,
                     runSpacing: 8,
-                    children: const [
+                    children: [
                       _LegendItem(Icons.person_pin_circle, 'Jij'),
                       _LegendItem(Icons.help_outline, 'Zoekgebied'),
                       _LegendItem(Icons.auto_awesome, 'Stobbekracht'),

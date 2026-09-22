@@ -11,7 +11,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(home: ActiveGameScreen(state: state)),
     );
-    await tester.drag(find.byType(PageView), const Offset(400, 0));
+    await tester.tap(find.byIcon(Icons.dashboard_outlined));
     await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.textContaining('5 van de 20 gevonden'), findsOneWidget);
@@ -28,34 +28,18 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(home: ActiveGameScreen(state: state)),
     );
-    await tester.drag(find.byType(PageView), const Offset(400, 0));
+    await tester.tap(find.byIcon(Icons.dashboard_outlined));
     await tester.pump(const Duration(milliseconds: 300));
 
-    final confirmOutside = find.text('Bevestig buiten zone');
-    await tester.scrollUntilVisible(
-      confirmOutside,
-      200,
-      scrollable: find.byType(Scrollable).last,
-    );
-    await tester.tap(confirmOutside);
+    state.registerZoneMeasurement(inside: false);
+    state.registerZoneMeasurement(inside: false);
     await tester.pump();
     expect(state.inActiveZone, isFalse);
 
     final zoneAlarm = find.text('Je staat buiten het actieve speelveld');
-    await tester.scrollUntilVisible(
-      zoneAlarm,
-      -200,
-      scrollable: find.byType(Scrollable).last,
-    );
     expect(zoneAlarm, findsOneWidget);
 
-    final returnToZone = find.text('Keer terug in zone');
-    await tester.scrollUntilVisible(
-      returnToZone,
-      -100,
-      scrollable: find.byType(Scrollable).last,
-    );
-    await tester.tap(returnToZone);
+    state.registerZoneMeasurement(inside: true);
     await tester.pump();
     expect(state.inActiveZone, isTrue);
     expect(zoneAlarm, findsNothing);

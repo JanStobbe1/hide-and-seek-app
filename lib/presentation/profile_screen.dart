@@ -296,7 +296,17 @@ class FriendsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: const Text('Vrienden')),
+        appBar: AppBar(
+          title: const Text('Vrienden'),
+          actions: const [
+            StobbeDetectiveButton(
+              pageTitle: 'Vrienden',
+              explanation:
+                  'Bekijk hier je vrienden en hun spelstatistieken. Zo zie je '
+                  'met wie je vaker op avontuur kunt gaan.',
+            ),
+          ],
+        ),
         body: ListView.separated(
           padding: const EdgeInsets.all(20),
           itemCount: friends.length,

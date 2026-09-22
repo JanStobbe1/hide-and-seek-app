@@ -522,7 +522,8 @@ class _ActiveMapPageState extends State<_ActiveMapPage> {
             left: 16,
             child: Card(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 child: Text(
                   'Speelveld • ${widget.state.findDistanceMeters.toStringAsFixed(0)} m vangafstand',
                   style: const TextStyle(fontWeight: FontWeight.w800),
@@ -535,11 +536,20 @@ class _ActiveMapPageState extends State<_ActiveMapPage> {
             right: 16,
             child: Column(
               children: [
-                _MapButton(tooltip: 'Inzoomen', icon: Icons.add, onPressed: () => zoom(1.3)),
+                _MapButton(
+                    tooltip: 'Inzoomen',
+                    icon: Icons.add,
+                    onPressed: () => zoom(1.3)),
                 const SizedBox(height: 8),
-                _MapButton(tooltip: 'Uitzoomen', icon: Icons.remove, onPressed: () => zoom(.75)),
+                _MapButton(
+                    tooltip: 'Uitzoomen',
+                    icon: Icons.remove,
+                    onPressed: () => zoom(.75)),
                 const SizedBox(height: 8),
-                _MapButton(tooltip: 'Terug naar mijn locatie', icon: Icons.my_location, onPressed: recenter),
+                _MapButton(
+                    tooltip: 'Terug naar mijn locatie',
+                    icon: Icons.my_location,
+                    onPressed: recenter),
                 const SizedBox(height: 8),
                 _MapButton(
                   tooltip: 'Legenda',
@@ -550,7 +560,8 @@ class _ActiveMapPageState extends State<_ActiveMapPage> {
             ),
           ),
           if (showLegend)
-            const Positioned(left: 16, right: 82, bottom: 88, child: _MapLegend()),
+            const Positioned(
+                left: 16, right: 82, bottom: 88, child: _MapLegend()),
           Positioned(
             left: 24,
             right: 24,
@@ -566,7 +577,8 @@ class _ActiveMapPageState extends State<_ActiveMapPage> {
 }
 
 class _MapButton extends StatelessWidget {
-  const _MapButton({required this.tooltip, required this.icon, required this.onPressed});
+  const _MapButton(
+      {required this.tooltip, required this.icon, required this.onPressed});
   final String tooltip;
   final IconData icon;
   final VoidCallback onPressed;
@@ -593,22 +605,34 @@ class _GameMapCanvas extends StatelessWidget {
             const Positioned(
               left: 520,
               top: 375,
-              child: _MapMarker(icon: Icons.person_pin_circle, label: 'Jij', color: Color(0xff315c46)),
+              child: _MapMarker(
+                  icon: Icons.person_pin_circle,
+                  label: 'Jij',
+                  color: Color(0xff315c46)),
             ),
             const Positioned(
               left: 730,
               top: 230,
-              child: _MapMarker(icon: Icons.help_outline, label: 'Zoekcirkel', color: Color(0xffe5a62c)),
+              child: _MapMarker(
+                  icon: Icons.help_outline,
+                  label: 'Zoekcirkel',
+                  color: Color(0xffe5a62c)),
             ),
             const Positioned(
               left: 275,
               top: 565,
-              child: _MapMarker(icon: Icons.auto_awesome, label: 'Stobbekracht', color: Color(0xff6650a4)),
+              child: _MapMarker(
+                  icon: Icons.auto_awesome,
+                  label: 'Stobbekracht',
+                  color: Color(0xff6650a4)),
             ),
             const Positioned(
               left: 870,
               top: 520,
-              child: _MapMarker(icon: Icons.inventory_2, label: 'Stobbekist', color: Color(0xffa86b2d)),
+              child: _MapMarker(
+                  icon: Icons.inventory_2,
+                  label: 'Stobbekist',
+                  color: Color(0xffa86b2d)),
             ),
           ],
         ),
@@ -618,30 +642,42 @@ class _GameMapCanvas extends StatelessWidget {
 class _GameMapPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    canvas.drawRect(Offset.zero & size, Paint()..color = const Color(0xffdce9d4));
-    final grid = Paint()..color = const Color(0x44315c46)..strokeWidth = 1;
+    canvas.drawRect(
+        Offset.zero & size, Paint()..color = const Color(0xffdce9d4));
+    final grid = Paint()
+      ..color = const Color(0x44315c46)
+      ..strokeWidth = 1;
     for (double x = 0; x < size.width; x += 80) {
       canvas.drawLine(Offset(x, 0), Offset(x, size.height), grid);
     }
     for (double y = 0; y < size.height; y += 80) {
       canvas.drawLine(Offset(0, y), Offset(size.width, y), grid);
     }
-    final roads = Paint()..color = Colors.white70..strokeWidth = 22..style = PaintingStyle.stroke;
+    final roads = Paint()
+      ..color = Colors.white70
+      ..strokeWidth = 22
+      ..style = PaintingStyle.stroke;
     final road = Path()
       ..moveTo(-40, 180)
       ..cubicTo(260, 70, 520, 300, 1140, 120)
       ..moveTo(120, 860)
       ..cubicTo(180, 510, 690, 650, 980, -40);
     canvas.drawPath(road, roads);
-    final boundary = Paint()..color = const Color(0xff315c46)..strokeWidth = 5..style = PaintingStyle.stroke;
+    final boundary = Paint()
+      ..color = const Color(0xff315c46)
+      ..strokeWidth = 5
+      ..style = PaintingStyle.stroke;
     canvas.drawRRect(
-      RRect.fromRectAndRadius(const Rect.fromLTWH(105, 80, 890, 650), const Radius.circular(60)),
+      RRect.fromRectAndRadius(
+          const Rect.fromLTWH(105, 80, 890, 650), const Radius.circular(60)),
       boundary,
     );
     canvas.drawCircle(
       const Offset(550, 410),
       105,
-      Paint()..color = const Color(0x33315c46)..style = PaintingStyle.fill,
+      Paint()
+        ..color = const Color(0x33315c46)
+        ..style = PaintingStyle.fill,
     );
   }
 
@@ -650,7 +686,8 @@ class _GameMapPainter extends CustomPainter {
 }
 
 class _MapMarker extends StatelessWidget {
-  const _MapMarker({required this.icon, required this.label, required this.color});
+  const _MapMarker(
+      {required this.icon, required this.label, required this.color});
   final IconData icon;
   final String label;
   final Color color;
@@ -670,7 +707,9 @@ class _MapMarker extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
             color: Colors.white,
-            child: Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800)),
+            child: Text(label,
+                style:
+                    const TextStyle(fontSize: 11, fontWeight: FontWeight.w800)),
           ),
         ],
       );
@@ -721,9 +760,13 @@ class _StobbePowersPage extends StatelessWidget {
           children: [
             Text(
               'Jouw Stobbetas',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900),
+              style: Theme.of(context)
+                  .textTheme
+                  .headlineSmall
+                  ?.copyWith(fontWeight: FontWeight.w900),
             ),
-            const Text('Verzameld in dit spel • ongebruikte fiches vervallen na afloop'),
+            const Text(
+                'Verzameld in dit spel • ongebruikte fiches vervallen na afloop'),
             const SizedBox(height: 18),
             Center(
               child: Container(
@@ -737,7 +780,12 @@ class _StobbePowersPage extends StatelessWidget {
                   ),
                   borderRadius: BorderRadius.circular(28),
                   border: Border.all(color: const Color(0xff4f2d16), width: 4),
-                  boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 14, offset: Offset(0, 8))],
+                  boxShadow: const [
+                    BoxShadow(
+                        color: Colors.black26,
+                        blurRadius: 14,
+                        offset: Offset(0, 8))
+                  ],
                 ),
                 child: Column(
                   children: [
@@ -751,16 +799,32 @@ class _StobbePowersPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 20),
                     GridView.count(
-                      crossAxisCount: MediaQuery.sizeOf(context).width < 520 ? 2 : 3,
+                      crossAxisCount:
+                          MediaQuery.sizeOf(context).width < 520 ? 2 : 3,
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       mainAxisSpacing: 16,
                       crossAxisSpacing: 16,
                       childAspectRatio: .9,
                       children: [
-                        _PowerToken(icon: Icons.flight, name: 'Digitale drone', count: 1, color: const Color(0xff3f6f91), enabled: !finished),
-                        _PowerToken(icon: Icons.precision_manufacturing, name: 'Arm van de Stobbe', count: 2, color: const Color(0xff477653), enabled: !finished),
-                        _PowerToken(icon: Icons.visibility_off, name: 'Onzichtbaar', count: 1, color: const Color(0xff74558c), enabled: !finished),
+                        _PowerToken(
+                            icon: Icons.flight,
+                            name: 'Digitale drone',
+                            count: 1,
+                            color: const Color(0xff3f6f91),
+                            enabled: !finished),
+                        _PowerToken(
+                            icon: Icons.precision_manufacturing,
+                            name: 'Arm van de Stobbe',
+                            count: 2,
+                            color: const Color(0xff477653),
+                            enabled: !finished),
+                        _PowerToken(
+                            icon: Icons.visibility_off,
+                            name: 'Onzichtbaar',
+                            count: 1,
+                            color: const Color(0xff74558c),
+                            enabled: !finished),
                       ],
                     ),
                   ],
@@ -810,7 +874,9 @@ class _PowerToken extends StatelessWidget {
                       color: enabled ? color : Colors.grey,
                       shape: BoxShape.circle,
                       border: Border.all(color: Colors.white, width: 4),
-                      boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 6)],
+                      boxShadow: const [
+                        BoxShadow(color: Colors.black26, blurRadius: 6)
+                      ],
                     ),
                     child: Icon(icon, color: Colors.white, size: 38),
                   ),
@@ -822,14 +888,17 @@ class _PowerToken extends StatelessWidget {
                       backgroundColor: const Color(0xff2d2118),
                       child: Text(
                         '×${count}',
-                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900),
+                        style: const TextStyle(
+                            color: Colors.white, fontWeight: FontWeight.w900),
                       ),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 9),
-              Text(name, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.w800)),
+              Text(name,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontWeight: FontWeight.w800)),
               const SizedBox(height: 6),
               FilledButton.tonal(
                 onPressed: enabled ? () => _activate(context) : null,
@@ -851,7 +920,10 @@ class _PowerToken extends StatelessWidget {
             Icon(icon, color: color, size: 52),
             Text(
               name,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+              style: Theme.of(context)
+                  .textTheme
+                  .titleLarge
+                  ?.copyWith(fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 8),
             const Text(
@@ -877,7 +949,9 @@ class _PowerToken extends StatelessWidget {
 
   void _activate(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${name} is ingezet. Demo: voorraad wordt later live.')),
+      SnackBar(
+          content:
+              Text('${name} is ingezet. Demo: voorraad wordt later live.')),
     );
   }
 }

@@ -458,7 +458,7 @@ class CompletedGamesScreen extends StatelessWidget {
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => CompletedGameDetailScreen(game: game),
+                    builder: (_) => _CompletedGameDetailScreen(game: game),
                   ),
                 ),
               ),
@@ -470,8 +470,8 @@ class CompletedGamesScreen extends StatelessWidget {
   }
 }
 
-class CompletedGameDetailScreen extends StatelessWidget {
-  const CompletedGameDetailScreen({required this.game, super.key});
+class _CompletedGameDetailScreen extends StatelessWidget {
+  const _CompletedGameDetailScreen({required this.game, super.key});
 
   final _CompletedGameData game;
 

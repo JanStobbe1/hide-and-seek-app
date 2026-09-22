@@ -219,3 +219,55 @@ class _AreaPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
+
+
+class StobbeDetectiveButton extends StatelessWidget {
+  const StobbeDetectiveButton({
+    required this.pageTitle,
+    required this.explanation,
+    super.key,
+  });
+
+  final String pageTitle;
+  final String explanation;
+
+  @override
+  Widget build(BuildContext context) => IconButton(
+        tooltip: 'Vraag het de Stobbedetective',
+        icon: const Icon(Icons.support_agent),
+        onPressed: () => showDialog<void>(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            contentPadding: const EdgeInsets.fromLTRB(24, 18, 24, 8),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Image.asset(
+                    'assets/images/stobbekarakter.png',
+                    height: 145,
+                    fit: BoxFit.contain,
+                  ),
+                  Text(
+                    pageTitle,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context)
+                        .textTheme
+                        .headlineSmall
+                        ?.copyWith(fontWeight: FontWeight.w900),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(explanation, textAlign: TextAlign.center),
+                ],
+              ),
+            ),
+            actions: [
+              FilledButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text('Begrepen, detective!'),
+              ),
+            ],
+          ),
+        ),
+      );
+}

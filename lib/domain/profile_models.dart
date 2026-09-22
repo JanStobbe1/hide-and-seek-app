@@ -1,4 +1,4 @@
-enum ThemePreference { forest, ocean, sunset, violet }
+enum ThemePreference { forest, ocean, sunset, violet, graphite, rosewood }
 
 enum PlayerMarker { ghost, wolf, police, explorer }
 

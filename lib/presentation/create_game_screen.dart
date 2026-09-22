@@ -26,8 +26,9 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
   LocationSelection location = const LocationSelection(
     country: 'Nederland',
     province: 'Flevoland',
-    city: 'Almere',
-    neighbourhood: 'Alle',
+    cities: ['Almere'],
+    districts: ['Alle'],
+    neighbourhoods: ['Alle'],
   );
   int introductionVariant = 0;
   bool introductionWasGenerated = false;
@@ -53,8 +54,12 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
   SearchArea get selectedArea => SearchArea(
         country: location.country ?? 'Nederland',
         province: location.province ?? 'Alle',
-        city: location.city ?? 'Alle',
-        neighbourhood: location.neighbourhood ?? 'Alle',
+        city: _selectionLabel(location.cities),
+        neighbourhood: _selectionLabel(
+          location.neighbourhoods.isNotEmpty
+              ? location.neighbourhoods
+              : location.districts,
+        ),
         specificArea: specificArea.text.trim(),
       );
 
@@ -238,34 +243,56 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
               setState(() => location = location.selectProvince(value));
             },
           ),
-          _LocationAutocomplete(
-            label: 'Stad/steden',
-            value: location.city,
+          _MultiLocationPicker(
+            label: 'Gemeente(n)',
+            values: location.cities,
             options: location.country == null || location.province == null
                 ? const []
                 : locations.citiesFor(location.country!, location.province!),
             enabled: location.province != null && location.province != 'Alle',
-            onSelected: (value) {
+            onChanged: (values) {
               _sourceChanged();
-              setState(() => location = location.selectCity(value));
+              setState(() => location = location.selectCities(values));
             },
           ),
-          _LocationAutocomplete(
+          _MultiLocationPicker(
             label: 'Wijk(en)',
-            value: location.neighbourhood,
+            values: location.districts,
             options: location.country == null ||
                     location.province == null ||
-                    location.city == null
+                    location.cities.isEmpty
+                ? const []
+                : locations.districtsFor(
+                    location.country!,
+                    location.province!,
+                    location.cities,
+                  ),
+            enabled:
+                location.cities.isNotEmpty && !location.cities.contains('Alle'),
+            onChanged: (values) {
+              _sourceChanged();
+              setState(() => location = location.selectDistricts(values));
+            },
+          ),
+          _MultiLocationPicker(
+            label: 'Buurt(en)',
+            values: location.neighbourhoods,
+            options: location.country == null ||
+                    location.province == null ||
+                    location.districts.isEmpty
                 ? const []
                 : locations.neighbourhoodsFor(
                     location.country!,
                     location.province!,
-                    location.city!,
+                    location.districts,
                   ),
-            enabled: location.city != null && location.city != 'Alle',
-            onSelected: (value) {
+            enabled: location.districts.isNotEmpty &&
+                !location.districts.contains('Alle'),
+            onChanged: (values) {
               _sourceChanged();
-              setState(() => location = location.selectNeighbourhood(value));
+              setState(
+                () => location = location.selectNeighbourhoods(values),
+              );
             },
           ),
           _AreaField(label: 'Specifiek gebied', controller: specificArea),
@@ -274,8 +301,8 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
           const Padding(
             padding: EdgeInsets.all(8),
             child: Text(
-              'Mockselectie: meerdere gebieden kun je met komma’s invoeren. '
-              'Later vervangbaar door een echte kaartservice.',
+              'Selecteer één of meerdere gemeenten, wijken en buurten. '
+              '‘Alle’ kiest het volledige bovenliggende gebied.',
               style: TextStyle(fontSize: 12),
               textAlign: TextAlign.center,
             ),
@@ -353,8 +380,9 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
       );
 
   void _generateIntroduction() {
-    final selectedCity =
-        location.city ?? location.province ?? location.country ?? 'Nederland';
+    final selectedCity = location.cities.isNotEmpty
+        ? _selectionLabel(location.cities)
+        : location.province ?? location.country ?? 'Nederland';
     final request = IntroductionRequest(
       gameName: name.text.trim().isEmpty ? 'dit spel' : name.text.trim(),
       city: selectedCity,
@@ -552,6 +580,130 @@ class _LocationAutocomplete extends StatelessWidget {
       );
 }
 
+class _MultiLocationPicker extends StatelessWidget {
+  const _MultiLocationPicker({
+    required this.label,
+    required this.values,
+    required this.options,
+    required this.onChanged,
+    this.enabled = true,
+  });
+
+  final String label;
+  final List<String> values;
+  final List<String> options;
+  final ValueChanged<List<String>> onChanged;
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: InkWell(
+          onTap: enabled ? () => _showPicker(context) : null,
+          borderRadius: BorderRadius.circular(12),
+          child: InputDecorator(
+            decoration: InputDecoration(
+              labelText: label,
+              hintText: enabled ? 'Kies één of meer' : 'Kies eerst hierboven',
+              prefixIcon: const Icon(Icons.location_on_outlined),
+              suffixIcon: const Icon(Icons.arrow_drop_down),
+              enabled: enabled,
+            ),
+            isEmpty: values.isEmpty,
+            child: values.isEmpty
+                ? null
+                : Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: values
+                        .map(
+                          (value) => Chip(
+                            label: Text(value),
+                            visualDensity: VisualDensity.compact,
+                          ),
+                        )
+                        .toList(growable: false),
+                  ),
+          ),
+        ),
+      );
+
+  Future<void> _showPicker(BuildContext context) async {
+    var query = '';
+    final selected = values.toSet();
+    final result = await showDialog<List<String>>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          final filtered = filterLocationOptions(options, query).toList();
+          return AlertDialog(
+            title: Text(label),
+            content: SizedBox(
+              width: 520,
+              height: 480,
+              child: Column(
+                children: [
+                  TextField(
+                    autofocus: true,
+                    onChanged: (value) => setDialogState(() => query = value),
+                    decoration: const InputDecoration(
+                      hintText: 'Typ om te zoeken',
+                      prefixIcon: Icon(Icons.search),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: filtered.length,
+                      itemBuilder: (context, index) {
+                        final option = filtered[index];
+                        return CheckboxListTile(
+                          value: selected.contains(option),
+                          title: Text(option),
+                          controlAffinity: ListTileControlAffinity.leading,
+                          onChanged: (checked) => setDialogState(() {
+                            if (checked ?? false) {
+                              if (option == 'Alle') {
+                                selected
+                                  ..clear()
+                                  ..add(option);
+                              } else {
+                                selected
+                                  ..remove('Alle')
+                                  ..add(option);
+                              }
+                            } else {
+                              selected.remove(option);
+                            }
+                          }),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text('Annuleren'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(
+                  dialogContext,
+                  selected.toList(growable: false),
+                ),
+                child: const Text('Toepassen'),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+    if (result != null) onChanged(result);
+  }
+}
+
 class _Review extends StatelessWidget {
   const _Review({
     required this.name,
@@ -661,4 +813,9 @@ String _formatScheduledStart(DateTime value) {
   final minutes = value.minute.toString().padLeft(2, '0');
   return '${value.day} ${months[value.month - 1]} ${value.year} '
       'om ${value.hour}:$minutes';
+}
+
+String _selectionLabel(List<String> values) {
+  if (values.isEmpty) return 'Alle';
+  return values.join(', ');
 }

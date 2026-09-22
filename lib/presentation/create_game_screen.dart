@@ -385,19 +385,16 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
       );
 
   void _generateIntroduction() {
-    final selectedCity = location.cities.isNotEmpty
-        ? _selectionLabel(location.cities)
-        : location.province ?? location.country ?? 'Nederland';
+    final locationLabel = introductionLocationLabel(location);
     final request = IntroductionRequest(
       gameName: name.text.trim().isEmpty ? 'dit spel' : name.text.trim(),
-      city: selectedCity,
+      city: locationLabel,
       durationMinutes: duration,
       maxParticipants: players,
       hintsEnabled: hints,
       questionsEnabled: questions,
       organizer: widget.state.displayName,
-      region:
-          '${selectedArea.country}, ${selectedArea.province}, ${selectedArea.city}',
+      region: locationLabel,
     );
     intro.text = introductionService.generate(
       request,
@@ -785,18 +782,44 @@ class _ReviewRow extends StatelessWidget {
   final String value;
 
   @override
-  Widget build(BuildContext context) => ListTile(
-        contentPadding: EdgeInsets.zero,
-        leading: const Icon(Icons.check_circle_outline),
-        title: Text(label),
-        trailing: SizedBox(
-          width: 240,
-          child: Text(
+  Widget build(BuildContext context) => LayoutBuilder(
+        builder: (context, constraints) {
+          final valueText = Text(
             value,
-            textAlign: TextAlign.end,
+            textAlign:
+                constraints.maxWidth >= 520 ? TextAlign.end : TextAlign.start,
+            softWrap: true,
             style: const TextStyle(fontWeight: FontWeight.w700),
-          ),
-        ),
+          );
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.only(top: 2),
+                  child: Icon(Icons.check_circle_outline),
+                ),
+                const SizedBox(width: 12),
+                if (constraints.maxWidth >= 520) ...[
+                  Expanded(flex: 2, child: Text(label)),
+                  const SizedBox(width: 16),
+                  Expanded(flex: 3, child: valueText),
+                ] else
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(label),
+                        const SizedBox(height: 4),
+                        valueText,
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          );
+        },
       );
 }
 

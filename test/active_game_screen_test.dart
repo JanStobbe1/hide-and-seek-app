@@ -35,7 +35,7 @@ void main() {
     await tester.scrollUntilVisible(
       confirmOutside,
       200,
-      scrollable: find.byType(Scrollable),
+      scrollable: find.byType(Scrollable).last,
     );
     await tester.tap(confirmOutside);
     await tester.pump();
@@ -45,7 +45,7 @@ void main() {
     await tester.scrollUntilVisible(
       zoneAlarm,
       -200,
-      scrollable: find.byType(Scrollable),
+      scrollable: find.byType(Scrollable).last,
     );
     expect(zoneAlarm, findsOneWidget);
 
@@ -53,7 +53,7 @@ void main() {
     await tester.scrollUntilVisible(
       returnToZone,
       -100,
-      scrollable: find.byType(Scrollable),
+      scrollable: find.byType(Scrollable).last,
     );
     await tester.tap(returnToZone);
     await tester.pump();

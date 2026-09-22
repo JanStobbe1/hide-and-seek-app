@@ -9,8 +9,7 @@ on:
       - main
 
 permissions:
-  contents: read
-  pull-requests: write
+  contents: write
 
 jobs:
   validate:
@@ -31,16 +30,11 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Return formatted sources
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Apply formatting
         run: |
           dart format lib/presentation/games_screens.dart lib/presentation/profile_screen.dart lib/presentation/create_game_screen.dart test/completed_games_screen_test.dart
-          {
-            for file in lib/presentation/games_screens.dart lib/presentation/profile_screen.dart lib/presentation/create_game_screen.dart test/completed_games_screen_test.dart; do
-              echo "FILE:$file"
-              base64 -w0 "$file"
-              echo
-            done
-          } > formatted.txt
-          gh pr comment "${{ github.event.pull_request.number }}" --body-file formatted.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add lib/presentation/games_screens.dart lib/presentation/profile_screen.dart lib/presentation/create_game_screen.dart test/completed_games_screen_test.dart
+          git commit -m "Pas dart format toe"
+          git push

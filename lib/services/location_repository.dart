@@ -183,7 +183,6 @@ class LocationSelection {
   }
 }
 
-
 /// Returns the most specific useful location without repeating its hierarchy.
 ///
 /// Up to three selected places are named. For larger selections the nearest

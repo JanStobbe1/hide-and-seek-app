@@ -34,7 +34,7 @@ class _AppShellState extends State<AppShell> {
     NavigationDestination(icon: Icon(Icons.travel_explore), label: 'Ontdekken'),
     NavigationDestination(
       icon: Icon(Icons.emoji_events_outlined),
-      label: 'Afgerond',
+      label: 'Resultaten',
     ),
     NavigationDestination(
       icon: Icon(Icons.person_outline),

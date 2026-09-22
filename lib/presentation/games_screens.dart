@@ -353,7 +353,7 @@ class CompletedGamesScreen extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         children: [
           Text(
-            'Afgeronde spellen',
+            'Resultaten',
             style: Theme.of(context)
                 .textTheme
                 .headlineSmall

@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 
 import '../app_state.dart';
 import '../domain/models.dart';
-import '../domain/private_questions.dart';
 import 'widgets.dart';
 
 class ActiveGameScreen extends StatefulWidget {
@@ -70,68 +69,6 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
                       _StatusRow(finished: state.gameFinished),
                       const SizedBox(height: 12),
                       _CountdownCard(state: state),
-                      if (!state.inActiveZone) _ZoneAlarm(state: state),
-                      const SectionTitle('Zoekgebied'),
-                      MapPlaceholder(playerMarker: state.playerMarker),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          OutlinedButton(
-                            onPressed: _simulateGpsSpike,
-                            child: const Text('Simuleer GPS-piek'),
-                          ),
-                          OutlinedButton(
-                            onPressed: _confirmOutsideZone,
-                            child: const Text('Bevestig buiten zone'),
-                          ),
-                          OutlinedButton(
-                            onPressed:
-                                state.inActiveZone ? null : _returnToZone,
-                            child: const Text('Keer terug in zone'),
-                          ),
-                        ],
-                      ),
-                      const SectionTitle('Jouw acties'),
-                      _GameActions(
-                        state: state,
-                        onHint: _useHint,
-                        onQuestions: _showQuestions,
-                      ),
-                      const SizedBox(height: 18),
-                      FilledButton.icon(
-                        onPressed: state.gameFinished
-                            ? null
-                            : () => _showProximity(context),
-                        icon: const Icon(Icons.sensors),
-                        label: Text(
-                          'Simuleer speler binnen '
-                          '${state.findDistanceMeters.toStringAsFixed(0)} meter',
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      OutlinedButton.icon(
-                        onPressed: state.gameFinished
-                            ? null
-                            : () => _showHiderWarning(context),
-                        icon: const Icon(Icons.visibility_off),
-                        label: const Text('Bekijk hider-scenario'),
-                      ),
-                      TextButton(
-                        onPressed: () => _showHiderResult(context),
-                        child: const Text('Bekijk hider-resultaat'),
-                      ),
-                      const SizedBox(height: 10),
-                      TextButton(
-                        onPressed: state.gameFinished
-                            ? () => _showSeekerResult(context)
-                            : () => _finish(context),
-                        child: Text(
-                          state.gameFinished
-                              ? 'Bekijk zoeker-resultaat'
-                              : 'Beëindig demo-spel',
-                        ),
-                      ),
                     ],
                   ),
                 ),
@@ -272,206 +209,6 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
       ),
     );
   }
-
-  void _showHiderWarning(BuildContext context) {
-    final hiderValue = state.playerValue(PlayerRole.hider);
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        icon: const Icon(Icons.warning_amber, size: 44),
-        title: const Text('Let op!'),
-        content: Text(
-          'Zoeker ${state.displayName} zit binnen '
-          '${state.findDistanceMeters.toStringAsFixed(0)} meter van jou.\n\n'
-          'Omdat er ${state.activeGame.playersFound} spelers zijn gevonden '
-          'is je actuele spelwaarde ${hiderValue.toStringAsFixed(0)} punten.'
-          '\n\nBlijf bewegen en houd afstand.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Sluiten'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _finish(BuildContext context) {
-    state.finishGame();
-    _showSeekerResult(context);
-  }
-
-  void _useHint() {
-    final decision = state.useHint();
-    if (decision.allowed) {
-      final cost =
-          decision.cost == 0 ? 'gratis hint' : '${decision.cost} punten';
-      _notice(context, 'Hint gestart ($cost). Zoekcirkel: 60 seconden.');
-      return;
-    }
-    final message = switch (decision.reason) {
-      'cooldown' => 'Je hint heeft nog een cooldown van 10 minuten.',
-      'insufficientPoints' => 'Je hebt onvoldoende punten voor deze hint.',
-      _ => 'Hints zijn in deze fase niet beschikbaar.',
-    };
-    _notice(context, message);
-  }
-
-  void _showQuestions() {
-    if (!state.startQuestionRound() &&
-        state.questionAttempt.status != QuestionMarkerStatus.inProgress) {
-      _notice(context, 'Deze vragenronde is niet meer beschikbaar.');
-      return;
-    }
-    final answers = List<bool?>.filled(5, null);
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          title: const Text('Vijf vragen over Mila'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: List.generate(
-                5,
-                (index) => RadioGroup<bool>(
-                  groupValue: answers[index],
-                  onChanged: (value) =>
-                      setDialogState(() => answers[index] = value),
-                  child: ListTile(
-                    title: Text('Vraag ${index + 1}: klopt deze stelling?'),
-                    subtitle: const Row(
-                      children: [
-                        Expanded(
-                          child: RadioListTile<bool>(
-                            value: true,
-                            title: Text('Ja'),
-                          ),
-                        ),
-                        Expanded(
-                          child: RadioListTile<bool>(
-                            value: false,
-                            title: Text('Nee'),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Later'),
-            ),
-            FilledButton(
-              onPressed: answers.every((answer) => answer != null)
-                  ? () {
-                      final correct =
-                          answers.where((answer) => answer == true).length;
-                      final earned = state.completeQuestionRound(correct);
-                      Navigator.pop(dialogContext);
-                      _notice(context, '$correct/5 goed: +$earned punten.');
-                    }
-                  : null,
-              child: const Text('Afronden'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _simulateGpsSpike() {
-    state.registerZoneMeasurement(inside: false);
-    state.registerZoneMeasurement(inside: true);
-    _notice(context, 'Losse GPS-piek genegeerd; je blijft actief.');
-  }
-
-  void _confirmOutsideZone() {
-    state.registerZoneMeasurement(inside: false);
-    state.registerZoneMeasurement(inside: false);
-  }
-
-  void _returnToZone() => state.registerZoneMeasurement(inside: true);
-
-  void _showHiderResult(BuildContext context) {
-    showModalBottomSheet<void>(
-      context: context,
-      builder: (sheetContext) => Padding(
-        padding: const EdgeInsets.all(28),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.sentiment_dissatisfied, size: 58),
-            const Text(
-              'Helaas, je bent gevonden!',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 10),
-            const Text('Overlevingstijd: 1 uur en 42 minuten'),
-            const Text('Ontvangen: 100 punten'),
-            const Text('Rank: Beginner • 54% naar Avonturier'),
-            const SizedBox(height: 16),
-            FilledButton(
-              onPressed: () => Navigator.pop(sheetContext),
-              child: const Text('Sluiten'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showSeekerResult(BuildContext context) {
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      builder: (sheetContext) => Padding(
-        padding: EdgeInsets.fromLTRB(
-          24,
-          24,
-          24,
-          MediaQuery.viewInsetsOf(sheetContext).bottom + 32,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.emoji_events, color: Color(0xffd99d18), size: 64),
-            Text(
-              'Sterk gezocht, ${state.displayName}!',
-              style: const TextStyle(fontSize: 25, fontWeight: FontWeight.w900),
-            ),
-            Text(
-              '${state.personallyFound} persoonlijk gevonden • '
-              '${state.points + state.playerValue(PlayerRole.seeker).round()} punten',
-            ),
-            const Text('Rank: Beginner • 68% naar Avonturier'),
-            const SizedBox(height: 12),
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.stars),
-                title: Text(
-                  'Persoonlijk aandeel: ${state.personallyFound}/'
-                  '${state.activeGame.playersFound}',
-                ),
-                subtitle: const Text('V1 gebruikt uitsluitend punten.'),
-              ),
-            ),
-            const SizedBox(height: 12),
-            FilledButton(
-              onPressed: () => Navigator.pop(sheetContext),
-              child: const Text('Terug naar het spel'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 class _ActiveMapPage extends StatefulWidget {
@@ -513,7 +250,9 @@ class _ActiveMapPageState extends State<_ActiveMapPage> {
                 minScale: .55,
                 maxScale: 3,
                 boundaryMargin: const EdgeInsets.all(300),
-                child: const _GameMapCanvas(),
+                child: _GameMapCanvas(
+                  playerIcon: markerIcon(widget.state.playerMarker),
+                ),
               ),
             ),
           ),
@@ -593,7 +332,9 @@ class _MapButton extends StatelessWidget {
 }
 
 class _GameMapCanvas extends StatelessWidget {
-  const _GameMapCanvas();
+  const _GameMapCanvas({required this.playerIcon});
+
+  final IconData playerIcon;
 
   @override
   Widget build(BuildContext context) => SizedBox(
@@ -602,13 +343,14 @@ class _GameMapCanvas extends StatelessWidget {
         child: Stack(
           children: [
             Positioned.fill(child: CustomPaint(painter: _GameMapPainter())),
-            const Positioned(
+            Positioned(
               left: 520,
               top: 375,
               child: _MapMarker(
-                  icon: Icons.person_pin_circle,
-                  label: 'Jij',
-                  color: Color(0xff315c46)),
+                icon: playerIcon,
+                label: 'Jij',
+                color: const Color(0xff315c46),
+              ),
             ),
             const Positioned(
               left: 730,
@@ -810,18 +552,24 @@ class _StobbePowersPage extends StatelessWidget {
                         _PowerToken(
                             icon: Icons.flight,
                             name: 'Digitale drone',
+                            description:
+                                'Geeft je tijdelijk een ruimer zicht op het speelveld en laat meer van de omgeving zien.',
                             count: 1,
                             color: const Color(0xff3f6f91),
                             enabled: !finished),
                         _PowerToken(
                             icon: Icons.precision_manufacturing,
                             name: 'Arm van de Stobbe',
+                            description:
+                                'Verkleint tijdelijk jouw zichtbaarheid en maakt het voor zoekers moeilijker om je te vinden.',
                             count: 2,
                             color: const Color(0xff477653),
                             enabled: !finished),
                         _PowerToken(
                             icon: Icons.visibility_off,
                             name: 'Onzichtbaar',
+                            description:
+                                'Verbergt jouw digitale positie gedurende een korte periode op de kaart van andere spelers.',
                             count: 1,
                             color: const Color(0xff74558c),
                             enabled: !finished),
@@ -840,12 +588,14 @@ class _PowerToken extends StatelessWidget {
   const _PowerToken({
     required this.icon,
     required this.name,
+    required this.description,
     required this.count,
     required this.color,
     required this.enabled,
   });
   final IconData icon;
   final String name;
+  final String description;
   final int count;
   final Color color;
   final bool enabled;
@@ -926,11 +676,7 @@ class _PowerToken extends StatelessWidget {
                   ?.copyWith(fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Dit fiche is alleen tijdens het huidige spel te gebruiken. '
-              'Na inzetten verdwijnt één fiche uit je Stobbetas.',
-              textAlign: TextAlign.center,
-            ),
+            Text(description, textAlign: TextAlign.center),
             const SizedBox(height: 14),
             FilledButton(
               onPressed: enabled
@@ -1050,66 +796,59 @@ class _CountdownCard extends StatelessWidget {
             'Actuele puntenwaarde',
             style: TextStyle(color: Colors.white60, fontSize: 11),
           ),
+          const Divider(color: Colors.white24, height: 28),
+          Row(
+            children: [
+              Expanded(
+                child: _ScoreStat(
+                  value: '${state.questionPoints + value.round()}',
+                  label: 'spelpunten verzameld',
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: _ScoreStat(
+                  value: '3e',
+                  label: 'van 20 spelers',
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
   }
 }
 
-class _ZoneAlarm extends StatelessWidget {
-  const _ZoneAlarm({required this.state});
+class _ScoreStat extends StatelessWidget {
+  const _ScoreStat({required this.value, required this.label});
 
-  final AppState state;
+  final String value;
+  final String label;
 
   @override
-  Widget build(BuildContext context) => Card(
-        color: Theme.of(context).colorScheme.errorContainer,
-        child: ListTile(
-          leading: const Icon(Icons.warning_amber),
-          title: const Text('Je staat buiten het actieve speelveld'),
-          subtitle: Text(
-            'Keer terug vóór ${state.zoneReturnDeadline?.hour.toString().padLeft(2, '0')}:'
-            '${state.zoneReturnDeadline?.minute.toString().padLeft(2, '0')}.',
-          ),
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        decoration: BoxDecoration(
+          color: const Color(0x1fffffff),
+          borderRadius: BorderRadius.circular(14),
         ),
-      );
-}
-
-class _GameActions extends StatelessWidget {
-  const _GameActions({
-    required this.state,
-    required this.onHint,
-    required this.onQuestions,
-  });
-
-  final AppState state;
-  final VoidCallback onHint;
-  final VoidCallback onQuestions;
-
-  @override
-  Widget build(BuildContext context) => Wrap(
-        spacing: 10,
-        runSpacing: 10,
-        children: [
-          ActionChip(
-            avatar: const Icon(Icons.visibility),
-            label: const Text('2 zichtbare verstoppers'),
-            onPressed: () {},
-          ),
-          ActionChip(
-            avatar: const Icon(Icons.lightbulb),
-            label: Text(
-              state.hintState.freeHintAvailable
-                  ? 'Gebruik gratis hint'
-                  : 'Koop hint met punten',
+        child: Column(
+          children: [
+            Text(
+              value,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 22,
+                fontWeight: FontWeight.w900,
+              ),
             ),
-            onPressed: onHint,
-          ),
-          ActionChip(
-            avatar: const Icon(Icons.quiz),
-            label: const Text('Beantwoord vraag'),
-            onPressed: state.questionAttempt.visible ? onQuestions : null,
-          ),
-        ],
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.white70, fontSize: 12),
+            ),
+          ],
+        ),
       );
 }

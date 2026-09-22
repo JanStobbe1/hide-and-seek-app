@@ -13,8 +13,6 @@ void main() {
     );
     await tester.tap(find.text('Overzicht'));
     await tester.pump(const Duration(milliseconds: 300));
-    await tester.tap(find.text('Overzicht'));
-    await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.textContaining('5 van de 20 gevonden'), findsOneWidget);
     expect(find.textContaining('2 van 5 door mij gevonden'), findsOneWidget);
@@ -30,6 +28,8 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(home: ActiveGameScreen(state: state)),
     );
+    await tester.tap(find.text('Overzicht'));
+    await tester.pump(const Duration(milliseconds: 300));
 
     final confirmOutside = find.text('Bevestig buiten zone');
     await tester.scrollUntilVisible(

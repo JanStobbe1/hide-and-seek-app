@@ -950,8 +950,7 @@ class _PowerToken extends StatelessWidget {
   void _activate(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-          content:
-              Text('$name is ingezet. Demo: voorraad wordt later live.')),
+          content: Text('$name is ingezet. Demo: voorraad wordt later live.')),
     );
   }
 }

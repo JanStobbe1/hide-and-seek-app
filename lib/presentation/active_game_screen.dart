@@ -343,13 +343,14 @@ class _GameMapCanvas extends StatelessWidget {
         child: Stack(
           children: [
             Positioned.fill(child: CustomPaint(painter: _GameMapPainter())),
-            const Positioned(
+            Positioned(
               left: 520,
               top: 375,
               child: _MapMarker(
-                  icon: Icons.person_pin_circle,
-                  label: 'Jij',
-                  color: Color(0xff315c46)),
+                icon: playerIcon,
+                label: 'Jij',
+                color: const Color(0xff315c46),
+              ),
             ),
             const Positioned(
               left: 730,

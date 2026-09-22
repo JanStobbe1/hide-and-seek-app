@@ -155,7 +155,18 @@ class GameDetailScreen extends StatelessWidget {
       (item) => item.id == game.id,
     );
     return Scaffold(
-      appBar: AppBar(title: Text(game.name)),
+      appBar: AppBar(
+        title: Text(game.name),
+        actions: const [
+          StobbeDetectiveButton(
+            pageTitle: 'Spelgegevens',
+            explanation:
+                'Bekijk hier wanneer en waar het spel plaatsvindt, wie het '
+                'organiseert en welke bekenden meedoen. Onderaan kun je het '
+                'spel delen of jezelf aanmelden.',
+          ),
+        ],
+      ),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 720),
@@ -340,64 +351,231 @@ class CompletedGamesScreen extends StatelessWidget {
 
   final AppState state;
 
-  static const names = [
-    'Verstopper',
-    'Viavlavlop',
-    'Familiedag verstoppen',
-    'Almere verstopt',
-    "Waasi's teambuilding",
+  static const games = [
+    _CompletedGameData(
+      name: 'Verstopper',
+      summary: 'Binnen 10 minuten gevonden',
+      result: 'Gevonden',
+      points: 300,
+      rank: 7,
+      role: 'Verstopper',
+      duration: '10 minuten',
+      location: 'Almere Haven',
+      players: ['Jij', 'Houda', 'Mila', 'Sam', 'Noa', 'Omar', 'Lotte'],
+    ),
+    _CompletedGameData(
+      name: 'Viavlavlop',
+      summary: 'Sterk gespeeld tot de laatste ronde',
+      result: 'Gewonnen',
+      points: 425,
+      rank: 1,
+      role: 'Verstopper',
+      duration: '1 uur 42 minuten',
+      location: 'Almere Stad',
+      players: ['Jij', 'Houda', 'Mila', 'Daan', 'Sofia'],
+    ),
+    _CompletedGameData(
+      name: 'Familiedag verstoppen',
+      summary: 'Vier spelers gevonden als zoeker',
+      result: 'Gewonnen',
+      points: 550,
+      rank: 2,
+      role: 'Zoeker',
+      duration: '1 uur 18 minuten',
+      location: 'Haarlemmermeer',
+      players: ['Jij', 'Houda', 'Eva', 'Bram', 'Nora', 'Sem'],
+    ),
+    _CompletedGameData(
+      name: 'Almere verstopt',
+      summary: 'Lang verborgen gebleven',
+      result: 'Gewonnen',
+      points: 675,
+      rank: 1,
+      role: 'Verstopper',
+      duration: '2 uur',
+      location: 'Almere Buiten',
+      players: ['Jij', 'Mila', 'Sam', 'Noa', 'Liam'],
+    ),
+    _CompletedGameData(
+      name: "Waasi's teambuilding",
+      summary: 'Gevonden in de tweede fase',
+      result: 'Gevonden',
+      points: 800,
+      rank: 4,
+      role: 'Verstopper',
+      duration: '56 minuten',
+      location: 'Amsterdam',
+      players: ['Jij', 'Houda', 'Waasi', 'Iris', 'Finn', 'Yara'],
+    ),
   ];
 
   @override
-  Widget build(BuildContext context) => ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          Text(
-            'Resultaten',
-            style: Theme.of(context)
-                .textTheme
-                .headlineSmall
-                ?.copyWith(fontWeight: FontWeight.w900),
-          ),
-          const Text('Jouw avonturen en resultaten.'),
-          if (state.gameFinished)
-            Padding(
-              padding: const EdgeInsets.only(top: 16),
-              child: Card(
-                child: ListTile(
-                  leading: const CircleAvatar(child: Icon(Icons.emoji_events)),
-                  title: Text(
-                    'Game X • ${state.activeGame.playersFound} '
-                    'spelers gevonden',
+  Widget build(BuildContext context) {
+    final visibleGames = [
+      if (state.gameFinished)
+        _CompletedGameData(
+          name: 'Game X',
+          summary: '${state.activeGame.playersFound} spelers gevonden',
+          result: 'Afgerond',
+          points: 840,
+          rank: 2,
+          role: 'Zoeker',
+          duration: '1 uur 36 minuten',
+          location: 'Almere',
+          players: const ['Jij', 'Houda', 'Mila', 'Sam', 'Noa'],
+        ),
+      ...games,
+    ];
+    return ListView(
+      padding: const EdgeInsets.all(20),
+      children: [
+        Text(
+          'Resultaten',
+          style: Theme.of(context)
+              .textTheme
+              .headlineSmall
+              ?.copyWith(fontWeight: FontWeight.w900),
+        ),
+        const Text('Open een avontuur om je uitslag en medespelers te bekijken.'),
+        const SizedBox(height: 16),
+        ...visibleGames.map(
+          (game) => Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Card(
+              child: ListTile(
+                leading: CircleAvatar(
+                  child: Icon(
+                    game.result == 'Gewonnen'
+                        ? Icons.emoji_events
+                        : Icons.flag,
                   ),
-                  subtitle: const Text('840 punten'),
+                ),
+                title: Text(
+                  game.name,
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+                subtitle: Text('${game.points} punten • ${game.location}'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => CompletedGameDetailScreen(game: game),
+                  ),
                 ),
               ),
             ),
-          const SizedBox(height: 16),
-          ...names.asMap().entries.map(
-                (entry) => Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: Card(
-                    child: ListTile(
-                      leading: const CircleAvatar(child: Icon(Icons.flag)),
-                      title: Text(
-                        entry.value,
-                        style: const TextStyle(fontWeight: FontWeight.w700),
-                      ),
-                      subtitle: Text(
-                        entry.key == 0
-                            ? 'Dit was niet echt een succes. Je was al binnen '
-                                '10 minuten gevonden. Houd de moed erin!'
-                            : '${300 + entry.key * 125} punten • Almere',
-                      ),
-                      trailing: Text(entry.key < 3 ? 'Gewonnen' : 'Gevonden'),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class CompletedGameDetailScreen extends StatelessWidget {
+  const CompletedGameDetailScreen({required this.game, super.key});
+
+  final _CompletedGameData game;
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(
+          title: Text(game.name),
+          actions: const [
+            StobbeDetectiveButton(
+              pageTitle: 'Spelresultaat',
+              explanation:
+                  'Hier zie je hoe je het hebt gedaan: je score, eindpositie, '
+                  'rol en speelduur. Onder Medespelers staat met wie je dit '
+                  'avontuur hebt gespeeld.',
+            ),
+          ],
+        ),
+        body: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 720),
+            child: ListView(
+              padding: const EdgeInsets.all(20),
+              children: [
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      children: [
+                        Icon(
+                          game.result == 'Gewonnen'
+                              ? Icons.emoji_events
+                              : Icons.flag,
+                          size: 58,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          game.result,
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineSmall
+                              ?.copyWith(fontWeight: FontWeight.w900),
+                        ),
+                        Text(game.summary, textAlign: TextAlign.center),
+                      ],
                     ),
                   ),
                 ),
-              ),
-        ],
+                const SectionTitle('Jouw resultaat'),
+                _Info(Icons.stars, 'Punten', '${game.points} punten'),
+                _Info(Icons.leaderboard, 'Eindpositie', 'Nummer ${game.rank}'),
+                _Info(Icons.theater_comedy, 'Jouw rol', game.role),
+                _Info(Icons.timer_outlined, 'Speelduur', game.duration),
+                _Info(Icons.location_on_outlined, 'Gebied', game.location),
+                const SectionTitle('Medespelers'),
+                Card(
+                  child: Column(
+                    children: game.players
+                        .map(
+                          (player) => ListTile(
+                            leading: CircleAvatar(
+                              child: Text(player.substring(0, 1)),
+                            ),
+                            title: Text(player),
+                            subtitle: Text(
+                              player == 'Jij'
+                                  ? 'Dit ben jij'
+                                  : 'Speelde mee in dit avontuur',
+                            ),
+                          ),
+                        )
+                        .toList(growable: false),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       );
+}
+
+class _CompletedGameData {
+  const _CompletedGameData({
+    required this.name,
+    required this.summary,
+    required this.result,
+    required this.points,
+    required this.rank,
+    required this.role,
+    required this.duration,
+    required this.location,
+    required this.players,
+  });
+
+  final String name;
+  final String summary;
+  final String result;
+  final int points;
+  final int rank;
+  final String role;
+  final String duration;
+  final String location;
+  final List<String> players;
 }
 
 String _startSummary(Game game) {

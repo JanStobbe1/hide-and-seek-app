@@ -22,7 +22,7 @@ void main() {
     await tester.pumpWidget(const SizedBox());
   });
 
-  testWidgets('confirmed outside state shows alarm and return clears it', (
+  testWidgets('overview stays focused on status, score and ranking', (
     tester,
   ) async {
     final state = AppState();
@@ -31,23 +31,16 @@ void main() {
     );
     await tester.tap(find.byIcon(Icons.dashboard_outlined));
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
 
-    state.registerZoneMeasurement(inside: false);
-    state.registerZoneMeasurement(inside: false);
-    await tester.pump();
-    expect(state.inActiveZone, isFalse);
-
-    final zoneAlarm = find.text('Je staat buiten het actieve speelveld');
-    expect(zoneAlarm, findsOneWidget);
-
-    state.registerZoneMeasurement(inside: true);
-    await tester.pump();
-    expect(state.inActiveZone, isTrue);
-    expect(zoneAlarm, findsNothing);
+    expect(find.textContaining('spelpunten verzameld'), findsOneWidget);
+    expect(find.text('3e'), findsOneWidget);
+    expect(find.text('van 20 spelers'), findsOneWidget);
+    expect(find.text('Zoekgebied'), findsNothing);
+    expect(find.textContaining('Simuleer'), findsNothing);
 
     await tester.pumpWidget(const SizedBox());
   });
+
   testWidgets('map uses buttons and supports zoom, catch and detective help', (
     tester,
   ) async {
@@ -61,6 +54,8 @@ void main() {
     expect(find.text('PAK SPELER'), findsOneWidget);
     expect(find.byTooltip('Inzoomen'), findsOneWidget);
     expect(find.byTooltip('Uitzoomen'), findsOneWidget);
+    expect(find.byIcon(Icons.help_outline), findsOneWidget);
+    expect(find.byIcon(Icons.cruelty_free), findsOneWidget);
 
     await tester.tap(find.byTooltip('Vraag het de Stobbedetective'));
     await tester.pump();
@@ -84,6 +79,10 @@ void main() {
     expect(find.text('Arm van de Stobbe'), findsOneWidget);
     expect(find.text('Onzichtbaar'), findsOneWidget);
     expect(find.text('Puntenkisten'), findsNothing);
+
+    await tester.tap(find.text('Digitale drone'));
+    await tester.pump();
+    expect(find.textContaining('ruimer zicht'), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox());
   });

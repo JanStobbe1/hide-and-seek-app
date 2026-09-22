@@ -220,7 +220,6 @@ class _AreaPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-
 class StobbeDetectiveButton extends StatelessWidget {
   const StobbeDetectiveButton({
     required this.pageTitle,

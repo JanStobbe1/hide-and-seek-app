@@ -6,17 +6,21 @@ abstract final class AppTheme {
   static const defaultPreference = ThemePreference.forest;
 
   static Color seedFor(ThemePreference preference) => switch (preference) {
-        ThemePreference.forest => const Color(0xff315c46),
-        ThemePreference.ocean => const Color(0xff176b87),
-        ThemePreference.sunset => const Color(0xffa34d32),
-        ThemePreference.violet => const Color(0xff6650a4),
+        ThemePreference.forest => const Color(0xff657267),
+        ThemePreference.ocean => const Color(0xff586a78),
+        ThemePreference.sunset => const Color(0xff8a7468),
+        ThemePreference.violet => const Color(0xff665a78),
+        ThemePreference.graphite => const Color(0xff565b60),
+        ThemePreference.rosewood => const Color(0xff795f63),
       };
 
   static String labelFor(ThemePreference preference) => switch (preference) {
-        ThemePreference.forest => 'Bosgroen',
-        ThemePreference.ocean => 'Oceaanblauw',
-        ThemePreference.sunset => 'Zonsondergang',
-        ThemePreference.violet => 'Avontuurspaars',
+        ThemePreference.forest => 'Mat saliegroen',
+        ThemePreference.ocean => 'Leisteenblauw',
+        ThemePreference.sunset => 'Warm taupe',
+        ThemePreference.violet => 'Fluweelpaars',
+        ThemePreference.graphite => 'Zacht grafiet',
+        ThemePreference.rosewood => 'Mat rozenhout',
       };
 
   static ThemeData build(ThemePreference preference) {

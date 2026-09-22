@@ -22,7 +22,7 @@ void main() {
     );
 
     expect(find.text('INHOUDSOPGAVE'), findsOneWidget);
-    expect(find.text('Waar begint jouw\\nvolgende avontuur?'), findsOneWidget);
+    expect(find.text('Waar begint jouw\nvolgende avontuur?'), findsOneWidget);
     expect(find.text('VERDER SPELEN'), findsOneWidget);
 
     await tester.tap(find.text('Nieuw spel'));

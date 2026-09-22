@@ -887,7 +887,7 @@ class _PowerToken extends StatelessWidget {
                       radius: 15,
                       backgroundColor: const Color(0xff2d2118),
                       child: Text(
-                        '×${count}',
+                        '×$count',
                         style: const TextStyle(
                             color: Colors.white, fontWeight: FontWeight.w900),
                       ),
@@ -951,7 +951,7 @@ class _PowerToken extends StatelessWidget {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
           content:
-              Text('${name} is ingezet. Demo: voorraad wordt later live.')),
+              Text('$name is ingezet. Demo: voorraad wordt later live.')),
     );
   }
 }

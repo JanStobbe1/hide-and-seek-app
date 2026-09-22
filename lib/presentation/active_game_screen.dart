@@ -18,12 +18,15 @@ class ActiveGameScreen extends StatefulWidget {
 
 class _ActiveGameScreenState extends State<ActiveGameScreen> {
   late final Timer _timer;
+  late final PageController _pageController;
+  int _pageIndex = 1;
 
   AppState get state => widget.state;
 
   @override
   void initState() {
     super.initState();
+    _pageController = PageController(initialPage: _pageIndex);
     state.syncActiveGameClock();
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       state.syncActiveGameClock();
@@ -36,6 +39,7 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
   @override
   void dispose() {
     _timer.cancel();
+    _pageController.dispose();
     super.dispose();
   }
 
@@ -49,10 +53,14 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
               Padding(padding: EdgeInsets.all(12), child: DemoBadge()),
             ],
           ),
-          body: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 760),
-              child: ListView(
+          body: PageView(
+            controller: _pageController,
+            onPageChanged: (value) => setState(() => _pageIndex = value),
+            children: [
+              Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 760),
+                  child: ListView(
                 padding: const EdgeInsets.all(20),
                 children: [
                   _StatusRow(finished: state.gameFinished),
@@ -119,9 +127,41 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
                           : 'Beëindig demo-spel',
                     ),
                   ),
-                ],
+                    ],
+                  ),
+                ),
               ),
-            ),
+              _ActiveMapPage(state: state),
+              _StobbePowersPage(finished: state.gameFinished),
+            ],
+          ),
+          bottomNavigationBar: NavigationBar(
+            selectedIndex: _pageIndex,
+            onDestinationSelected: (value) {
+              setState(() => _pageIndex = value);
+              _pageController.animateToPage(
+                value,
+                duration: const Duration(milliseconds: 280),
+                curve: Curves.easeOut,
+              );
+            },
+            destinations: const [
+              NavigationDestination(
+                icon: Icon(Icons.dashboard_outlined),
+                selectedIcon: Icon(Icons.dashboard),
+                label: 'Overzicht',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.map_outlined),
+                selectedIcon: Icon(Icons.map),
+                label: 'Kaart',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.auto_awesome_outlined),
+                selectedIcon: Icon(Icons.auto_awesome),
+                label: 'Krachten',
+              ),
+            ],
           ),
         ),
       );
@@ -382,6 +422,179 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
       ),
     );
   }
+}
+
+
+class _ActiveMapPage extends StatefulWidget {
+  const _ActiveMapPage({required this.state});
+
+  final AppState state;
+
+  @override
+  State<_ActiveMapPage> createState() => _ActiveMapPageState();
+}
+
+class _ActiveMapPageState extends State<_ActiveMapPage> {
+  bool showLegend = true;
+
+  @override
+  Widget build(BuildContext context) => Stack(
+        children: [
+          Positioned.fill(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: MapPlaceholder(playerMarker: widget.state.playerMarker),
+            ),
+          ),
+          Positioned(
+            top: 24,
+            right: 24,
+            child: FloatingActionButton.small(
+              heroTag: 'map-legend',
+              tooltip: showLegend ? 'Legenda sluiten' : 'Legenda openen',
+              onPressed: () => setState(() => showLegend = !showLegend),
+              child: Icon(showLegend ? Icons.close : Icons.layers_outlined),
+            ),
+          ),
+          if (showLegend)
+            Positioned(
+              left: 24,
+              right: 84,
+              bottom: 24,
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Wrap(
+                    spacing: 16,
+                    runSpacing: 8,
+                    children: const [
+                      _LegendItem(Icons.person_pin_circle, 'Jij'),
+                      _LegendItem(Icons.help_outline, 'Zoekgebied'),
+                      _LegendItem(Icons.auto_awesome, 'Stobbekracht'),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+        ],
+      );
+}
+
+class _LegendItem extends StatelessWidget {
+  const _LegendItem(this.icon, this.label);
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) => Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 20),
+          const SizedBox(width: 6),
+          Text(label),
+        ],
+      );
+}
+
+class _StobbePowersPage extends StatelessWidget {
+  const _StobbePowersPage({required this.finished});
+
+  final bool finished;
+
+  @override
+  Widget build(BuildContext context) => ListView(
+        padding: const EdgeInsets.all(20),
+        children: [
+          Text(
+            'Jouw Stobbetas',
+            style: Theme.of(context)
+                .textTheme
+                .headlineSmall
+                ?.copyWith(fontWeight: FontWeight.w900),
+          ),
+          const Text(
+            'Krachten gelden alleen tijdens dit spel en vervallen na afloop.',
+          ),
+          const SizedBox(height: 16),
+          Card(
+            color: Theme.of(context).colorScheme.secondaryContainer,
+            child: const ListTile(
+              leading: Icon(Icons.lock_clock),
+              title: Text('Vergrendeld tijdens fase 1'),
+              subtitle: Text(
+                'Zodra fase 2 begint, worden gevonden krachten bruikbaar.',
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          _PowerCard(
+            icon: Icons.visibility_off_outlined,
+            name: 'Onzichtbaarheidsdrankje',
+            detail: '0 in voorraad • maximaal 1× per spel',
+            enabled: false,
+          ),
+          _PowerCard(
+            icon: Icons.precision_manufacturing_outlined,
+            name: 'Arm van de Stobbe',
+            detail: '0 in voorraad • maximaal 2× per spel',
+            enabled: false,
+          ),
+          _PowerCard(
+            icon: Icons.flight_outlined,
+            name: 'Digitale drone',
+            detail: '1 in voorraad • maximaal 2× per spel',
+            enabled: !finished,
+          ),
+          const SectionTitle('Profielbeloningen'),
+          const Card(
+            child: ListTile(
+              leading: Icon(Icons.redeem_outlined),
+              title: Text('Puntenkisten'),
+              subtitle: Text(
+                '50–200 punten komen vaker voor. De zeldzame gouden kist '
+                'geeft 1.000 profielpunten en telt niet mee voor de uitslag.',
+              ),
+            ),
+          ),
+        ],
+      );
+}
+
+class _PowerCard extends StatelessWidget {
+  const _PowerCard({
+    required this.icon,
+    required this.name,
+    required this.detail,
+    required this.enabled,
+  });
+
+  final IconData icon;
+  final String name;
+  final String detail;
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context) => Card(
+        child: ListTile(
+          enabled: enabled,
+          leading: CircleAvatar(child: Icon(icon)),
+          title: Text(name, style: const TextStyle(fontWeight: FontWeight.w700)),
+          subtitle: Text(detail),
+          trailing: FilledButton.tonal(
+            onPressed: enabled
+                ? () => ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Demo: deze kracht wordt pas vanaf fase 2 ingezet.',
+                        ),
+                      ),
+                    )
+                : null,
+            child: const Text('Gebruik'),
+          ),
+        ),
+      );
 }
 
 class _StatusRow extends StatelessWidget {

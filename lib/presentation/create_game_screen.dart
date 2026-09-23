@@ -85,9 +85,28 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
     return null;
   }
 
+  String get _detectiveExplanation {
+    const explanations = [
+      'Geef je avontuur een naam en kies de belangrijkste spelregels.',
+      'Kies het speelgebied. Je kunt meerdere gemeenten, wijken en buurten '
+          'selecteren.',
+      'Bepaal wanneer het spel start en schrijf een uitnodigende introductie.',
+      'Controleer alle keuzes voordat je het spel beschikbaar maakt.',
+    ];
+    return explanations[step];
+  }
+
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: const Text('Nieuw spel')),
+        appBar: AppBar(
+          title: const Text('Nieuw spel'),
+          actions: [
+            StobbeDetectiveButton(
+              pageTitle: 'Nieuw spel',
+              explanation: _detectiveExplanation,
+            ),
+          ],
+        ),
         body: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 760),

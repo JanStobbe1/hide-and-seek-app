@@ -20,6 +20,22 @@ class AppShell extends StatefulWidget {
 class _AppShellState extends State<AppShell> {
   int index = 0;
 
+  static const helpTitles = [
+    'Inhoudsopgave',
+    'Mijn spellen',
+    'Spellen ontdekken',
+    'Resultaten',
+    'Mijn profiel',
+  ];
+
+  static const helpTexts = [
+    'Kies hier welk hoofdstuk je wilt openen of ga direct verder met je actieve spel.',
+    'Hier staan je actieve en geplande spellen. Tik op een spel om het te openen.',
+    'Bekijk spellen in de buurt, sorteer ze en tik erop om de details te lezen of mee te doen.',
+    'Open een afgerond spel om je score, eindpositie en medespelers terug te zien.',
+    'Beheer hier je naam, vrienden, privacy, kaartmarker en de uitstraling van de app.',
+  ];
+
   static const destinations = [
     NavigationDestination(
       icon: Icon(Icons.explore_outlined),
@@ -81,13 +97,16 @@ class _AppShellState extends State<AppShell> {
               selectedIndex: index,
               onDestinationSelected: (value) => setState(() => index = value),
               labelType: NavigationRailLabelType.all,
-              leading: const Padding(
-                padding: EdgeInsets.symmetric(vertical: 18),
+              leading: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 18),
                 child: Column(
                   children: [
-                    CircleAvatar(child: Icon(Icons.location_searching)),
-                    SizedBox(height: 8),
-                    DemoBadge(),
+                    const CircleAvatar(child: Icon(Icons.location_searching)),
+                    StobbeDetectiveButton(
+                      pageTitle: helpTitles[index],
+                      explanation: helpTexts[index],
+                    ),
+                    const DemoBadge(),
                   ],
                 ),
               ),
@@ -120,8 +139,12 @@ class _AppShellState extends State<AppShell> {
             AppConfig.appName,
             style: TextStyle(fontWeight: FontWeight.w900),
           ),
-          actions: const [
-            Padding(
+          actions: [
+            StobbeDetectiveButton(
+              pageTitle: helpTitles[index],
+              explanation: helpTexts[index],
+            ),
+            const Padding(
               padding: EdgeInsets.only(right: 12),
               child: Center(child: DemoBadge()),
             ),

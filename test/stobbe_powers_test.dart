@@ -37,6 +37,18 @@ void main() {
     expect(slot.canUse(inventory.phase), isFalse);
   });
 
+  test('inzetten via de tas verlaagt de zichtbare voorraad direct', () {
+    final inventory = const GamePowerInventory()
+        .add(drone)
+        .add(drone)
+        .startActivePhase();
+
+    final afterUse = inventory.use(StobbePowerKind.digitalDrone);
+
+    expect(afterUse.slotFor(StobbePowerKind.digitalDrone)!.quantity, 1);
+    expect(afterUse.slotFor(StobbePowerKind.digitalDrone)!.uses, 1);
+  });
+
   test('ongebruikte krachten vervallen na het spel', () {
     final inventory =
         const GamePowerInventory().add(drone).startActivePhase().finishGame();

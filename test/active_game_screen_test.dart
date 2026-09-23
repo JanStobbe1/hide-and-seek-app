@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:verstobbertje/app_state.dart';
 import 'package:verstobbertje/presentation/active_game_screen.dart';
+import 'package:verstobbertje/domain/stobbe_powers.dart';
 
 void main() {
   testWidgets('active game shows personal/global counters and zone status', (
@@ -104,6 +105,65 @@ void main() {
     await tester.pump();
     expect(find.textContaining('ruimer zicht'), findsOneWidget);
 
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('using a power consumes it and returns to the animated map', (
+    tester,
+  ) async {
+    final state = AppState();
+    await tester.pumpWidget(
+      MaterialApp(home: ActiveGameScreen(state: state)),
+    );
+    await tester.tap(find.byIcon(Icons.auto_awesome_outlined));
+    await tester.pump();
+
+    expect(find.text('×1'), findsNWidgets(2));
+    await tester.tap(
+      find.widgetWithText(FilledButton, 'INZETTEN').first,
+    );
+    await tester.pump();
+
+    expect(find.text('PAK SPELER'), findsOneWidget);
+    expect(find.text('Drone verkent het speelveld'), findsOneWidget);
+    expect(
+      state.powerInventory
+          .slotFor(StobbePowerKind.digitalDrone)!
+          .quantity,
+      0,
+    );
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('Mila uses either a map marker or an offscreen arrow', (
+    tester,
+  ) async {
+    final state = AppState();
+    await tester.pumpWidget(
+      MaterialApp(home: ActiveGameScreen(state: state)),
+    );
+    await tester.pump();
+
+    final viewer = tester.widget<InteractiveViewer>(
+      find.byType(InteractiveViewer),
+    );
+    final controller = viewer.transformationController!;
+    final size = tester.getSize(find.byType(InteractiveViewer));
+    controller.value = Matrix4.identity()
+      ..translateByDouble(
+        size.width / 2 - 950,
+        size.height / 2 - 130,
+        0,
+        1,
+      );
+    await tester.pump();
+
+    expect(
+      find.bySemanticsLabel(RegExp('Mila ligt buiten beeld')),
+      findsNothing,
+    );
+    expect(find.text('Mila'), findsOneWidget);
+    expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox());
   });
 }

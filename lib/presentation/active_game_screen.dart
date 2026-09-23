@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../app_state.dart';
 import '../domain/models.dart';
+import '../domain/stobbe_powers.dart';
 import 'widgets.dart';
 
 class ActiveGameScreen extends StatefulWidget {
@@ -18,7 +19,10 @@ class ActiveGameScreen extends StatefulWidget {
 
 class _ActiveGameScreenState extends State<ActiveGameScreen> {
   late final Timer _timer;
+  Timer? _powerEffectTimer;
   int _pageIndex = 1;
+  StobbePowerKind? _activePowerEffect;
+  int _powerEffectId = 0;
 
   AppState get state => widget.state;
 
@@ -37,6 +41,7 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
   @override
   void dispose() {
     _timer.cancel();
+    _powerEffectTimer?.cancel();
     super.dispose();
   }
 
@@ -77,8 +82,13 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
               _ActiveMapPage(
                 state: state,
                 onCatch: () => _showProximity(context),
+                activePowerEffect: _activePowerEffect,
+                powerEffectId: _powerEffectId,
               ),
-              _StobbePowersPage(finished: state.gameFinished),
+              _StobbePowersPage(
+                state: state,
+                onActivate: _activatePower,
+              ),
             ],
           ),
           bottomNavigationBar: NavigationBar(
@@ -105,6 +115,24 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
           ),
         ),
       );
+
+  void _activatePower(StobbePowerKind kind, String name) {
+    if (!state.activateStobbePower(kind)) {
+      _notice(context, '$name is niet meer beschikbaar.');
+      return;
+    }
+    _powerEffectTimer?.cancel();
+    setState(() {
+      _pageIndex = 1;
+      _activePowerEffect = kind;
+      _powerEffectId++;
+    });
+    _notice(context, '$name is ingezet.');
+    _powerEffectTimer = Timer(const Duration(seconds: 4), () {
+      if (!mounted) return;
+      setState(() => _activePowerEffect = null);
+    });
+  }
 
   void _showDetectiveHelp() {
     const titles = ['Het overzicht', 'Het speelveld', 'Jouw Stobbetas'];
@@ -213,27 +241,54 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
 }
 
 class _ActiveMapPage extends StatefulWidget {
-  const _ActiveMapPage({required this.state, required this.onCatch});
+  const _ActiveMapPage({
+    required this.state,
+    required this.onCatch,
+    required this.activePowerEffect,
+    required this.powerEffectId,
+  });
 
   final AppState state;
   final VoidCallback onCatch;
+  final StobbePowerKind? activePowerEffect;
+  final int powerEffectId;
 
   @override
   State<_ActiveMapPage> createState() => _ActiveMapPageState();
 }
 
-class _ActiveMapPageState extends State<_ActiveMapPage> {
+class _ActiveMapPageState extends State<_ActiveMapPage>
+    with SingleTickerProviderStateMixin {
   static const playerPosition = Offset(550, 410);
   static const opponentPosition = Offset(950, 130);
 
   final TransformationController controller = TransformationController();
+  late final AnimationController powerAnimation;
   bool showLegend = false;
   bool didInitialCenter = false;
   Size viewportSize = Size.zero;
 
   @override
+  void initState() {
+    super.initState();
+    powerAnimation = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 3),
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant _ActiveMapPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.powerEffectId != oldWidget.powerEffectId) {
+      powerAnimation.forward(from: 0);
+    }
+  }
+
+  @override
   void dispose() {
     controller.dispose();
+    powerAnimation.dispose();
     super.dispose();
   }
 
@@ -346,6 +401,15 @@ class _ActiveMapPageState extends State<_ActiveMapPage> {
                   label: 'Mila',
                 ),
               ),
+              if (widget.activePowerEffect != null)
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: _PowerMapEffect(
+                      kind: widget.activePowerEffect!,
+                      animation: powerAnimation,
+                    ),
+                  ),
+                ),
               if (showLegend)
                 const Positioned(
                   left: 16,
@@ -387,12 +451,7 @@ class _PlayerDirectionIndicator extends StatelessWidget {
     if (viewportSize.isEmpty) return const SizedBox.shrink();
     final screenPosition =
         MatrixUtils.transformPoint(controller.value, scenePosition);
-    final safeRect = Rect.fromLTWH(
-      52,
-      88,
-      math.max(0, viewportSize.width - 104),
-      math.max(0, viewportSize.height - 196),
-    );
+    final safeRect = (Offset.zero & viewportSize).deflate(30);
     if (safeRect.contains(screenPosition)) return const SizedBox.shrink();
 
     final center = viewportSize.center(Offset.zero);
@@ -406,6 +465,9 @@ class _PlayerDirectionIndicator extends StatelessWidget {
         ? double.infinity
         : halfHeight / direction.dy.abs();
     final edgeFactor = math.min(xFactor, yFactor);
+    if (!edgeFactor.isFinite || direction.distance < .01) {
+      return const SizedBox.shrink();
+    }
     final edge = center + direction * edgeFactor;
     final angle = math.atan2(direction.dy, direction.dx) + math.pi / 2;
 
@@ -441,6 +503,80 @@ class _PlayerDirectionIndicator extends StatelessWidget {
       ),
     );
   }
+}
+
+class _PowerMapEffect extends StatelessWidget {
+  const _PowerMapEffect({required this.kind, required this.animation});
+
+  final StobbePowerKind kind;
+  final Animation<double> animation;
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+        builder: (context, constraints) => AnimatedBuilder(
+          animation: animation,
+          builder: (context, _) {
+            final center = constraints.biggest.center(Offset.zero);
+            final angle = animation.value * math.pi * 4;
+            final isDrone = kind == StobbePowerKind.digitalDrone;
+            final position = isDrone
+                ? center + Offset(math.cos(angle) * 105, math.sin(angle) * 70)
+                : center;
+            final label = switch (kind) {
+              StobbePowerKind.digitalDrone => 'Drone verkent het speelveld',
+              StobbePowerKind.stobbeArm => 'Arm van de Stobbe beschermt je',
+              StobbePowerKind.invisibilityPotion =>
+                'Je bent tijdelijk onzichtbaar',
+              _ => 'Stobbekracht actief',
+            };
+            final icon = switch (kind) {
+              StobbePowerKind.digitalDrone => Icons.flight,
+              StobbePowerKind.stobbeArm => Icons.precision_manufacturing,
+              StobbePowerKind.invisibilityPotion => Icons.visibility_off,
+              _ => Icons.auto_awesome,
+            };
+            return Stack(
+              children: [
+                Positioned(
+                  left: position.dx - 28,
+                  top: position.dy - 28,
+                  child: Transform.rotate(
+                    angle: isDrone ? angle + math.pi / 2 : 0,
+                    child: Material(
+                      color: const Color(0xff6650a4),
+                      elevation: 8,
+                      shape: const CircleBorder(),
+                      child: Padding(
+                        padding: const EdgeInsets.all(14),
+                        child: Icon(icon, color: Colors.white, size: 28),
+                      ),
+                    ),
+                  ),
+                ),
+                Align(
+                  alignment: const Alignment(0, -.72),
+                  child: Card(
+                    color: const Color(0xff6650a4),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 8,
+                      ),
+                      child: Text(
+                        label,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      );
 }
 
 class _MapButton extends StatelessWidget {
@@ -629,8 +765,10 @@ class _LegendItem extends StatelessWidget {
 }
 
 class _StobbePowersPage extends StatelessWidget {
-  const _StobbePowersPage({required this.finished});
-  final bool finished;
+  const _StobbePowersPage({required this.state, required this.onActivate});
+
+  final AppState state;
+  final void Function(StobbePowerKind kind, String name) onActivate;
 
   @override
   Widget build(BuildContext context) => Container(
@@ -686,32 +824,22 @@ class _StobbePowersPage extends StatelessWidget {
                       mainAxisSpacing: 16,
                       crossAxisSpacing: 16,
                       childAspectRatio: .72,
-                      children: [
-                        _PowerToken(
-                            icon: Icons.flight,
-                            name: 'Digitale drone',
-                            description:
-                                'Geeft je tijdelijk een ruimer zicht op het speelveld en laat meer van de omgeving zien.',
-                            count: 1,
-                            color: const Color(0xff3f6f91),
-                            enabled: !finished),
-                        _PowerToken(
-                            icon: Icons.precision_manufacturing,
-                            name: 'Arm van de Stobbe',
-                            description:
-                                'Verkleint tijdelijk jouw zichtbaarheid en maakt het voor zoekers moeilijker om je te vinden.',
-                            count: 2,
-                            color: const Color(0xff477653),
-                            enabled: !finished),
-                        _PowerToken(
-                            icon: Icons.visibility_off,
-                            name: 'Onzichtbaar',
-                            description:
-                                'Verbergt jouw digitale positie gedurende een korte periode op de kaart van andere spelers.',
-                            count: 1,
-                            color: const Color(0xff74558c),
-                            enabled: !finished),
-                      ],
+                      children: state.powerInventory.slots.map((slot) {
+                        final details = _powerDetails(slot.definition.kind);
+                        return _PowerToken(
+                          icon: details.icon,
+                          name: slot.definition.name,
+                          description: details.description,
+                          count: slot.quantity,
+                          color: details.color,
+                          enabled: !state.gameFinished &&
+                              slot.canUse(state.powerInventory.phase),
+                          onActivate: () => onActivate(
+                            slot.definition.kind,
+                            slot.definition.name,
+                          ),
+                        );
+                      }).toList(),
                     ),
                   ],
                 ),
@@ -730,6 +858,7 @@ class _PowerToken extends StatelessWidget {
     required this.count,
     required this.color,
     required this.enabled,
+    required this.onActivate,
   });
   final IconData icon;
   final String name;
@@ -737,6 +866,7 @@ class _PowerToken extends StatelessWidget {
   final int count;
   final Color color;
   final bool enabled;
+  final VoidCallback onActivate;
 
   @override
   Widget build(BuildContext context) => InkWell(
@@ -789,7 +919,7 @@ class _PowerToken extends StatelessWidget {
                   style: const TextStyle(fontWeight: FontWeight.w800)),
               const SizedBox(height: 6),
               FilledButton.tonal(
-                onPressed: enabled ? () => _activate(context) : null,
+                onPressed: enabled ? onActivate : null,
                 child: const Text('INZETTEN'),
               ),
             ],
@@ -820,7 +950,7 @@ class _PowerToken extends StatelessWidget {
               onPressed: enabled
                   ? () {
                       Navigator.pop(sheetContext);
-                      _activate(context);
+                      onActivate();
                     }
                   : null,
               child: const Text('Zet Stobbekracht in'),
@@ -831,13 +961,36 @@ class _PowerToken extends StatelessWidget {
     );
   }
 
-  void _activate(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-          content: Text('$name is ingezet. Demo: voorraad wordt later live.')),
-    );
-  }
 }
+
+({IconData icon, String description, Color color}) _powerDetails(
+  StobbePowerKind kind,
+) =>
+    switch (kind) {
+      StobbePowerKind.digitalDrone => (
+          icon: Icons.flight,
+          description:
+              'Geeft je tijdelijk een ruimer zicht op het speelveld en laat meer van de omgeving zien.',
+          color: const Color(0xff3f6f91),
+        ),
+      StobbePowerKind.stobbeArm => (
+          icon: Icons.precision_manufacturing,
+          description:
+              'Verkleint tijdelijk jouw zichtbaarheid en maakt het voor zoekers moeilijker om je te vinden.',
+          color: const Color(0xff477653),
+        ),
+      StobbePowerKind.invisibilityPotion => (
+          icon: Icons.visibility_off,
+          description:
+              'Verbergt jouw digitale positie gedurende een korte periode op de kaart van andere spelers.',
+          color: const Color(0xff74558c),
+        ),
+      _ => (
+          icon: Icons.auto_awesome,
+          description: 'Een tijdelijke Stobbekracht voor dit spel.',
+          color: const Color(0xff6650a4),
+        ),
+    };
 
 class _StatusRow extends StatelessWidget {
   const _StatusRow({required this.finished});

@@ -16,9 +16,11 @@ void main() {
 
     expect(find.text('Jouw resultaat'), findsOneWidget);
     expect(find.text('Nummer 7'), findsOneWidget);
+    expect(find.byTooltip('Vraag het de Stobbedetective'), findsOneWidget);
+
+    await tester.scrollUntilVisible(find.text('Houda'), 300);
     expect(find.text('Medespelers'), findsOneWidget);
     expect(find.text('Houda'), findsOneWidget);
-    expect(find.byTooltip('Vraag het de Stobbedetective'), findsOneWidget);
 
     await tester.tap(find.byTooltip('Vraag het de Stobbedetective'));
     await tester.pump();

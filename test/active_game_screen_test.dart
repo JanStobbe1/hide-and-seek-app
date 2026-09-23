@@ -48,6 +48,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(home: ActiveGameScreen(state: state)),
     );
+    await tester.pump();
 
     expect(find.byType(PageView), findsNothing);
     expect(find.byType(InteractiveViewer), findsOneWidget);

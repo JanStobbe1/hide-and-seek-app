@@ -330,8 +330,7 @@ class _ActiveMapPageState extends State<_ActiveMapPage> {
                     _MapButton(
                       tooltip: 'Legenda',
                       icon: showLegend ? Icons.close : Icons.layers_outlined,
-                      onPressed: () =>
-                          setState(() => showLegend = !showLegend),
+                      onPressed: () => setState(() => showLegend = !showLegend),
                     ),
                   ],
                 ),
@@ -357,8 +356,7 @@ class _ActiveMapPageState extends State<_ActiveMapPage> {
                 right: 24,
                 bottom: 18,
                 child: FilledButton.icon(
-                  onPressed:
-                      widget.state.gameFinished ? null : widget.onCatch,
+                  onPressed: widget.state.gameFinished ? null : widget.onCatch,
                   icon: const Icon(Icons.gps_fixed),
                   label: const Text('PAK SPELER'),
                 ),

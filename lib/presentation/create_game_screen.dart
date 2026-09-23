@@ -235,8 +235,7 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
               'De nieuwe poging begint met 0 spelpunten.',
             ),
             value: allowRejoinAfterFound,
-            onChanged: (value) =>
-                setState(() => allowRejoinAfterFound = value),
+            onChanged: (value) => setState(() => allowRejoinAfterFound = value),
           ),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,

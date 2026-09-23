@@ -36,6 +36,8 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
   bool isPublic = true;
   bool hints = true;
   bool questions = true;
+  bool allowRejoinAfterFound = false;
+  GameType gameType = GameType.classic;
   int players = 30;
   int duration = 120;
   int participantThreshold = 10;
@@ -143,6 +145,8 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
                     players: players,
                     hints: hints,
                     questions: questions,
+                    gameType: gameType,
+                    allowRejoinAfterFound: allowRejoinAfterFound,
                     intro: intro.text,
                     area: selectedArea,
                     startCondition: condition,
@@ -196,6 +200,44 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
             ),
           ),
           const SizedBox(height: 12),
+          DropdownButtonFormField<GameType>(
+            initialValue: gameType,
+            decoration: const InputDecoration(
+              labelText: 'Speltype',
+              prefixIcon: Icon(Icons.sports_kabaddi),
+            ),
+            items: GameType.values
+                .map(
+                  (type) => DropdownMenuItem(
+                    value: type,
+                    child: Text(type.label),
+                  ),
+                )
+                .toList(growable: false),
+            onChanged: (value) {
+              if (value != null) setState(() => gameType = value);
+            },
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                gameType.description,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
+          ),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Opnieuw meedoen na gevonden worden'),
+            subtitle: const Text(
+              'De nieuwe poging begint met 0 spelpunten.',
+            ),
+            value: allowRejoinAfterFound,
+            onChanged: (value) =>
+                setState(() => allowRejoinAfterFound = value),
+          ),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
             title: Text(isPublic ? 'Openbaar spel' : 'Privéspel'),
@@ -470,7 +512,12 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
         scheduledStart: selectedScheduledStart,
         participantThreshold: selectedParticipantThreshold,
         isPublic: isPublic,
-        rules: GameRules(hintsEnabled: hints, questionsEnabled: questions),
+        rules: GameRules(
+          hintsEnabled: hints,
+          questionsEnabled: questions,
+          gameType: gameType,
+          allowRejoinAfterFound: allowRejoinAfterFound,
+        ),
       ),
     );
     showDialog<void>(
@@ -733,6 +780,8 @@ class _Review extends StatelessWidget {
     required this.players,
     required this.hints,
     required this.questions,
+    required this.gameType,
+    required this.allowRejoinAfterFound,
     required this.intro,
     required this.area,
     required this.startCondition,
@@ -745,6 +794,8 @@ class _Review extends StatelessWidget {
   final bool isPublic;
   final bool hints;
   final bool questions;
+  final GameType gameType;
+  final bool allowRejoinAfterFound;
   final int duration;
   final int players;
   final SearchArea area;
@@ -769,6 +820,13 @@ class _Review extends StatelessWidget {
         ),
         Text(isPublic ? 'Openbaar' : 'Privé'),
         const Divider(),
+        _ReviewRow(label: 'Speltype', value: gameType.label),
+        _ReviewRow(
+          label: 'Na gevonden',
+          value: allowRejoinAfterFound
+              ? 'Opnieuw meedoen vanaf 0 spelpunten'
+              : 'Speler is klaar',
+        ),
         _ReviewRow(label: 'Duur', value: '$duration minuten'),
         _ReviewRow(label: 'Deelnemers', value: 'maximaal $players'),
         _ReviewRow(label: 'Start', value: startLabel),

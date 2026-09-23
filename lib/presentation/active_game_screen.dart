@@ -244,9 +244,9 @@ class _ActiveMapPageState extends State<_ActiveMapPage> {
     final appliedFactor = nextScale / currentScale;
     final center = viewportSize.center(Offset.zero);
     controller.value = Matrix4.identity()
-      ..translate(center.dx, center.dy)
-      ..scale(appliedFactor)
-      ..translate(-center.dx, -center.dy)
+      ..translateByDouble(center.dx, center.dy, 0, 1)
+      ..scaleByDouble(appliedFactor, appliedFactor, 1, 1)
+      ..translateByDouble(-center.dx, -center.dy, 0, 1)
       ..multiply(controller.value);
   }
 
@@ -255,11 +255,13 @@ class _ActiveMapPageState extends State<_ActiveMapPage> {
     final scale = controller.value.getMaxScaleOnAxis().clamp(.55, 3.0);
     final center = viewportSize.center(Offset.zero);
     controller.value = Matrix4.identity()
-      ..translate(
+      ..translateByDouble(
         center.dx - playerPosition.dx * scale,
         center.dy - playerPosition.dy * scale,
+        0,
+        1,
       )
-      ..scale(scale);
+      ..scaleByDouble(scale, scale, 1, 1);
   }
 
   @override

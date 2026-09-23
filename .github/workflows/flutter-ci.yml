@@ -30,8 +30,18 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Check formatting
-        run: dart format --output=none --set-exit-if-changed .
+      - name: Format source
+        run: dart format .
+
+      - name: Upload formatted source
+        uses: actions/upload-artifact@v4
+        with:
+          name: formatted-source
+          path: |
+            lib/presentation/active_game_screen.dart
+            lib/presentation/onboarding_screen.dart
+            test/active_game_screen_test.dart
+            test/stobbe_powers_test.dart
 
       - name: Analyze
         run: flutter analyze

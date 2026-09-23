@@ -41,6 +41,8 @@ class AppState extends ChangeNotifier {
   DateTime? zoneReturnDeadline;
   double activeZoneRadiusMeters = 5000;
   bool gameFinished = false;
+  bool playerActive = true;
+  int currentAttemptPoints = 0;
   int gamesPlayed = 5;
   int wins = 3;
   int points = 840;
@@ -106,6 +108,26 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  void playerWasFound() {
+    if (!playerActive || gameFinished) return;
+    playerActive = false;
+    notifyListeners();
+  }
+
+  bool rejoinAfterFound({required bool allowed}) {
+    if (!allowed || playerActive || gameFinished) return false;
+    playerActive = true;
+    currentAttemptPoints = 0;
+    questionPoints = 0;
+    demoScores['me'] = ParticipantScore(
+      id: 'me',
+      role: demoScores['me']!.role,
+      value: 0,
+    );
+    notifyListeners();
+    return true;
+  }
+
   bool foundPlayer() {
     final hider = demoScores['hider-1'];
     if (hider == null || !hider.active) return false;
@@ -163,6 +185,7 @@ class AppState extends ChangeNotifier {
     final earned = questionAttempt.complete(correct);
     final bonus = _questionBonus.award('me', [questionAttempt], 1);
     questionPoints += earned + bonus;
+    currentAttemptPoints += earned + bonus;
     points += earned + bonus;
     notifyListeners();
     return earned + bonus;
@@ -270,6 +293,8 @@ class AppState extends ChangeNotifier {
     _lastGameClockUpdate = DateTime.now();
     _initializeV1Demo();
     gameFinished = false;
+    playerActive = true;
+    currentAttemptPoints = 0;
     gamesPlayed = 5;
     wins = 3;
     points = 840;
@@ -313,6 +338,8 @@ class AppState extends ChangeNotifier {
     outsideZoneTracker = OutsideZoneTracker();
     personallyFound = 2;
     questionPoints = 0;
+    currentAttemptPoints = 0;
+    playerActive = true;
     findSequence = 0;
     inActiveZone = true;
     zoneReturnDeadline = null;

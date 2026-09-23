@@ -4,6 +4,36 @@ enum GameStatus { available, waiting, active, completed, abandoned }
 
 enum StartCondition { participantCount, scheduled }
 
+enum GameType {
+  classic,
+  everyoneHunts,
+  seekerMajority,
+  surpriseRoleSwitch,
+  stobbePowers,
+}
+
+extension GameTypePresentation on GameType {
+  String get label => switch (this) {
+        GameType.classic => 'Klassiek',
+        GameType.everyoneHunts => 'Iedereen jaagt',
+        GameType.seekerMajority => 'Meer zoekers',
+        GameType.surpriseRoleSwitch => 'Onverwachte rolwissel',
+        GameType.stobbePowers => 'Stobbekrachten',
+      };
+
+  String get description => switch (this) {
+        GameType.classic => 'Vaste zoekers en verstoppers tot het einde.',
+        GameType.everyoneHunts =>
+          'Iedere speler is tegelijk zoeker én verstopper.',
+        GameType.seekerMajority =>
+          'Er beginnen bewust meer zoekers dan verstoppers.',
+        GameType.surpriseRoleSwitch =>
+          'Rollen wisselen op een onverwacht moment tijdens het spel.',
+        GameType.stobbePowers =>
+          'Spelers vinden en gebruiken tijdelijke Stobbekrachten.',
+      };
+}
+
 class Player {
   const Player({
     required this.name,
@@ -45,6 +75,8 @@ class GameRules {
     this.hidersCanWin = true,
     this.topSeekerCanWin = true,
     this.playersPerSeeker = 6,
+    this.gameType = GameType.classic,
+    this.allowRejoinAfterFound = false,
   });
 
   final bool hintsEnabled;
@@ -52,6 +84,8 @@ class GameRules {
   final bool hidersCanWin;
   final bool topSeekerCanWin;
   final int playersPerSeeker;
+  final GameType gameType;
+  final bool allowRejoinAfterFound;
 }
 
 class Game {

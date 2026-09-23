@@ -48,6 +48,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(home: ActiveGameScreen(state: state)),
     );
+    await tester.pump();
 
     expect(find.byType(PageView), findsNothing);
     expect(find.byType(InteractiveViewer), findsOneWidget);
@@ -56,6 +57,25 @@ void main() {
     expect(find.byTooltip('Uitzoomen'), findsOneWidget);
     expect(find.byIcon(Icons.help_outline), findsOneWidget);
     expect(find.byIcon(Icons.cruelty_free), findsOneWidget);
+    expect(find.byIcon(Icons.navigation), findsOneWidget);
+    expect(
+      find.bySemanticsLabel(RegExp('Mila ligt buiten beeld')),
+      findsOneWidget,
+    );
+
+    final viewer = tester.widget<InteractiveViewer>(
+      find.byType(InteractiveViewer),
+    );
+    final controller = viewer.transformationController!;
+    final viewerSize = tester.getSize(find.byType(InteractiveViewer));
+    final center = viewerSize.center(Offset.zero);
+    final sceneCenterBefore = controller.toScene(center);
+
+    await tester.tap(find.byTooltip('Inzoomen'));
+    await tester.pump();
+
+    final sceneCenterAfter = controller.toScene(center);
+    expect((sceneCenterAfter - sceneCenterBefore).distance, lessThan(0.01));
 
     await tester.tap(find.byTooltip('Vraag het de Stobbedetective'));
     await tester.pump();

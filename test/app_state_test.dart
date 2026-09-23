@@ -50,4 +50,31 @@ void main() {
     expect(state.gamesPlayed, 6);
     expect(initial, const Duration(seconds: 3));
   });
+
+  test('found player can only rejoin when rule allows it', () {
+    final state = AppState();
+    state.questionPoints = 120;
+    state.currentAttemptPoints = 120;
+
+    state.playerWasFound();
+
+    expect(state.playerActive, isFalse);
+    expect(state.rejoinAfterFound(allowed: false), isFalse);
+    expect(state.playerActive, isFalse);
+
+    expect(state.rejoinAfterFound(allowed: true), isTrue);
+    expect(state.playerActive, isTrue);
+    expect(state.questionPoints, 0);
+    expect(state.currentAttemptPoints, 0);
+    expect(state.demoScores['me']!.value, 0);
+  });
+
+  test('game types expose distinct player-facing descriptions', () {
+    expect(GameType.values, hasLength(5));
+    expect(GameType.everyoneHunts.label, 'Iedereen jaagt');
+    expect(
+      GameType.surpriseRoleSwitch.description,
+      contains('onverwacht moment'),
+    );
+  });
 }

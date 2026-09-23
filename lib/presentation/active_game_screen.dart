@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
@@ -222,8 +223,13 @@ class _ActiveMapPage extends StatefulWidget {
 }
 
 class _ActiveMapPageState extends State<_ActiveMapPage> {
+  static const playerPosition = Offset(550, 410);
+  static const opponentPosition = Offset(950, 130);
+
   final TransformationController controller = TransformationController();
   bool showLegend = false;
+  bool didInitialCenter = false;
+  Size viewportSize = Size.zero;
 
   @override
   void dispose() {
@@ -232,87 +238,209 @@ class _ActiveMapPageState extends State<_ActiveMapPage> {
   }
 
   void zoom(double factor) {
+    if (viewportSize.isEmpty) return;
     final currentScale = controller.value.getMaxScaleOnAxis();
     final nextScale = (currentScale * factor).clamp(.55, 3.0);
-    controller.value = Matrix4.diagonal3Values(nextScale, nextScale, 1);
+    final appliedFactor = nextScale / currentScale;
+    final center = viewportSize.center(Offset.zero);
+    controller.value = Matrix4.identity()
+      ..translateByDouble(center.dx, center.dy, 0, 1)
+      ..scaleByDouble(appliedFactor, appliedFactor, 1, 1)
+      ..translateByDouble(-center.dx, -center.dy, 0, 1)
+      ..multiply(controller.value);
   }
 
-  void recenter() => controller.value = Matrix4.identity();
+  void recenter() {
+    if (viewportSize.isEmpty) return;
+    final scale = controller.value.getMaxScaleOnAxis().clamp(.55, 3.0);
+    final center = viewportSize.center(Offset.zero);
+    controller.value = Matrix4.identity()
+      ..translateByDouble(
+        center.dx - playerPosition.dx * scale,
+        center.dy - playerPosition.dy * scale,
+        0,
+        1,
+      )
+      ..scaleByDouble(scale, scale, 1, 1);
+  }
 
   @override
-  Widget build(BuildContext context) => Stack(
-        children: [
-          Positioned.fill(
-            child: ClipRect(
-              child: InteractiveViewer(
-                transformationController: controller,
-                constrained: false,
-                minScale: .55,
-                maxScale: 3,
-                boundaryMargin: const EdgeInsets.all(300),
-                child: _GameMapCanvas(
-                  playerIcon: markerIcon(widget.state.playerMarker),
+  Widget build(BuildContext context) => LayoutBuilder(
+        builder: (context, constraints) {
+          viewportSize = constraints.biggest;
+          if (!didInitialCenter && !viewportSize.isEmpty) {
+            didInitialCenter = true;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) recenter();
+            });
+          }
+          return Stack(
+            children: [
+              Positioned.fill(
+                child: ClipRect(
+                  child: InteractiveViewer(
+                    transformationController: controller,
+                    constrained: false,
+                    minScale: .55,
+                    maxScale: 3,
+                    boundaryMargin: const EdgeInsets.all(300),
+                    child: _GameMapCanvas(
+                      playerIcon: markerIcon(widget.state.playerMarker),
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ),
-          Positioned(
-            top: 16,
-            left: 16,
-            child: Card(
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                child: Text(
-                  'Speelveld • ${widget.state.findDistanceMeters.toStringAsFixed(0)} m vangafstand',
-                  style: const TextStyle(fontWeight: FontWeight.w800),
+              Positioned(
+                top: 16,
+                left: 16,
+                child: Card(
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    child: Text(
+                      'Speelveld • '
+                      '${widget.state.findDistanceMeters.toStringAsFixed(0)} m '
+                      'vangafstand',
+                      style: const TextStyle(fontWeight: FontWeight.w800),
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ),
-          Positioned(
-            top: 16,
-            right: 16,
-            child: Column(
-              children: [
-                _MapButton(
-                    tooltip: 'Inzoomen',
-                    icon: Icons.add,
-                    onPressed: () => zoom(1.3)),
-                const SizedBox(height: 8),
-                _MapButton(
-                    tooltip: 'Uitzoomen',
-                    icon: Icons.remove,
-                    onPressed: () => zoom(.75)),
-                const SizedBox(height: 8),
-                _MapButton(
-                    tooltip: 'Terug naar mijn locatie',
-                    icon: Icons.my_location,
-                    onPressed: recenter),
-                const SizedBox(height: 8),
-                _MapButton(
-                  tooltip: 'Legenda',
-                  icon: showLegend ? Icons.close : Icons.layers_outlined,
-                  onPressed: () => setState(() => showLegend = !showLegend),
+              Positioned(
+                top: 16,
+                right: 16,
+                child: Column(
+                  children: [
+                    _MapButton(
+                      tooltip: 'Inzoomen',
+                      icon: Icons.add,
+                      onPressed: () => zoom(1.3),
+                    ),
+                    const SizedBox(height: 8),
+                    _MapButton(
+                      tooltip: 'Uitzoomen',
+                      icon: Icons.remove,
+                      onPressed: () => zoom(.75),
+                    ),
+                    const SizedBox(height: 8),
+                    _MapButton(
+                      tooltip: 'Terug naar mijn locatie',
+                      icon: Icons.my_location,
+                      onPressed: recenter,
+                    ),
+                    const SizedBox(height: 8),
+                    _MapButton(
+                      tooltip: 'Legenda',
+                      icon: showLegend ? Icons.close : Icons.layers_outlined,
+                      onPressed: () => setState(() => showLegend = !showLegend),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
-          if (showLegend)
-            const Positioned(
-                left: 16, right: 82, bottom: 88, child: _MapLegend()),
-          Positioned(
-            left: 24,
-            right: 24,
-            bottom: 18,
-            child: FilledButton.icon(
-              onPressed: widget.state.gameFinished ? null : widget.onCatch,
-              icon: const Icon(Icons.gps_fixed),
-              label: const Text('PAK SPELER'),
-            ),
-          ),
-        ],
+              ),
+              AnimatedBuilder(
+                animation: controller,
+                builder: (context, _) => _PlayerDirectionIndicator(
+                  controller: controller,
+                  viewportSize: viewportSize,
+                  scenePosition: opponentPosition,
+                  label: 'Mila',
+                ),
+              ),
+              if (showLegend)
+                const Positioned(
+                  left: 16,
+                  right: 82,
+                  bottom: 88,
+                  child: _MapLegend(),
+                ),
+              Positioned(
+                left: 24,
+                right: 24,
+                bottom: 18,
+                child: FilledButton.icon(
+                  onPressed: widget.state.gameFinished ? null : widget.onCatch,
+                  icon: const Icon(Icons.gps_fixed),
+                  label: const Text('PAK SPELER'),
+                ),
+              ),
+            ],
+          );
+        },
       );
+}
+
+class _PlayerDirectionIndicator extends StatelessWidget {
+  const _PlayerDirectionIndicator({
+    required this.controller,
+    required this.viewportSize,
+    required this.scenePosition,
+    required this.label,
+  });
+
+  final TransformationController controller;
+  final Size viewportSize;
+  final Offset scenePosition;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    if (viewportSize.isEmpty) return const SizedBox.shrink();
+    final screenPosition =
+        MatrixUtils.transformPoint(controller.value, scenePosition);
+    final safeRect = Rect.fromLTWH(
+      52,
+      88,
+      math.max(0, viewportSize.width - 104),
+      math.max(0, viewportSize.height - 196),
+    );
+    if (safeRect.contains(screenPosition)) return const SizedBox.shrink();
+
+    final center = viewportSize.center(Offset.zero);
+    final direction = screenPosition - center;
+    final halfWidth = math.max(1.0, safeRect.width / 2);
+    final halfHeight = math.max(1.0, safeRect.height / 2);
+    final xFactor = direction.dx.abs() < .01
+        ? double.infinity
+        : halfWidth / direction.dx.abs();
+    final yFactor = direction.dy.abs() < .01
+        ? double.infinity
+        : halfHeight / direction.dy.abs();
+    final edgeFactor = math.min(xFactor, yFactor);
+    final edge = center + direction * edgeFactor;
+    final angle = math.atan2(direction.dy, direction.dx) + math.pi / 2;
+
+    return Positioned(
+      left: edge.dx - 30,
+      top: edge.dy - 30,
+      child: Semantics(
+        label: '$label ligt buiten beeld',
+        child: Column(
+          children: [
+            Transform.rotate(
+              angle: angle,
+              child: const Icon(
+                Icons.navigation,
+                color: Color(0xff8d3f54),
+                size: 36,
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                label,
+                style:
+                    const TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _MapButton extends StatelessWidget {
@@ -367,6 +495,15 @@ class _GameMapCanvas extends StatelessWidget {
                   icon: Icons.auto_awesome,
                   label: 'Stobbekracht',
                   color: Color(0xff6650a4)),
+            ),
+            const Positioned(
+              left: 930,
+              top: 105,
+              child: _MapMarker(
+                icon: Icons.directions_run,
+                label: 'Mila',
+                color: Color(0xff8d3f54),
+              ),
             ),
             const Positioned(
               left: 870,
@@ -469,6 +606,7 @@ class _MapLegend extends StatelessWidget {
             runSpacing: 8,
             children: [
               _LegendItem(Icons.person_pin_circle, 'Jij'),
+              _LegendItem(Icons.navigation, 'Speler buiten beeld'),
               _LegendItem(Icons.help_outline, 'Zoekcirkel'),
               _LegendItem(Icons.auto_awesome, 'Stobbekracht'),
               _LegendItem(Icons.inventory_2, 'Stobbekist: profielpunten'),

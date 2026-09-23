@@ -116,7 +116,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               ),
                               const SizedBox(height: 12),
                               DropdownButtonFormField<PlayerMarker>(
-                                value: marker,
+                                initialValue: marker,
                                 decoration: const InputDecoration(
                                   labelText: 'Mijn kaartmarker',
                                 ),

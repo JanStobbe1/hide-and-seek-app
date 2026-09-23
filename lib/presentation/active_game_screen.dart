@@ -960,7 +960,6 @@ class _PowerToken extends StatelessWidget {
       ),
     );
   }
-
 }
 
 ({IconData icon, String description, Color color}) _powerDetails(

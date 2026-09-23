@@ -38,10 +38,8 @@ void main() {
   });
 
   test('inzetten via de tas verlaagt de zichtbare voorraad direct', () {
-    final inventory = const GamePowerInventory()
-        .add(drone)
-        .add(drone)
-        .startActivePhase();
+    final inventory =
+        const GamePowerInventory().add(drone).add(drone).startActivePhase();
 
     final afterUse = inventory.use(StobbePowerKind.digitalDrone);
 

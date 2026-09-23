@@ -180,9 +180,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           icon: Icon(page == 3
                               ? Icons.menu_book
                               : Icons.arrow_forward),
-                          label: Text(page == 3
-                              ? 'Naar de inhoudsopgave'
-                              : 'Volgende'),
+                          label: Text(
+                              page == 3 ? 'Naar de inhoudsopgave' : 'Volgende'),
                         ),
                       ],
                     ),

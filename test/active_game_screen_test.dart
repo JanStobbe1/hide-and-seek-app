@@ -127,9 +127,7 @@ void main() {
     expect(find.text('PAK SPELER'), findsOneWidget);
     expect(find.text('Drone verkent het speelveld'), findsOneWidget);
     expect(
-      state.powerInventory
-          .slotFor(StobbePowerKind.digitalDrone)!
-          .quantity,
+      state.powerInventory.slotFor(StobbePowerKind.digitalDrone)!.quantity,
       0,
     );
     await tester.pumpWidget(const SizedBox());

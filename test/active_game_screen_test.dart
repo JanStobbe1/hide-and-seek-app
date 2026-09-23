@@ -57,7 +57,7 @@ void main() {
     expect(find.byTooltip('Uitzoomen'), findsOneWidget);
     expect(find.byIcon(Icons.help_outline), findsOneWidget);
     expect(find.byIcon(Icons.cruelty_free), findsOneWidget);
-    expect(find.bySemanticsLabel('Mila ligt buiten beeld'), findsOneWidget);
+    expect(find.bySemanticsLabel(RegExp('Mila ligt buiten beeld')), findsOneWidget);
 
     final viewer = tester.widget<InteractiveViewer>(
       find.byType(InteractiveViewer),

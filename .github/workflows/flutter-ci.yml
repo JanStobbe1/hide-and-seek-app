@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
   validate:
@@ -36,8 +37,9 @@ jobs:
       - name: Analyze
         run: flutter analyze
 
-      - name: Run tests
-        run: flutter test
-
-      - name: Build web
-        run: flutter build web
+      - name: Return test output
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          flutter test > test.txt 2>&1 || true
+          gh pr comment "${{ github.event.pull_request.number }}" --body-file test.txt

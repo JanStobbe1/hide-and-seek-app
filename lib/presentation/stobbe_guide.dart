@@ -129,7 +129,10 @@ class _TypewriterTextState extends State<TypewriterText> {
 
   @override
   Widget build(BuildContext context) => Text(
-        widget.text.substring(0, visibleCharacters.clamp(0, widget.text.length)),
+        widget.text.substring(
+          0,
+          visibleCharacters.clamp(0, widget.text.length),
+        ),
         style: const TextStyle(fontWeight: FontWeight.w600),
       );
 }

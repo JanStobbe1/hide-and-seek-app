@@ -12,7 +12,6 @@
     }
   ],
   "vars": {
-    "ADMIN_API_TOKEN": "set-as-a-secret-in-production",
     "ALLOWED_ORIGIN": "https://REPLACE_WITH_LIVE_APP_DOMAIN"
   }
 }

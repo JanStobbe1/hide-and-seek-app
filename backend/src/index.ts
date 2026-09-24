@@ -1,6 +1,7 @@
 export interface Env {
   DB: D1Database;
   ADMIN_API_TOKEN: string;
+  PLAYER_TOKEN_SECRET: string;
   ALLOWED_ORIGIN?: string;
 }
 
@@ -30,6 +31,65 @@ const isAdmin = (request: Request, env: Env) =>
   Boolean(env.ADMIN_API_TOKEN) &&
   request.headers.get("authorization") === `Bearer ${env.ADMIN_API_TOKEN}`;
 
+const encoder = new TextEncoder();
+
+const base64Url = (bytes: ArrayBuffer | Uint8Array) =>
+  btoa(String.fromCharCode(...new Uint8Array(bytes)))
+    .replaceAll("+", "-")
+    .replaceAll("/", "_")
+    .replaceAll("=", "");
+
+const fromBase64Url = (value: string) => {
+  const padded = value.replaceAll("-", "+").replaceAll("_", "/")
+    + "=".repeat((4 - value.length % 4) % 4);
+  return Uint8Array.from(atob(padded), (character) => character.charCodeAt(0));
+};
+
+const hmac = async (secret: string, value: string) => {
+  const key = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign", "verify"],
+  );
+  return new Uint8Array(await crypto.subtle.sign("HMAC", key, encoder.encode(value)));
+};
+
+const createPlayerToken = async (env: Env, playerId: string) => {
+  const header = base64Url(encoder.encode(JSON.stringify({ alg: "HS256", typ: "JWT" })));
+  const payload = base64Url(encoder.encode(JSON.stringify({
+    sub: playerId,
+    scope: "player",
+    exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30,
+  })));
+  const unsigned = `${header}.${payload}`;
+  return `${unsigned}.${base64Url(await hmac(env.PLAYER_TOKEN_SECRET, unsigned))}`;
+};
+
+const playerFromToken = async (request: Request, env: Env) => {
+  const value = request.headers.get("authorization")?.replace(/^Bearer\\s+/i, "");
+  if (!value) return null;
+  const parts = value.split(".");
+  if (parts.length !== 3) return null;
+  const unsigned = `${parts[0]}.${parts[1]}`;
+  const expected = await hmac(env.PLAYER_TOKEN_SECRET, unsigned);
+  const actual = fromBase64Url(parts[2]);
+  if (actual.length !== expected.length ||
+      !crypto.subtle.timingSafeEqual) return null;
+  let valid = true;
+  for (let i = 0; i < expected.length; i += 1) valid = valid && actual[i] === expected[i];
+  if (!valid) return null;
+  try {
+    const payload = JSON.parse(new TextDecoder().decode(fromBase64Url(parts[1])));
+    return payload.scope === "player" && payload.exp > Math.floor(Date.now() / 1000)
+      ? String(payload.sub)
+      : null;
+  } catch {
+    return null;
+  }
+};
+
 const audit = async (
   env: Env,
   adminId: string,
@@ -53,6 +113,22 @@ const route = async (request: Request, env: Env): Promise<Response> => {
     return json({ ok: true, service: "verstobbertje-api" }, 200, origin);
   }
 
+  if (request.method === "POST" && path === "/api/v1/auth/player") {
+    if (!env.PLAYER_TOKEN_SECRET) return json({ error: "player_auth_not_configured" }, 503, origin);
+    const body = await parseBody(request);
+    const profileName = typeof body.profileName === "string" ? body.profileName.trim() : "";
+    if (profileName.length < 2 || profileName.length > 30) {
+      return json({ error: "profile_name_invalid" }, 400, origin);
+    }
+    const playerId = crypto.randomUUID();
+    await env.DB.batch([
+      env.DB.prepare("INSERT INTO players (id, profile_name) VALUES (?, ?)").bind(playerId, profileName),
+      env.DB.prepare("INSERT INTO subscriptions (player_id) VALUES (?)").bind(playerId),
+    ]);
+    const token = await createPlayerToken(env, playerId);
+    return json({ player: { id: playerId, profileName }, token }, 201, origin);
+  }
+
   const gameMatch = path.match(/^\/api\/v1\/games\/([^/]+)$/);
   if (request.method === "GET" && gameMatch) {
     const game = await env.DB.prepare(
@@ -64,11 +140,15 @@ const route = async (request: Request, env: Env): Promise<Response> => {
 
   const eventMatch = path.match(/^\/api\/v1\/games\/([^/]+)\/events$/);
   if (request.method === "POST" && eventMatch) {
+    const authenticatedPlayer = await playerFromToken(request, env);
+    if (!authenticatedPlayer) return json({ error: "unauthorized" }, 401, origin);
     const idempotencyKey = request.headers.get("idempotency-key");
     if (!idempotencyKey) return json({ error: "idempotency_key_required" }, 400, origin);
     const body = await parseBody(request);
     const eventType = typeof body.eventType === "string" ? body.eventType : "";
     const occurredAt = typeof body.occurredAt === "string" ? body.occurredAt : "";
+    const playerId = typeof body.playerId === "string" ? body.playerId : authenticatedPlayer;
+    if (playerId !== authenticatedPlayer) return json({ error: "player_identity_mismatch" }, 403, origin);
     if (!eventType || !occurredAt) {
       return json({ error: "eventType_and_occurredAt_required" }, 400, origin);
     }
@@ -76,7 +156,7 @@ const route = async (request: Request, env: Env): Promise<Response> => {
       "INSERT OR IGNORE INTO game_events (game_id, player_id, event_type, idempotency_key, payload_json, occurred_at) VALUES (?, ?, ?, ?, ?, ?)",
     ).bind(
       eventMatch[1],
-      typeof body.playerId === "string" ? body.playerId : null,
+      playerId,
       eventType,
       idempotencyKey,
       JSON.stringify(body.payload ?? {}),

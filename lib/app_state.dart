@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import 'data/backend_api_client.dart';
 import 'data/mock_game_repository.dart';
 import 'domain/countdown.dart';
 import 'domain/game_engine.dart';
@@ -18,6 +19,7 @@ class AppState extends ChangeNotifier {
   AppState({
     MockGameRepository? repository,
     this.activeGameDuration = const Duration(minutes: 30),
+    this.backendClient,
   }) : repository = repository ?? MockGameRepository() {
     activeGame = ActiveGameState(
       countdown: GameCountdown.start(activeGameDuration),
@@ -27,6 +29,8 @@ class AppState extends ChangeNotifier {
   }
   final MockGameRepository repository;
   final Duration activeGameDuration;
+  final BackendApiClient? backendClient;
+  String? backendPlayerId;
   late ActiveGameState activeGame;
   late DateTime _lastGameClockUpdate;
   late ScoringService _scoringService;
@@ -257,6 +261,18 @@ class AppState extends ChangeNotifier {
     powerInventory = updated;
     notifyListeners();
     return true;
+  }
+
+  Future<bool> connectBackend() async {
+    final client = backendClient;
+    if (client == null) return false;
+    try {
+      final session = await client.registerPlayer(displayName);
+      backendPlayerId = session.playerId;
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   String? setDisplayName(String value) {

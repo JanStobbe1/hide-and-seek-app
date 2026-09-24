@@ -75,8 +75,7 @@ const playerFromToken = async (request: Request, env: Env) => {
   const unsigned = `${parts[0]}.${parts[1]}`;
   const expected = await hmac(env.PLAYER_TOKEN_SECRET, unsigned);
   const actual = fromBase64Url(parts[2]);
-  if (actual.length !== expected.length ||
-      !crypto.subtle.timingSafeEqual) return null;
+  if (actual.length !== expected.length) return null;
   let valid = true;
   for (let i = 0; i < expected.length; i += 1) valid = valid && actual[i] === expected[i];
   if (!valid) return null;

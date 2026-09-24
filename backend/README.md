@@ -38,3 +38,19 @@ Copy `backend/wrangler.example.jsonc` to a local `wrangler.jsonc`, fill in the D
 - `POST /api/admin/players/:id/block`
 
 Player sessions are issued by `POST /api/v1/auth/player` and are signed with the Worker secret `PLAYER_TOKEN_SECRET`. Game events require that player bearer token and reject a mismatching player id.\n\nAdmin routes require the `Authorization: Bearer` header and the Worker secret `ADMIN_API_TOKEN`. Configure both with `wrangler secret put`; never commit them in `wrangler.jsonc`. This is only a temporary bootstrap guard; replace it with proper administrator authentication before production use.
+
+## Production deployment
+
+The backend deployment is intentionally manual through
+`.github/workflows/deploy-backend.yml`. Configure these GitHub Actions secrets in the
+`production` environment before running it:
+
+- `CLOUDFLARE_API_TOKEN`
+- `CLOUDFLARE_ACCOUNT_ID`
+- `D1_DATABASE_ID`
+- `LIVE_APP_ORIGIN`
+- `ADMIN_API_TOKEN`
+- `PLAYER_TOKEN_SECRET`
+
+The workflow applies the D1 migration, deploys the separate API Worker and then sets
+the two Worker secrets. It does not run automatically on frontend pushes.

@@ -37,4 +37,4 @@ Copy `backend/wrangler.example.jsonc` to a local `wrangler.jsonc`, fill in the D
 - `POST /api/admin/games/:id/stop`
 - `POST /api/admin/players/:id/block`
 
-Admin routes require the `Authorization: Bearer` header and the Worker secret `ADMIN_API_TOKEN`. This is only a temporary bootstrap guard; replace it with proper administrator authentication before production use.
+Player sessions are issued by `POST /api/v1/auth/player` and are signed with the Worker secret `PLAYER_TOKEN_SECRET`. Game events require that player bearer token and reject a mismatching player id.\n\nAdmin routes require the `Authorization: Bearer` header and the Worker secret `ADMIN_API_TOKEN`. Configure both with `wrangler secret put`; never commit them in `wrangler.jsonc`. This is only a temporary bootstrap guard; replace it with proper administrator authentication before production use.

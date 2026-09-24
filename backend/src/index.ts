@@ -99,6 +99,27 @@ const route = async (request: Request, env: Env): Promise<Response> => {
     return json({ games: games.results, players: players.results, signals: signals.results, subscriptions: subscriptions.results }, 200, origin);
   }
 
+  if (request.method === "GET" && path === "/api/admin/games") {
+    const games = await env.DB.prepare(
+      "SELECT g.id, g.status, g.starts_at, g.ends_at, g.created_at, COUNT(gp.player_id) AS player_count FROM games g LEFT JOIN game_players gp ON gp.game_id = g.id GROUP BY g.id ORDER BY g.created_at DESC LIMIT 100",
+    ).all();
+    return json({ games: games.results }, 200, origin);
+  }
+
+  if (request.method === "GET" && path === "/api/admin/players") {
+    const players = await env.DB.prepare(
+      "SELECT id, profile_name, status, created_at, blocked_at FROM players ORDER BY created_at DESC LIMIT 100",
+    ).all();
+    return json({ players: players.results }, 200, origin);
+  }
+
+  if (request.method === "GET" && path === "/api/admin/subscriptions") {
+    const subscriptions = await env.DB.prepare(
+      "SELECT s.player_id, p.profile_name, s.plan, s.status, s.started_at, s.ends_at FROM subscriptions s JOIN players p ON p.id = s.player_id ORDER BY s.started_at DESC LIMIT 100",
+    ).all();
+    return json({ subscriptions: subscriptions.results }, 200, origin);
+  }
+
   if (request.method === "GET" && path === "/api/admin/signals") {
     const signals = await env.DB.prepare(
       "SELECT id, game_id, player_id, signal_type, severity, details_json, status, created_at FROM anomaly_signals ORDER BY created_at DESC LIMIT 100",

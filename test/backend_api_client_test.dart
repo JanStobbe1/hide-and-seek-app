@@ -34,14 +34,14 @@ void main() {
     expect(client.requests[1].headers['idempotency-key'], 'event-1');
   });
 
-  test('does not send events before a player session exists', () {
+  test('does not send events before a player session exists', () async {
     final api = BackendApiClient(
       baseUri: Uri.parse('https://api.example.test'),
       client: QueueClient(const []),
     );
 
-    expect(
-      () => api.sendGameEvent(
+    await expectLater(
+      api.sendGameEvent(
         gameId: 'game-1',
         eventType: 'test',
         occurredAt: '2026-09-24T08:00:00Z',

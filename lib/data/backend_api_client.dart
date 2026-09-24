@@ -26,10 +26,9 @@ class BackendApiException implements Exception {
 
 class BackendApiClient {
   BackendApiClient({
-    required Uri baseUri,
+    required this.baseUri,
     http.Client? client,
-  })  : baseUri = baseUri,
-        client = client ?? http.Client();
+  }) : client = client ?? http.Client();
 
   final Uri baseUri;
   final http.Client client;

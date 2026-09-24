@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'app_state.dart';
+import 'data/backend_api_client.dart';
 import 'config/app_config.dart';
 import 'config/app_theme.dart';
 import 'presentation/app_shell.dart';
@@ -17,7 +20,13 @@ class HideAndSeekApp extends StatefulWidget {
 }
 
 class _HideAndSeekAppState extends State<HideAndSeekApp> {
-  final state = AppState();
+  final state = AppState(
+    backendClient: AppConfig.backendBaseUrl.isEmpty
+        ? null
+        : BackendApiClient(
+            baseUri: Uri.parse(AppConfig.backendBaseUrl),
+          ),
+  );
   bool showCover = true;
   bool onboardingCompleted = false;
 
@@ -43,8 +52,10 @@ class _HideAndSeekAppState extends State<HideAndSeekApp> {
                     : OnboardingScreen(
                         key: const ValueKey('onboarding'),
                         state: state,
-                        onComplete: () =>
-                            setState(() => onboardingCompleted = true),
+                        onComplete: () {
+                          setState(() => onboardingCompleted = true);
+                          unawaited(state.connectBackend());
+                        },
                       ),
           ),
         ),

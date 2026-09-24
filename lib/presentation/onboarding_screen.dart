@@ -42,7 +42,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(
           title: const Text('Welkom bij Verstobbertje'),
-
         ),
         body: SafeArea(
           child: Center(

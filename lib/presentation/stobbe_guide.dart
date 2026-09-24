@@ -78,7 +78,6 @@ class StobbeGuide extends StatelessWidget {
       );
 }
 
-
 class TypewriterText extends StatefulWidget {
   const TypewriterText(
     this.text, {

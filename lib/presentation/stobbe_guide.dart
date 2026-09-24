@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 class StobbeGuide extends StatelessWidget {
@@ -40,10 +42,9 @@ class StobbeGuide extends StatelessWidget {
                       ),
                     ],
                   ),
-                  child: Text(
+                  child: TypewriterText(
                     explanation,
                     key: const Key('stobbe-guide-bubble'),
-                    style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
                 ),
                 Positioned(
@@ -74,5 +75,62 @@ class StobbeGuide extends StatelessWidget {
             ),
           ),
         ],
+      );
+}
+
+
+class TypewriterText extends StatefulWidget {
+  const TypewriterText(
+    this.text, {
+    super.key,
+    this.speed = const Duration(milliseconds: 24),
+  });
+
+  final String text;
+  final Duration speed;
+
+  @override
+  State<TypewriterText> createState() => _TypewriterTextState();
+}
+
+class _TypewriterTextState extends State<TypewriterText> {
+  Timer? timer;
+  int visibleCharacters = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _start();
+  }
+
+  @override
+  void didUpdateWidget(covariant TypewriterText oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.text != widget.text) _start();
+  }
+
+  @override
+  void dispose() {
+    timer?.cancel();
+    super.dispose();
+  }
+
+  void _start() {
+    timer?.cancel();
+    visibleCharacters = 0;
+    timer = Timer.periodic(widget.speed, (_) {
+      if (!mounted) return;
+      if (visibleCharacters >= widget.text.length) {
+        timer?.cancel();
+        return;
+      }
+      setState(() => visibleCharacters++);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => Text(
+        widget.text.substring(0, visibleCharacters.clamp(0, widget.text.length)),
+        style: const TextStyle(fontWeight: FontWeight.w600),
       );
 }

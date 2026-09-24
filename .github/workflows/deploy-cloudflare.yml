@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch:
+  workflow_dispatch
 
 permissions:
   contents: read
@@ -31,7 +31,7 @@ jobs:
         run: flutter pub get
 
       - name: Build web
-        run: flutter build web --release
+        run: flutter build web --release --dart-define=BACKEND_BASE_URL=https://verstobbertje-api.dry-leaf-6021.workers.dev
 
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3

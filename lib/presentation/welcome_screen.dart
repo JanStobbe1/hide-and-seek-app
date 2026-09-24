@@ -34,7 +34,7 @@ class WelcomeScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  StobbeGuide(
+                  const StobbeGuide(
                     explanation:
                         'Ik leg je stap voor stap uit hoe Verstobbertje werkt.',
                   ),

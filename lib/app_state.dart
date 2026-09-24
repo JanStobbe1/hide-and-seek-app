@@ -11,6 +11,7 @@ import 'domain/private_questions.dart';
 import 'domain/profile_models.dart';
 import 'domain/profile_validation.dart';
 import 'domain/scoring.dart';
+import 'domain/stobbe_powers.dart';
 import 'domain/zones.dart';
 
 class AppState extends ChangeNotifier {
@@ -34,6 +35,7 @@ class AppState extends ChangeNotifier {
   late QuestionAttempt questionAttempt;
   late PerfectQuestionBonus _questionBonus;
   late OutsideZoneTracker outsideZoneTracker;
+  late GamePowerInventory powerInventory;
   int personallyFound = 2;
   int questionPoints = 0;
   int findSequence = 0;
@@ -222,6 +224,7 @@ class AppState extends ChangeNotifier {
     activeGame = next;
     if (next.status == GameStatus.completed && !gameFinished) {
       gameFinished = true;
+      powerInventory = powerInventory.finishGame();
       gamesPlayed++;
     }
     notifyListeners();
@@ -247,6 +250,14 @@ class AppState extends ChangeNotifier {
 
   double get findDistanceMeters =>
       ZoneRules.findDistance(activeZoneRadiusMeters);
+
+  bool activateStobbePower(StobbePowerKind kind) {
+    final updated = powerInventory.use(kind);
+    if (identical(updated, powerInventory)) return false;
+    powerInventory = updated;
+    notifyListeners();
+    return true;
+  }
 
   String? setDisplayName(String value) {
     final trimmed = value.trim();
@@ -276,6 +287,7 @@ class AppState extends ChangeNotifier {
     if (activeGame.status == GameStatus.completed) return;
     activeGame = activeGame.finish();
     gameFinished = true;
+    powerInventory = powerInventory.finishGame();
     gamesPlayed++;
     notifyListeners();
   }
@@ -344,5 +356,32 @@ class AppState extends ChangeNotifier {
     inActiveZone = true;
     zoneReturnDeadline = null;
     activeZoneRadiusMeters = 5000;
+    const drone = StobbePowerDefinition(
+      kind: StobbePowerKind.digitalDrone,
+      name: 'Digitale drone',
+      maxUsesPerGame: 1,
+      maxInventory: 1,
+      duration: Duration(minutes: 2),
+    );
+    const arm = StobbePowerDefinition(
+      kind: StobbePowerKind.stobbeArm,
+      name: 'Arm van de Stobbe',
+      maxUsesPerGame: 3,
+      maxInventory: 3,
+      duration: Duration(minutes: 3),
+    );
+    const invisible = StobbePowerDefinition(
+      kind: StobbePowerKind.invisibilityPotion,
+      name: 'Onzichtbaar',
+      maxUsesPerGame: 1,
+      maxInventory: 1,
+      duration: Duration(minutes: 2),
+    );
+    powerInventory = const GamePowerInventory()
+        .add(drone)
+        .add(arm)
+        .add(arm)
+        .add(invisible)
+        .startActivePhase();
   }
 }

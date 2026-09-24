@@ -5,6 +5,7 @@ import 'config/app_config.dart';
 import 'config/app_theme.dart';
 import 'presentation/app_shell.dart';
 import 'presentation/cover_screen.dart';
+import 'presentation/onboarding_screen.dart';
 
 void main() => runApp(const HideAndSeekApp());
 
@@ -18,6 +19,7 @@ class HideAndSeekApp extends StatefulWidget {
 class _HideAndSeekAppState extends State<HideAndSeekApp> {
   final state = AppState();
   bool showCover = true;
+  bool onboardingCompleted = false;
 
   @override
   Widget build(BuildContext context) => ListenableBuilder(
@@ -33,10 +35,17 @@ class _HideAndSeekAppState extends State<HideAndSeekApp> {
                     key: const ValueKey('cover'),
                     onEnter: () => setState(() => showCover = false),
                   )
-                : AppShell(
-                    key: const ValueKey('app'),
-                    state: state,
-                  ),
+                : onboardingCompleted
+                    ? AppShell(
+                        key: const ValueKey('app'),
+                        state: state,
+                      )
+                    : OnboardingScreen(
+                        key: const ValueKey('onboarding'),
+                        state: state,
+                        onComplete: () =>
+                            setState(() => onboardingCompleted = true),
+                      ),
           ),
         ),
       );

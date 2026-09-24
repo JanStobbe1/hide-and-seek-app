@@ -1,15 +1,22 @@
 import 'package:flutter/material.dart';
 
 import '../app_state.dart';
+import '../domain/clock.dart';
+import '../domain/game_scheduling.dart';
 import '../domain/models.dart';
 import '../services/introduction_service.dart';
 import '../services/location_repository.dart';
 import 'widgets.dart';
 
 class CreateGameScreen extends StatefulWidget {
-  const CreateGameScreen({required this.state, super.key});
+  const CreateGameScreen({
+    required this.state,
+    this.clock = const SystemClock(),
+    super.key,
+  });
 
   final AppState state;
+  final Clock clock;
 
   @override
   State<CreateGameScreen> createState() => _CreateGameScreenState();
@@ -42,8 +49,20 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
   int duration = 120;
   int participantThreshold = 10;
   StartCondition condition = StartCondition.participantCount;
-  DateTime scheduledDate = DateTime(2027, 8, 25);
-  TimeOfDay scheduledTime = const TimeOfDay(hour: 16, minute: 0);
+  late DateTime scheduledDate;
+  late TimeOfDay scheduledTime;
+
+  @override
+  void initState() {
+    super.initState();
+    final initialStart = widget.clock.now().add(const Duration(hours: 1));
+    scheduledDate = DateTime(
+      initialStart.year,
+      initialStart.month,
+      initialStart.day,
+    );
+    scheduledTime = TimeOfDay.fromDateTime(initialStart);
+  }
 
   @override
   void dispose() {
@@ -472,11 +491,13 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
   }
 
   Future<void> _pickDate() async {
+    final now = widget.clock.now();
+    final rules = GameSchedulingRules(now);
     final selected = await showDatePicker(
       context: context,
-      initialDate: scheduledDate,
-      firstDate: DateTime(2026),
-      lastDate: DateTime(2035, 12, 31),
+      initialDate: rules.clampDate(scheduledDate),
+      firstDate: rules.firstAllowedDate,
+      lastDate: rules.lastAllowedDate,
       helpText: 'Kies de startdatum',
     );
     if (selected != null && mounted) setState(() => scheduledDate = selected);
@@ -492,7 +513,16 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
   }
 
   void _publish() {
-    final now = DateTime.now();
+    final now = widget.clock.now();
+    if (condition == StartCondition.scheduled &&
+        !GameSchedulingRules(now).isAllowedStart(selectedStart)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Kies een startmoment dat nog in de toekomst ligt.'),
+        ),
+      );
+      return;
+    }
     widget.state.publish(
       Game(
         id: 'created-${now.millisecondsSinceEpoch}',

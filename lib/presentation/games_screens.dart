@@ -612,7 +612,8 @@ String _formatDateTime(DateTime value) {
     'november',
     'december',
   ];
-  return '${value.day} ${months[value.month - 1]} • ${_formatTime(value)}';
+  return '${value.day} ${months[value.month - 1]} ${value.year} • '
+      '${_formatTime(value)}';
 }
 
 String _formatTime(DateTime value) =>

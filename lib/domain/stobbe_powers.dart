@@ -92,4 +92,19 @@ class GamePowerInventory {
     );
     return GamePowerInventory(phase: phase, slots: updated);
   }
+
+  StobbePowerSlot? slotFor(StobbePowerKind kind) {
+    for (final slot in slots) {
+      if (slot.definition.kind == kind) return slot;
+    }
+    return null;
+  }
+
+  GamePowerInventory use(StobbePowerKind kind) {
+    final index = slots.indexWhere((slot) => slot.definition.kind == kind);
+    if (index < 0 || !slots[index].canUse(phase)) return this;
+    final updated = [...slots];
+    updated[index] = slots[index].use(phase);
+    return GamePowerInventory(phase: phase, slots: updated);
+  }
 }

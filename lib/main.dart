@@ -9,6 +9,7 @@ import 'config/app_theme.dart';
 import 'presentation/app_shell.dart';
 import 'presentation/cover_screen.dart';
 import 'presentation/onboarding_screen.dart';
+import 'presentation/welcome_screen.dart';
 
 void main() => runApp(const HideAndSeekApp());
 
@@ -29,6 +30,7 @@ class _HideAndSeekAppState extends State<HideAndSeekApp> {
   );
   bool showCover = true;
   bool onboardingCompleted = false;
+  bool welcomeCompleted = false;
 
   @override
   Widget build(BuildContext context) => ListenableBuilder(
@@ -45,10 +47,17 @@ class _HideAndSeekAppState extends State<HideAndSeekApp> {
                     onEnter: () => setState(() => showCover = false),
                   )
                 : onboardingCompleted
-                    ? AppShell(
-                        key: const ValueKey('app'),
-                        state: state,
-                      )
+                    ? welcomeCompleted
+                        ? AppShell(
+                            key: const ValueKey('app'),
+                            state: state,
+                          )
+                        : WelcomeScreen(
+                            key: const ValueKey('welcome'),
+                            playerName: state.displayName,
+                            onContinue: () =>
+                                setState(() => welcomeCompleted = true),
+                          )
                     : OnboardingScreen(
                         key: const ValueKey('onboarding'),
                         state: state,

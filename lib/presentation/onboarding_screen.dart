@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../app_state.dart';
 import '../domain/profile_models.dart';
-import 'widgets.dart';
+import 'stobbe_guide.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({
@@ -42,13 +42,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(
           title: const Text('Welkom bij Verstobbertje'),
-          actions: const [
-            StobbeDetectiveButton(
-              pageTitle: 'Je eerste stappen',
-              explanation:
-                  'Ik help je met je spelersnaam, kaartmarker en de belangrijkste spelregels. Daarna kom je bij de inhoudsopgave.',
-            ),
-          ],
         ),
         body: SafeArea(
           child: Center(
@@ -248,7 +241,7 @@ class _OnboardingPage extends StatelessWidget {
                 ?.copyWith(fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 10),
-          Text(text, textAlign: TextAlign.center),
+          StobbeGuide(explanation: text),
           const SizedBox(height: 24),
           child,
         ],

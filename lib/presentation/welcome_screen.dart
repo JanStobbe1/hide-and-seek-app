@@ -16,6 +16,7 @@ class WelcomeScreen extends StatelessWidget {
     required this.backendError,
     required this.onRetry,
     required this.onContinue,
+    required this.onStartTour,
     super.key,
   });
 
@@ -24,6 +25,7 @@ class WelcomeScreen extends StatelessWidget {
   final String? backendError;
   final Future<void> Function() onRetry;
   final VoidCallback onContinue;
+  final VoidCallback onStartTour;
 
   @override
   Widget build(BuildContext context) {
@@ -85,7 +87,14 @@ class WelcomeScreen extends StatelessWidget {
                   FilledButton.icon(
                     onPressed: onContinue,
                     icon: const Icon(Icons.explore_outlined),
-                    label: const Text('Naar mijn spellen'),
+                    label: const Text('Meteen spelen'),
+                  ),
+                  const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    key: const Key('start-guided-tour'),
+                    onPressed: onStartTour,
+                    icon: const Icon(Icons.menu_book_outlined),
+                    label: const Text('Eerst een rondleiding'),
                   ),
                 ],
               ),

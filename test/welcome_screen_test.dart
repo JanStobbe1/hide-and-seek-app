@@ -15,6 +15,7 @@ void main() {
           backendError: null,
           onRetry: () async {},
           onContinue: () {},
+          onStartTour: () {},
         ),
       ),
     );
@@ -22,7 +23,28 @@ void main() {
     expect(find.byType(StobbeGuide), findsOneWidget);
     expect(find.byKey(const Key('welcome-greeting')), findsOneWidget);
     expect(find.textContaining('Noor'), findsOneWidget);
-    expect(find.text('Naar mijn spellen'), findsOneWidget);
+    expect(find.text('Meteen spelen'), findsOneWidget);
+    expect(find.byKey(const Key('start-guided-tour')), findsOneWidget);
+  });
+
+  testWidgets('guided tour choice calls the tour callback', (tester) async {
+    var started = false;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: WelcomeScreen(
+          playerName: 'Noor',
+          backendConnected: true,
+          backendError: null,
+          onRetry: () async {},
+          onContinue: () {},
+          onStartTour: () => started = true,
+        ),
+      ),
+    );
+
+    await tester.tap(find.byKey(const Key('start-guided-tour')));
+    expect(started, isTrue);
   });
 
   testWidgets('welcome screen confirms successful backend registration', (
@@ -36,6 +58,7 @@ void main() {
           backendError: null,
           onRetry: () async {},
           onContinue: () {},
+          onStartTour: () {},
         ),
       ),
     );
@@ -60,6 +83,7 @@ void main() {
             retryCalled = true;
           },
           onContinue: () {},
+          onStartTour: () {},
         ),
       ),
     );

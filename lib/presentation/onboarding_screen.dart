@@ -93,9 +93,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         ),
                         _OnboardingPage(
                           icon: Icons.badge_outlined,
-                          title: 'Aangenaam kennis te maken',
+                          title: 'Jouw naam en kaartmarker',
                           text:
-                              'Welkom, recruit. Welke naam mag ik op mijn vinklijstje zetten? Kies daarna ook een marker, zodat ik je straks tussen alle spelers herken.',
+                              'Ik noteer je naam op mijn vinklijstje. Kies daarna een marker, zodat ik je straks tussen alle spelers herken.',
                           child: Column(
                             children: [
                               TextField(

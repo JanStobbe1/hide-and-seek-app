@@ -19,18 +19,18 @@ void main() {
       ),
     );
 
-    expect(find.text('Een avontuur in de buitenlucht'), findsOneWidget);
+    expect(find.text('Aangenaam kennis te maken!'), findsOneWidget);
     expect(find.byType(StobbeGuide), findsOneWidget);
     await tester.tap(find.text('Volgende'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const Key('onboarding-name')), 'Noor');
     await tester.tap(find.text('Volgende'));
     await tester.pumpAndSettle();
-    expect(find.text('Zo werkt een spel'), findsOneWidget);
+    expect(find.text('Zo spelen we samen'), findsOneWidget);
     expect(find.byType(StobbeGuide), findsOneWidget);
     await tester.tap(find.text('Volgende'));
     await tester.pumpAndSettle();
-    expect(find.text('Speel slim en veilig'), findsOneWidget);
+    expect(find.text('Nog één belangrijke afspraak'), findsOneWidget);
     expect(find.byType(StobbeGuide), findsOneWidget);
     await tester.tap(find.text('Naar de inhoudsopgave'));
 

@@ -55,7 +55,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
                     child: Row(
                       children: List.generate(
-                        4,
+                        5,
                         (index) => Expanded(
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 250),
@@ -143,6 +143,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             ],
                           ),
                         ),
+                        const _OnboardingPage(
+                          icon: Icons.health_and_safety_outlined,
+                          title: 'Nog één belangrijke afspraak',
+                          text:
+                              'Een goede detective is slim én netjes. Ga nooit een woning of privéterrein binnen en stop altijd als iets niet veilig voelt. Dan blijft het spel leuk voor iedereen.',
+                          child: _OnboardingFacts(
+                            facts: [
+                              'Exacte locaties worden alleen gedeeld volgens de spelregels',
+                              'De Stobbedetective legt ieder scherm uit',
+                              'Je kunt privacy en uiterlijk later wijzigen in Profiel',
+                            ],
+                          ),
+                        ),
                         _OnboardingPage(
                           icon: Icons.fact_check_outlined,
                           title: 'Even controleren, detective',
@@ -179,7 +192,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               ? Icons.menu_book
                               : Icons.arrow_forward),
                           label: Text(
-                              page == 3 ? 'Akkoord en ondertekenen' : 'Volgende'),
+                              page == 4 ? 'Akkoord en ondertekenen' : 'Volgende'),
                         ),
                       ],
                     ),
@@ -206,8 +219,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         return;
       }
       widget.state.setPlayerMarker(marker);
+      setState(() {
+        confirmed = false;
+        confirmationError = null;
+      });
     }
-    if (page == 3) {
+    if (page == 4) {
       if (!confirmed) {
         setState(() => confirmationError = 'Vink eerst aan dat je gegevens kloppen.');
         return;

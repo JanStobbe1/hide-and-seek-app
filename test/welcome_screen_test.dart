@@ -11,6 +11,8 @@ void main() {
       MaterialApp(
         home: WelcomeScreen(
           playerName: 'Noor',
+          backendConnected: false,
+          backendError: null,
           onContinue: () {},
         ),
       ),
@@ -20,6 +22,45 @@ void main() {
     expect(find.byKey(const Key('welcome-greeting')), findsOneWidget);
     expect(find.textContaining('Noor'), findsOneWidget);
     expect(find.text('Naar mijn spellen'), findsOneWidget);
+  });
+
+  testWidgets('welcome screen confirms successful backend registration', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: WelcomeScreen(
+          playerName: 'Noor',
+          backendConnected: true,
+          backendError: null,
+          onContinue: () {},
+        ),
+      ),
+    );
+
+    expect(find.byKey(const Key('backend-success')), findsOneWidget);
+    expect(find.text('Je profiel is opgeslagen.'), findsOneWidget);
+  });
+
+  testWidgets('welcome screen explains when backend registration failed', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: WelcomeScreen(
+          playerName: 'Noor',
+          backendConnected: false,
+          backendError: 'connection_failed',
+          onContinue: () {},
+        ),
+      ),
+    );
+
+    expect(find.byKey(const Key('backend-error')), findsOneWidget);
+    expect(
+      find.textContaining('Je profiel kon nog niet worden opgeslagen'),
+      findsOneWidget,
+    );
   });
 
   test('greeting periods use the requested time ranges', () {

@@ -8,7 +8,7 @@ export interface Env {
 type JsonObject = Record<string, unknown>;
 
 const json = (body: unknown, status = 200, origin = "*") =>
-  new Response(JSON.stringify(body), {
+  new Response(status === 204 ? null : JSON.stringify(body), {
     status,
     headers: {
       "content-type": "application/json; charset=utf-8",

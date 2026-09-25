@@ -13,6 +13,7 @@ void main() {
           playerName: 'Noor',
           backendConnected: false,
           backendError: null,
+          onRetry: () async {},
           onContinue: () {},
         ),
       ),
@@ -33,6 +34,7 @@ void main() {
           playerName: 'Noor',
           backendConnected: true,
           backendError: null,
+          onRetry: () async {},
           onContinue: () {},
         ),
       ),
@@ -40,27 +42,32 @@ void main() {
 
     expect(find.byKey(const Key('backend-success')), findsOneWidget);
     expect(find.text('Je profiel is opgeslagen.'), findsOneWidget);
+    expect(find.byKey(const Key('backend-retry')), findsNothing);
   });
 
-  testWidgets('welcome screen explains when backend registration failed', (
+  testWidgets('welcome screen offers retry when backend registration fails', (
     tester,
   ) async {
+    var retryCalled = false;
+
     await tester.pumpWidget(
       MaterialApp(
         home: WelcomeScreen(
           playerName: 'Noor',
           backendConnected: false,
           backendError: 'connection_failed',
+          onRetry: () async {
+            retryCalled = true;
+          },
           onContinue: () {},
         ),
       ),
     );
 
     expect(find.byKey(const Key('backend-error')), findsOneWidget);
-    expect(
-      find.textContaining('Je profiel kon nog niet worden opgeslagen'),
-      findsOneWidget,
-    );
+    expect(find.text('Je profiel kon nog niet worden opgeslagen.'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('backend-retry')));
+    expect(retryCalled, isTrue);
   });
 
   test('greeting periods use the requested time ranges', () {

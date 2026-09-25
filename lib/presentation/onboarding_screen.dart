@@ -84,7 +84,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           icon: Icons.travel_explore,
                           title: 'Aangenaam kennis te maken!',
                           text:
-                              'Hoi! Ik ben de Stobbedetective. Ik heb al heel wat jaarringen, maar ik blijf nieuwsgierig. Ik leg je uit hoe Verstobbertje werkt en help je op elk scherm verder.',
+                              'Welkom in mijn app! Ik ben Mr. Stobbe. Zoals je kunt zien ben ik een gewortelde detective, maar ik deel mijn kwaliteiten graag met een groentje zoals jij. Ik leg je stap voor stap uit hoe Verstobbertje werkt.',
                           child: Image.asset(
                             'assets/images/stobbekarakter.png',
                             height: 220,
@@ -93,9 +93,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         ),
                         _OnboardingPage(
                           icon: Icons.badge_outlined,
-                          title: 'Hoe mag ik je noemen?',
+                          title: 'Aangenaam kennis te maken',
                           text:
-                              'Ik weet nu wie ik ben. Nu ben ik benieuwd naar jou: welke naam mag ik op je vinklijstje zetten? Kies daarna ook een marker — zo herken ik je straks tussen alle spelers.',
+                              'Welkom, recruit. Welke naam mag ik op mijn vinklijstje zetten? Kies daarna ook een marker, zodat ik je straks tussen alle spelers herken.',
                           child: Column(
                             children: [
                               TextField(
@@ -104,7 +104,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                 maxLength: 30,
                                 textInputAction: TextInputAction.done,
                                 decoration: InputDecoration(
-                                  labelText: 'Jouw naam voor het spel',
+                                  labelText: 'Jouw naam in het spel',
                                   hintText: 'Bijvoorbeeld Noor',
                                   errorText: nameError,
                                 ),
@@ -139,7 +139,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             facts: [
                               'Blijf binnen het aangegeven speelgebied',
                               'Gebruik PAK SPELER wanneer iemand dichtbij is',
-                              'Krachten en fiches gelden alleen voor dit spel',
+                              'Verkregen krachten zijn alleen bruikbaar in het spel waarin ze gevonden worden',
                             ],
                           ),
                         ),
@@ -147,11 +147,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           icon: Icons.health_and_safety_outlined,
                           title: 'Nog één belangrijke afspraak',
                           text:
-                              'Een goede detective is slim én netjes. Ga nooit een woning of privéterrein binnen en stop altijd als iets niet veilig voelt. Dan blijft het spel leuk voor iedereen.',
+                              'Een goede detective is slim én netjes. Verkeer gaat voor het spel: kijk goed om je heen en gebruik je telefoon niet tijdens het lopen. Ga nooit een woning of privéterrein binnen en stop altijd als iets niet veilig voelt.',
                           child: _OnboardingFacts(
                             facts: [
                               'Exacte locaties worden alleen gedeeld volgens de spelregels',
-                              'De Stobbedetective legt ieder scherm uit',
+                              'De Mr. Stobbe legt ieder scherm uit',
                               'Je kunt privacy en uiterlijk later wijzigen in Profiel',
                             ],
                           ),
@@ -160,7 +160,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           icon: Icons.fact_check_outlined,
                           title: 'Even controleren, detective',
                           text:
-                              'Kijk je vinklijstje nog één keer na. Klopt alles? Dan zet ik mijn handtekening eronder en maken we je profiel definitief.',
+                              'Zo ${widget.state.displayName}, je bent er helemaal klaar voor. Nog één keer checken of ik alles goed heb genoteerd:',
                           child: _OnboardingConfirmation(
                             playerName: widget.state.displayName,
                             marker: marker,
@@ -344,14 +344,14 @@ class _OnboardingConfirmation extends StatelessWidget {
                 const Divider(),
                 const SizedBox(height: 4),
                 const Text(
-                  'Ondertekend door de Stobbedetective',
+                  'Ondertekend door de Mr. Stobbe',
                   key: Key('onboarding-signature'),
                   style: TextStyle(
                     fontStyle: FontStyle.italic,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                const Text('Stobbe ✍️'),
+                const Text('Mr. Stobbe'),
               ],
             ],
           ),

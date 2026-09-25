@@ -55,6 +55,8 @@ class AppState extends ChangeNotifier {
   int wins = 3;
   int points = 840;
   String displayName = 'Arie';
+  String profileCity = '';
+  String profileAge = '';
   String profileAvatar = 'A';
   ThemePreference themePreference = ThemePreference.forest;
   PlayerMarker playerMarker = PlayerMarker.ghost;
@@ -315,6 +317,16 @@ class AppState extends ChangeNotifier {
     return null;
   }
 
+  void setProfileCity(String value) {
+    profileCity = value.trim();
+    notifyListeners();
+  }
+
+  void setProfileAge(String value) {
+    profileAge = value.trim();
+    notifyListeners();
+  }
+
   void setProfileAvatar(String value) {
     profileAvatar = value;
     notifyListeners();
@@ -358,6 +370,8 @@ class AppState extends ChangeNotifier {
     wins = 3;
     points = 840;
     displayName = 'Arie';
+    profileCity = '';
+    profileAge = '';
     profileAvatar = 'A';
     themePreference = ThemePreference.forest;
     playerMarker = PlayerMarker.ghost;

@@ -244,7 +244,7 @@ class StobbeDetectiveButton extends StatelessWidget {
                 children: [
                   Image.asset(
                     'assets/images/stobbekarakter.png',
-                    height: 145,
+                    height: 200,
                     fit: BoxFit.contain,
                   ),
                   Text(

@@ -1,8 +1,7 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
-
-import 'player_session_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class PlayerSession {
   const PlayerSession({
@@ -23,7 +22,7 @@ class BackendApiException implements Exception {
   final String code;
 
   @override
-  String toString() => 'BackendApiException($statusCode, $code)';
+  String toString() => 'BackendApiException(\$statusCode, \$code)';
 }
 
 class BackendApiClient {
@@ -41,11 +40,10 @@ class BackendApiClient {
       );
 
   Future<PlayerSession?> restorePlayerSession() async {
-    final stored = await readPlayerSession();
-    if (stored == null) return null;
-    final playerId = stored['playerId'];
-    final profileName = stored['profileName'];
-    final token = stored['token'];
+    final preferences = await SharedPreferences.getInstance();
+    final playerId = preferences.getString('verstobbertje.playerId');
+    final profileName = preferences.getString('verstobbertje.profileName');
+    final token = preferences.getString('verstobbertje.playerToken');
     if (playerId == null || profileName == null || token == null) return null;
     _playerToken = token;
     return PlayerSession(
@@ -78,11 +76,13 @@ class BackendApiClient {
       profileName: returnedName,
       token: token,
     );
-    await writePlayerSession(
-      playerId: session.playerId,
-      profileName: session.profileName,
-      token: session.token,
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setString('verstobbertje.playerId', session.playerId);
+    await preferences.setString(
+      'verstobbertje.profileName',
+      session.profileName,
     );
+    await preferences.setString('verstobbertje.playerToken', session.token);
     return session;
   }
 

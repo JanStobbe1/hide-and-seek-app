@@ -12,11 +12,15 @@ String greetingForHour(int hour) {
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({
     required this.playerName,
+    required this.backendConnected,
+    required this.backendError,
     required this.onContinue,
     super.key,
   });
 
   final String playerName;
+  final bool backendConnected;
+  final String? backendError;
   final VoidCallback onContinue;
 
   @override
@@ -53,6 +57,22 @@ class WelcomeScreen extends StatelessWidget {
                     'Je profiel is klaar. Bekijk nu de spellen en kies je volgende avontuur.',
                     textAlign: TextAlign.center,
                   ),
+                  if (backendConnected) ...[
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Je profiel is opgeslagen.',
+                      key: Key('backend-success'),
+                      textAlign: TextAlign.center,
+                    ),
+                  ] else if (backendError != null) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      'Je profiel kon nog niet worden opgeslagen. '
+                      'Je kunt wel verdergaan; we proberen het later opnieuw.',
+                      key: const Key('backend-error'),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
                   const SizedBox(height: 28),
                   FilledButton.icon(
                     onPressed: onContinue,

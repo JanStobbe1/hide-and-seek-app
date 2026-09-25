@@ -33,6 +33,12 @@ class _HideAndSeekAppState extends State<HideAndSeekApp> {
   bool welcomeCompleted = false;
 
   @override
+  void initState() {
+    super.initState();
+    unawaited(state.restoreBackendSession());
+  }
+
+  @override
   Widget build(BuildContext context) => ListenableBuilder(
         listenable: state,
         builder: (context, _) => MaterialApp(

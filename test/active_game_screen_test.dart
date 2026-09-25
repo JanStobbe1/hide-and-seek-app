@@ -58,11 +58,8 @@ void main() {
     expect(find.byTooltip('Uitzoomen'), findsOneWidget);
     expect(find.byIcon(Icons.help_outline), findsOneWidget);
     expect(find.byIcon(Icons.cruelty_free), findsOneWidget);
-    expect(find.byIcon(Icons.navigation), findsOneWidget);
-    expect(
-      find.bySemanticsLabel(RegExp('Mila ligt buiten beeld')),
-      findsOneWidget,
-    );
+    expect(find.byIcon(Icons.navigation), findsNothing);
+    expect(find.text('Mila'), findsNothing);
 
     final viewer = tester.widget<InteractiveViewer>(
       find.byType(InteractiveViewer),
@@ -133,35 +130,5 @@ void main() {
     await tester.pumpWidget(const SizedBox());
   });
 
-  testWidgets('Mila uses either a map marker or an offscreen arrow', (
-    tester,
-  ) async {
-    final state = AppState();
-    await tester.pumpWidget(
-      MaterialApp(home: ActiveGameScreen(state: state)),
-    );
-    await tester.pump();
-
-    final viewer = tester.widget<InteractiveViewer>(
-      find.byType(InteractiveViewer),
-    );
-    final controller = viewer.transformationController!;
-    final size = tester.getSize(find.byType(InteractiveViewer));
-    controller.value = Matrix4.identity()
-      ..translateByDouble(
-        size.width / 2 - 950,
-        size.height / 2 - 130,
-        0,
-        1,
-      );
-    await tester.pump();
-
-    expect(
-      find.bySemanticsLabel(RegExp('Mila ligt buiten beeld')),
-      findsNothing,
-    );
-    expect(find.text('Mila'), findsOneWidget);
-    expect(tester.takeException(), isNull);
-    await tester.pumpWidget(const SizedBox());
-  });
+;
 }

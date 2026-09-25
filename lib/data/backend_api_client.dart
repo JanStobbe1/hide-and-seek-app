@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import 'player_session_storage.dart';
+
 class PlayerSession {
   const PlayerSession({
     required this.playerId,
@@ -35,8 +37,23 @@ class BackendApiClient {
   String? _playerToken;
 
   Uri _endpoint(String path) => baseUri.replace(
-        path: '${baseUri.path.replaceFirst(RegExp(r'/$'), '')}$path',
+        path: baseUri.path.replaceFirst(RegExp(r'/$'), '') + path,
       );
+
+  Future<PlayerSession?> restorePlayerSession() async {
+    final stored = await readPlayerSession();
+    if (stored == null) return null;
+    final playerId = stored['playerId'];
+    final profileName = stored['profileName'];
+    final token = stored['token'];
+    if (playerId == null || profileName == null || token == null) return null;
+    _playerToken = token;
+    return PlayerSession(
+      playerId: playerId,
+      profileName: profileName,
+      token: token,
+    );
+  }
 
   Future<PlayerSession> registerPlayer(String profileName) async {
     final response = await client.post(
@@ -56,11 +73,17 @@ class BackendApiClient {
       throw const BackendApiException(502, 'invalid_player_response');
     }
     _playerToken = token;
-    return PlayerSession(
+    final session = PlayerSession(
       playerId: playerId,
       profileName: returnedName,
       token: token,
     );
+    await writePlayerSession(
+      playerId: session.playerId,
+      profileName: session.profileName,
+      token: session.token,
+    );
+    return session;
   }
 
   Future<void> sendGameEvent({

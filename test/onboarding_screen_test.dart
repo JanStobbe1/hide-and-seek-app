@@ -25,11 +25,17 @@ void main() {
     await tester.tap(find.text('Volgende'));
     await tester.pumpAndSettle();
     expect(find.text('Hoeveel jaarringen heb jij?'), findsOneWidget);
-    await tester.enterText(find.byKey(const Key('onboarding-age')), '12');
+    await tester.enterText(
+      find.byKey(const Key('onboarding-age')),
+      '12',
+    );
     await tester.tap(find.text('Volgende'));
     await tester.pumpAndSettle();
     expect(find.text('Jouw pionnetje'), findsOneWidget);
-    await tester.enterText(find.byKey(const Key('onboarding-city')), 'Amsterdam');
+    await tester.enterText(
+      find.byKey(const Key('onboarding-city')),
+      'Amsterdam',
+    );
     await tester.tap(find.text('Volgende'));
     await tester.pumpAndSettle();
     expect(find.text('Zo spelen we samen'), findsOneWidget);

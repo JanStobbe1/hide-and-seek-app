@@ -22,7 +22,7 @@ class BackendApiException implements Exception {
   final String code;
 
   @override
-  String toString() => 'BackendApiException(\$statusCode, \$code)';
+  String toString() => 'BackendApiException($statusCode, $code)';
 }
 
 class BackendApiClient {

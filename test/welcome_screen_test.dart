@@ -65,7 +65,10 @@ void main() {
     );
 
     expect(find.byKey(const Key('backend-error')), findsOneWidget);
-    expect(find.text('Je profiel kon nog niet worden opgeslagen.'), findsOneWidget);
+    expect(
+      find.text('Je profiel kon nog niet worden opgeslagen.'),
+      findsOneWidget,
+    );
     await tester.tap(find.byKey(const Key('backend-retry')));
     expect(retryCalled, isTrue);
   });

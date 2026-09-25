@@ -13,11 +13,13 @@ class AppShell extends StatefulWidget {
   const AppShell({
     required this.state,
     this.startTour = false,
+    required this.onTourComplete,
     super.key,
   });
 
   final AppState state;
   final bool startTour;
+  final VoidCallback onTourComplete;
 
   @override
   State<AppShell> createState() => _AppShellState();
@@ -27,6 +29,7 @@ class _AppShellState extends State<AppShell> {
   int index = 0;
   late bool tourActive;
   int tourStep = 0;
+  int skippedInARow = 0;
 
   @override
   void initState() {
@@ -113,7 +116,7 @@ class _AppShellState extends State<AppShell> {
                   _GuidedTourOverlay(
                     step: tourStep,
                     onNext: _nextTourStep,
-                    onSkip: _finishTour,
+                    onSkip: _skipTour,
                   ),
               ],
             );
@@ -197,6 +200,7 @@ class _AppShellState extends State<AppShell> {
       );
 
   void _nextTourStep() {
+    skippedInARow = 0;
     if (tourStep >= _GuidedTourOverlay.steps.length - 1) {
       _finishTour();
       return;
@@ -204,8 +208,46 @@ class _AppShellState extends State<AppShell> {
     setState(() => tourStep++);
   }
 
+  void _skipTour() {
+    skippedInARow++;
+    if (skippedInARow < 2) {
+      _nextTourStep();
+      return;
+    }
+    showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Rondleiding onderbreken?'),
+        content: const Text(
+          'Wil je de guided tour nog steeds afmaken, of wil je gewoon beginnen?',
+        ),
+        actions: [
+          TextButton(
+            key: const Key('guided-tour-continue'),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Rondleiding voortzetten'),
+          ),
+          FilledButton(
+            key: const Key('guided-tour-start'),
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Gewoon beginnen'),
+          ),
+        ],
+      ),
+    ).then((continueTour) {
+      if (!mounted) return;
+      skippedInARow = 0;
+      if (continueTour == true) {
+        _nextTourStep();
+      } else if (continueTour == false) {
+        _finishTour();
+      }
+    });
+  }
+
   void _finishTour() {
     setState(() => tourActive = false);
+    widget.onTourComplete();
   }
 
   void _create() {
@@ -249,22 +291,44 @@ class _GuidedTourOverlay extends StatelessWidget {
   final VoidCallback onNext;
   final VoidCallback onSkip;
 
+  Rect _targetRect(BuildContext context) {
+    final size = MediaQuery.sizeOf(context);
+    final isWide = size.width >= 800;
+    if (isWide) {
+      return switch (step) {
+        0 => Rect.fromLTWH(205, 24, size.width - 225, size.height - 160),
+        1 => Rect.fromLTWH(0, 0, 190, size.height),
+        2 => const Rect.fromLTWH(28, 70, 130, 145),
+        _ => Rect.fromLTWH(size.width - 130, size.height - 125, 120, 100),
+      };
+    }
+    return switch (step) {
+      0 => Rect.fromLTWH(12, 12, size.width - 24, size.height - 205),
+      1 => Rect.fromLTWH(0, size.height - 105, size.width, 105),
+      2 => Rect.fromLTWH(size.width - 82, 0, 78, 70),
+      _ => Rect.fromLTWH(size.width - 92, size.height - 175, 88, 88),
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     final current = steps[step];
+    final target = _targetRect(context);
     return Positioned.fill(
-      child: ColoredBox(
-        color: Colors.black54,
-        child: SafeArea(
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 620),
-              child: Card(
-                margin: const EdgeInsets.all(24),
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    maxHeight: MediaQuery.sizeOf(context).height - 48,
-                  ),
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: CustomPaint(
+              painter: _TourSpotlightPainter(target: target),
+            ),
+          ),
+          SafeArea(
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 620),
+                child: Card(
+                  margin: const EdgeInsets.fromLTRB(16, 16, 16, 24),
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.all(20),
                     child: Column(
@@ -317,8 +381,39 @@ class _GuidedTourOverlay extends StatelessWidget {
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
+}
+
+class _TourSpotlightPainter extends CustomPainter {
+  const _TourSpotlightPainter({required this.target});
+
+  final Rect target;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final overlay = Paint()..color = Colors.black54;
+    canvas.drawRect(Offset.zero & size, overlay);
+
+    final hole = RRect.fromRectAndRadius(target, const Radius.circular(18));
+    canvas.drawRRect(
+      hole,
+      Paint()
+        ..blendMode = BlendMode.dstOut
+        ..color = Colors.white,
+    );
+    canvas.drawRRect(
+      hole,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 3
+        ..color = Colors.white,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _TourSpotlightPainter oldDelegate) =>
+      oldDelegate.target != target;
 }

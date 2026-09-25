@@ -24,8 +24,12 @@ void main() {
     await tester.enterText(find.byKey(const Key('onboarding-name')), 'Noor');
     await tester.tap(find.text('Volgende'));
     await tester.pumpAndSettle();
-    expect(find.text('Kies je kaartmarker'), findsOneWidget);
-    expect(find.byType(StobbeGuide), findsOneWidget);
+    expect(find.text('Hoeveel jaarringen heb jij?'), findsOneWidget);
+    await tester.enterText(find.byKey(const Key('onboarding-age')), '12');
+    await tester.tap(find.text('Volgende'));
+    await tester.pumpAndSettle();
+    expect(find.text('Jouw pionnetje'), findsOneWidget);
+    await tester.enterText(find.byKey(const Key('onboarding-city')), 'Amsterdam');
     await tester.tap(find.text('Volgende'));
     await tester.pumpAndSettle();
     expect(find.text('Zo spelen we samen'), findsOneWidget);
@@ -45,5 +49,7 @@ void main() {
 
     expect(completed, isTrue);
     expect(state.displayName, 'Noor');
+    expect(state.profileAge, '12');
+    expect(state.profileCity, 'Amsterdam');
   });
 }

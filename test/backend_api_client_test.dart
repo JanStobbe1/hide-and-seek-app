@@ -5,6 +5,8 @@ import 'package:http/http.dart' as http;
 import 'package:verstobbertje/data/backend_api_client.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   test('registers a player and authenticates subsequent events', () async {
     final client = QueueClient([
       http.Response(

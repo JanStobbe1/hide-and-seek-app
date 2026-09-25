@@ -265,6 +265,19 @@ class AppState extends ChangeNotifier {
     return true;
   }
 
+  Future<bool> restoreBackendSession() async {
+    final client = backendClient;
+    if (client == null) return false;
+    final session = await client.restorePlayerSession();
+    if (session == null) return false;
+    backendPlayerId = session.playerId;
+    displayName = session.profileName;
+    backendConnected = true;
+    backendError = null;
+    notifyListeners();
+    return true;
+  }
+
   Future<bool> connectBackend() async {
     final client = backendClient;
     if (client == null) {

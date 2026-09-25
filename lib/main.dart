@@ -74,6 +74,10 @@ class _HideAndSeekAppState extends State<HideAndSeekApp> {
                             key: const ValueKey('app'),
                             state: state,
                             startTour: guidedTourRequested,
+                            onTourComplete: () => setState(() {
+                              guidedTourRequested = false;
+                              welcomeCompleted = false;
+                            }),
                           )
                         : WelcomeScreen(
                             key: const ValueKey('welcome'),

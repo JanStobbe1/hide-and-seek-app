@@ -188,11 +188,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         const Spacer(),
                         FilledButton.icon(
                           onPressed: _next,
-                          icon: Icon(page == 3
+                          icon: Icon(page == 4
                               ? Icons.menu_book
                               : Icons.arrow_forward),
                           label: Text(
-                              page == 4 ? 'Akkoord en ondertekenen' : 'Volgende'),
+                            page == 4 ? 'Akkoord en ondertekenen' : 'Volgende',
+                          ),
                         ),
                       ],
                     ),
@@ -226,7 +227,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
     if (page == 4) {
       if (!confirmed) {
-        setState(() => confirmationError = 'Vink eerst aan dat je gegevens kloppen.');
+        setState(
+          () => confirmationError = 'Vink eerst aan dat je gegevens kloppen.',
+        );
         return;
       }
       widget.onComplete();
@@ -296,7 +299,6 @@ class _OnboardingFacts extends StatelessWidget {
         ),
       );
 }
-
 
 class _OnboardingConfirmation extends StatelessWidget {
   const _OnboardingConfirmation({

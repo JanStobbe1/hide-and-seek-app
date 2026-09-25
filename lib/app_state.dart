@@ -31,6 +31,8 @@ class AppState extends ChangeNotifier {
   final Duration activeGameDuration;
   final BackendApiClient? backendClient;
   String? backendPlayerId;
+  bool backendConnected = false;
+  String? backendError;
   late ActiveGameState activeGame;
   late DateTime _lastGameClockUpdate;
   late ScoringService _scoringService;
@@ -265,12 +267,28 @@ class AppState extends ChangeNotifier {
 
   Future<bool> connectBackend() async {
     final client = backendClient;
-    if (client == null) return false;
+    if (client == null) {
+      backendConnected = false;
+      backendError = 'backend_not_configured';
+      notifyListeners();
+      return false;
+    }
     try {
       final session = await client.registerPlayer(displayName);
       backendPlayerId = session.playerId;
+      backendConnected = true;
+      backendError = null;
+      notifyListeners();
       return true;
+    } on BackendApiException catch (error) {
+      backendConnected = false;
+      backendError = error.code;
+      notifyListeners();
+      return false;
     } catch (_) {
+      backendConnected = false;
+      backendError = 'connection_failed';
+      notifyListeners();
       return false;
     }
   }

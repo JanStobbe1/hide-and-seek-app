@@ -12,11 +12,17 @@ String greetingForHour(int hour) {
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({
     required this.playerName,
+    required this.backendConnected,
+    required this.backendError,
+    required this.onRetry,
     required this.onContinue,
     super.key,
   });
 
   final String playerName;
+  final bool backendConnected;
+  final String? backendError;
+  final Future<void> Function() onRetry;
   final VoidCallback onContinue;
 
   @override
@@ -53,6 +59,28 @@ class WelcomeScreen extends StatelessWidget {
                     'Je profiel is klaar. Bekijk nu de spellen en kies je volgende avontuur.',
                     textAlign: TextAlign.center,
                   ),
+                  if (backendConnected) ...[
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Je profiel is opgeslagen.',
+                      key: Key('backend-success'),
+                      textAlign: TextAlign.center,
+                    ),
+                  ] else if (backendError != null) ...[
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Je profiel kon nog niet worden opgeslagen.',
+                      key: Key('backend-error'),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    TextButton.icon(
+                      key: const Key('backend-retry'),
+                      onPressed: onRetry,
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Opnieuw proberen'),
+                    ),
+                  ],
                   const SizedBox(height: 28),
                   FilledButton.icon(
                     onPressed: onContinue,

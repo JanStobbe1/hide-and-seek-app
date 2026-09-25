@@ -6,6 +6,7 @@ import 'create_game_screen.dart';
 import 'games_screens.dart';
 import 'home_screen.dart';
 import 'profile_screen.dart';
+import 'stobbe_guide.dart';
 import 'widgets.dart';
 
 class AppShell extends StatefulWidget {
@@ -207,7 +208,6 @@ class _AppShellState extends State<AppShell> {
     );
   }
 }
-
 
 class _GuidedTourOverlay extends StatelessWidget {
   const _GuidedTourOverlay({

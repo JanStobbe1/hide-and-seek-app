@@ -80,9 +80,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       children: [
                         _OnboardingPage(
                           icon: Icons.travel_explore,
-                          title: 'Een avontuur in de buitenlucht',
+                          title: 'Aangenaam kennis te maken!',
                           text:
-                              'Verstop, zoek, beweeg en verzamel punten. De Stobbedetective helpt je onderweg op ieder scherm.',
+                              'Hoi! Ik ben de Stobbedetective. Ik heb al heel wat jaarringen, maar ik blijf nieuwsgierig. Ik leg je uit hoe Verstobbertje werkt en help je op elk scherm verder.',
                           child: Image.asset(
                             'assets/images/stobbekarakter.png',
                             height: 220,
@@ -91,9 +91,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         ),
                         _OnboardingPage(
                           icon: Icons.badge_outlined,
-                          title: 'Hoe mogen spelers je noemen?',
+                          title: 'Hoe mag ik je noemen?',
                           text:
-                              'Je profielnaam en kaartmarker zijn tijdens een spel herkenbaar voor andere spelers.',
+                              'Ik weet nu wie ik ben. Nu ben ik benieuwd naar jou: welke naam mag ik op je vinklijstje zetten? Kies daarna ook een marker — zo herken ik je straks tussen alle spelers.',
                           child: Column(
                             children: [
                               TextField(
@@ -102,7 +102,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                 maxLength: 30,
                                 textInputAction: TextInputAction.done,
                                 decoration: InputDecoration(
-                                  labelText: 'Profielnaam',
+                                  labelText: 'Jouw naam voor het spel',
                                   hintText: 'Bijvoorbeeld Noor',
                                   errorText: nameError,
                                 ),
@@ -130,9 +130,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         ),
                         const _OnboardingPage(
                           icon: Icons.map_outlined,
-                          title: 'Zo werkt een spel',
+                          title: 'Zo spelen we samen',
                           text:
-                              'Je rol, timer en speelgebied bepalen je opdracht. Op de kaart zie je wat voor jouw rol zichtbaar is. Stobbekrachten kun je pas na de eerste fase inzetten.',
+                              'De regels zijn simpel: ik geef je een rol, een timer en een speelgebied. Jij ontdekt wat er op de kaart gebeurt. Mijn krachten houd ik nog even achter mijn rug — anders wordt het wel erg makkelijk.',
                           child: _OnboardingFacts(
                             facts: [
                               'Blijf binnen het aangegeven speelgebied',
@@ -143,9 +143,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         ),
                         const _OnboardingPage(
                           icon: Icons.health_and_safety_outlined,
-                          title: 'Speel slim en veilig',
+                          title: 'Nog één belangrijke afspraak',
                           text:
-                              'Ga nooit een woning of privéterrein binnen om iemand te pakken. Respecteer de omgeving en stop wanneer een situatie niet veilig voelt.',
+                              'Een goede detective is slim én netjes. Ga nooit een woning of privéterrein binnen en stop altijd als iets niet veilig voelt. Dan blijft het spel leuk voor iedereen.',
                           child: _OnboardingFacts(
                             facts: [
                               'Exacte locaties worden alleen gedeeld volgens de spelregels',

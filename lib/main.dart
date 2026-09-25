@@ -31,6 +31,7 @@ class _HideAndSeekAppState extends State<HideAndSeekApp> {
   bool showCover = true;
   bool onboardingCompleted = false;
   bool welcomeCompleted = false;
+  bool guidedTourRequested = false;
   late Future<bool> _sessionRestore;
 
   @override
@@ -72,6 +73,7 @@ class _HideAndSeekAppState extends State<HideAndSeekApp> {
                         ? AppShell(
                             key: const ValueKey('app'),
                             state: state,
+                            startTour: guidedTourRequested,
                           )
                         : WelcomeScreen(
                             key: const ValueKey('welcome'),
@@ -81,8 +83,14 @@ class _HideAndSeekAppState extends State<HideAndSeekApp> {
                             onRetry: () async {
                               await state.connectBackend();
                             },
-                            onContinue: () =>
-                                setState(() => welcomeCompleted = true),
+                            onContinue: () => setState(() {
+                              guidedTourRequested = false;
+                              welcomeCompleted = true;
+                            }),
+                            onStartTour: () => setState(() {
+                              guidedTourRequested = true;
+                              welcomeCompleted = true;
+                            }),
                           )
                     : OnboardingScreen(
                         key: const ValueKey('onboarding'),

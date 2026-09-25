@@ -30,8 +30,11 @@ void main() {
     expect(find.byType(StobbeGuide), findsOneWidget);
     await tester.tap(find.text('Volgende'));
     await tester.pumpAndSettle();
-    expect(find.text('Even controleren, detective'), findsOneWidget);
+    expect(find.text('Nog één belangrijke afspraak'), findsOneWidget);
     expect(find.byType(StobbeGuide), findsOneWidget);
+    await tester.tap(find.text('Volgende'));
+    await tester.pumpAndSettle();
+    expect(find.text('Even controleren, detective'), findsOneWidget);
     expect(find.byKey(const Key('onboarding-checklist')), findsOneWidget);
     await tester.tap(find.byKey(const Key('onboarding-confirmation')));
     await tester.pumpAndSettle();

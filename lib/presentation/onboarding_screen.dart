@@ -84,20 +84,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           icon: Icons.travel_explore,
                           title: 'Aangenaam kennis te maken!',
                           text:
-                              'Welkom in mijn app! Ik ben Mr. Stobbe. Zoals je kunt zien ben ik een gewortelde detective, maar ik deel mijn kwaliteiten graag met een groentje zoals jij. Ik leg je stap voor stap uit hoe Verstobbertje werkt.',
-                          child: Image.asset(
-                            'assets/images/stobbekarakter.png',
-                            height: 220,
-                            fit: BoxFit.contain,
-                          ),
-                        ),
-                        _OnboardingPage(
-                          icon: Icons.badge_outlined,
-                          title: 'Jouw naam en kaartmarker',
-                          text:
-                              'Ik noteer je naam op mijn vinklijstje. Kies daarna een marker, zodat ik je straks tussen alle spelers herken.',
+                              'Welkom in mijn app! Ik ben Mr. Stobbe, zoals je kan zien ben ik een gewortelde detective maar ik deel mijn kwaliteiten graag met een groentje zoals jij. Kan je me vertellen hoe jij heet?',
                           child: Column(
                             children: [
+                              Image.asset(
+                                'assets/images/stobbekarakter.png',
+                                height: 220,
+                                fit: BoxFit.contain,
+                              ),
+                              const SizedBox(height: 12),
                               TextField(
                                 key: const Key('onboarding-name'),
                                 controller: name,
@@ -109,25 +104,32 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                   errorText: nameError,
                                 ),
                               ),
-                              const SizedBox(height: 12),
-                              DropdownButtonFormField<PlayerMarker>(
-                                initialValue: marker,
-                                decoration: const InputDecoration(
-                                  labelText: 'Mijn kaartmarker',
-                                ),
-                                items: PlayerMarker.values
-                                    .map(
-                                      (value) => DropdownMenuItem(
-                                        value: value,
-                                        child: Text(_markerLabel(value)),
-                                      ),
-                                    )
-                                    .toList(),
-                                onChanged: (value) {
-                                  if (value != null) marker = value;
-                                },
-                              ),
                             ],
+                          ),
+                        ),
+                        _OnboardingPage(
+                          icon: Icons.badge_outlined,
+                          title: 'Kies je kaartmarker',
+                          text:
+                              'Dank je! Ik zet je naam op mijn vinklijstje. Kies nu een marker, zodat ik je straks tussen alle spelers herken.',
+                          child: DropdownButtonFormField<PlayerMarker>(
+                            initialValue: marker,
+                            decoration: const InputDecoration(
+                              labelText: 'Mijn kaartmarker',
+                            ),
+                            items: PlayerMarker.values
+                                .map(
+                                  (value) => DropdownMenuItem(
+                                    value: value,
+                                    child: Text(_markerLabel(value)),
+                                  ),
+                                )
+                                .toList(),
+                            onChanged: (value) {
+                              if (value != null) {
+                                setState(() => marker = value);
+                              }
+                            },
                           ),
                         ),
                         const _OnboardingPage(
@@ -213,12 +215,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   void _next() {
-    if (page == 1) {
+    if (page == 0) {
       final error = widget.state.setDisplayName(name.text);
       if (error != null) {
         setState(() => nameError = error);
         return;
       }
+    }
+    if (page == 1) {
       widget.state.setPlayerMarker(marker);
       setState(() {
         confirmed = false;

@@ -55,6 +55,8 @@ class _HideAndSeekAppState extends State<HideAndSeekApp> {
                         : WelcomeScreen(
                             key: const ValueKey('welcome'),
                             playerName: state.displayName,
+                            backendConnected: state.backendConnected,
+                            backendError: state.backendError,
                             onContinue: () =>
                                 setState(() => welcomeCompleted = true),
                           )

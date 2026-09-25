@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class PlayerSession {
   const PlayerSession({
@@ -35,8 +36,22 @@ class BackendApiClient {
   String? _playerToken;
 
   Uri _endpoint(String path) => baseUri.replace(
-        path: '${baseUri.path.replaceFirst(RegExp(r'/$'), '')}$path',
+        path: baseUri.path.replaceFirst(RegExp(r'/$'), '') + path,
       );
+
+  Future<PlayerSession?> restorePlayerSession() async {
+    final preferences = await SharedPreferences.getInstance();
+    final playerId = preferences.getString('verstobbertje.playerId');
+    final profileName = preferences.getString('verstobbertje.profileName');
+    final token = preferences.getString('verstobbertje.playerToken');
+    if (playerId == null || profileName == null || token == null) return null;
+    _playerToken = token;
+    return PlayerSession(
+      playerId: playerId,
+      profileName: profileName,
+      token: token,
+    );
+  }
 
   Future<PlayerSession> registerPlayer(String profileName) async {
     final response = await client.post(
@@ -56,11 +71,19 @@ class BackendApiClient {
       throw const BackendApiException(502, 'invalid_player_response');
     }
     _playerToken = token;
-    return PlayerSession(
+    final session = PlayerSession(
       playerId: playerId,
       profileName: returnedName,
       token: token,
     );
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setString('verstobbertje.playerId', session.playerId);
+    await preferences.setString(
+      'verstobbertje.profileName',
+      session.profileName,
+    );
+    await preferences.setString('verstobbertje.playerToken', session.token);
+    return session;
   }
 
   Future<void> sendGameEvent({

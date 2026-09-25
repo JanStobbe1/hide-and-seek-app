@@ -31,6 +31,27 @@ class _HideAndSeekAppState extends State<HideAndSeekApp> {
   bool showCover = true;
   bool onboardingCompleted = false;
   bool welcomeCompleted = false;
+  late Future<bool> _sessionRestore;
+
+  @override
+  void initState() {
+    super.initState();
+    _sessionRestore = state.restoreBackendSession();
+    unawaited(_completeOnboardingForRestoredSession());
+  }
+
+  Future<void> _completeOnboardingForRestoredSession() async {
+    final restored = await _sessionRestore;
+    if (!mounted || !restored) return;
+    setState(() => onboardingCompleted = true);
+  }
+
+  Future<void> _connectBackendAfterOnboarding() async {
+    final restored = await _sessionRestore;
+    if (!restored) {
+      await state.connectBackend();
+    }
+  }
 
   @override
   Widget build(BuildContext context) => ListenableBuilder(
@@ -68,7 +89,7 @@ class _HideAndSeekAppState extends State<HideAndSeekApp> {
                         state: state,
                         onComplete: () {
                           setState(() => onboardingCompleted = true);
-                          unawaited(state.connectBackend());
+                          unawaited(_connectBackendAfterOnboarding());
                         },
                       ),
           ),

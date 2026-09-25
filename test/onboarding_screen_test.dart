@@ -21,9 +21,11 @@ void main() {
 
     expect(find.text('Aangenaam kennis te maken!'), findsOneWidget);
     expect(find.byType(StobbeGuide), findsOneWidget);
+    await tester.enterText(find.byKey(const Key('onboarding-name')), 'Noor');
     await tester.tap(find.text('Volgende'));
     await tester.pumpAndSettle();
-    await tester.enterText(find.byKey(const Key('onboarding-name')), 'Noor');
+    expect(find.text('Kies je kaartmarker'), findsOneWidget);
+    expect(find.byType(StobbeGuide), findsOneWidget);
     await tester.tap(find.text('Volgende'));
     await tester.pumpAndSettle();
     expect(find.text('Zo spelen we samen'), findsOneWidget);

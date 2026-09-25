@@ -33,6 +33,12 @@ jobs:
       - name: Check formatting
         run: dart format --output=none --set-exit-if-changed .
 
+      - name: Show formatting diff when needed
+        if: failure()
+        run: |
+          dart format .
+          git diff -- lib/presentation/onboarding_screen.dart test/onboarding_screen_test.dart
+
       - name: Analyze
         run: flutter analyze
 

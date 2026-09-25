@@ -268,48 +268,50 @@ class _GuidedTourOverlay extends StatelessWidget {
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.all(20),
                     child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      StobbeGuide(explanation: current.text),
-                      const SizedBox(height: 12),
-                      Text(
-                        current.title,
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.w900,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        StobbeGuide(explanation: current.text),
+                        const SizedBox(height: 12),
+                        Text(
+                          current.title,
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleLarge
+                              ?.copyWith(fontWeight: FontWeight.w900),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Rondleiding ${step + 1} van ${steps.length}',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            TextButton(
+                              key: const Key('guided-tour-skip'),
+                              onPressed: onSkip,
+                              child: const Text('Overslaan'),
                             ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Rondleiding ${step + 1} van ${steps.length}',
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          TextButton(
-                            key: const Key('guided-tour-skip'),
-                            onPressed: onSkip,
-                            child: const Text('Overslaan'),
-                          ),
-                          const Spacer(),
-                          FilledButton.icon(
-                            key: const Key('guided-tour-next'),
-                            onPressed: onNext,
-                            icon: Icon(
-                              step == steps.length - 1
-                                  ? Icons.check
-                                  : Icons.arrow_forward,
+                            const Spacer(),
+                            FilledButton.icon(
+                              key: const Key('guided-tour-next'),
+                              onPressed: onNext,
+                              icon: Icon(
+                                step == steps.length - 1
+                                    ? Icons.check
+                                    : Icons.arrow_forward,
+                              ),
+                              label: Text(
+                                step == steps.length - 1
+                                    ? 'Beginnen'
+                                    : 'Volgende',
+                              ),
                             ),
-                            label: Text(
-                              step == steps.length - 1
-                                  ? 'Beginnen'
-                                  : 'Volgende',
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

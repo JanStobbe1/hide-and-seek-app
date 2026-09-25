@@ -102,7 +102,13 @@ class _AppShellState extends State<AppShell> {
                 : _buildMobileLayout(content);
             return Stack(
               children: [
-                layout,
+                ExcludeSemantics(
+                  excluding: tourActive,
+                  child: ExcludeFocus(
+                    excluding: tourActive,
+                    child: layout,
+                  ),
+                ),
                 if (tourActive)
                   _GuidedTourOverlay(
                     step: tourStep,
@@ -255,9 +261,13 @@ class _GuidedTourOverlay extends StatelessWidget {
               constraints: const BoxConstraints(maxWidth: 620),
               child: Card(
                 margin: const EdgeInsets.all(24),
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.sizeOf(context).height - 48,
+                  ),
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       StobbeGuide(explanation: current.text),

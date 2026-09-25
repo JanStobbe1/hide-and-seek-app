@@ -260,7 +260,6 @@ class _ActiveMapPage extends StatefulWidget {
 class _ActiveMapPageState extends State<_ActiveMapPage>
     with SingleTickerProviderStateMixin {
   static const playerPosition = Offset(550, 410);
-  static const opponentPosition = Offset(950, 130);
 
   final TransformationController controller = TransformationController();
   late final AnimationController powerAnimation;
@@ -392,15 +391,6 @@ class _ActiveMapPageState extends State<_ActiveMapPage>
                   ],
                 ),
               ),
-              AnimatedBuilder(
-                animation: controller,
-                builder: (context, _) => _PlayerDirectionIndicator(
-                  controller: controller,
-                  viewportSize: viewportSize,
-                  scenePosition: opponentPosition,
-                  label: 'Mila',
-                ),
-              ),
               if (widget.activePowerEffect != null)
                 Positioned.fill(
                   child: IgnorePointer(
@@ -431,78 +421,6 @@ class _ActiveMapPageState extends State<_ActiveMapPage>
           );
         },
       );
-}
-
-class _PlayerDirectionIndicator extends StatelessWidget {
-  const _PlayerDirectionIndicator({
-    required this.controller,
-    required this.viewportSize,
-    required this.scenePosition,
-    required this.label,
-  });
-
-  final TransformationController controller;
-  final Size viewportSize;
-  final Offset scenePosition;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    if (viewportSize.isEmpty) return const SizedBox.shrink();
-    final screenPosition =
-        MatrixUtils.transformPoint(controller.value, scenePosition);
-    final safeRect = (Offset.zero & viewportSize).deflate(30);
-    if (safeRect.contains(screenPosition)) return const SizedBox.shrink();
-
-    final center = viewportSize.center(Offset.zero);
-    final direction = screenPosition - center;
-    final halfWidth = math.max(1.0, safeRect.width / 2);
-    final halfHeight = math.max(1.0, safeRect.height / 2);
-    final xFactor = direction.dx.abs() < .01
-        ? double.infinity
-        : halfWidth / direction.dx.abs();
-    final yFactor = direction.dy.abs() < .01
-        ? double.infinity
-        : halfHeight / direction.dy.abs();
-    final edgeFactor = math.min(xFactor, yFactor);
-    if (!edgeFactor.isFinite || direction.distance < .01) {
-      return const SizedBox.shrink();
-    }
-    final edge = center + direction * edgeFactor;
-    final angle = math.atan2(direction.dy, direction.dx) + math.pi / 2;
-
-    return Positioned(
-      left: edge.dx - 30,
-      top: edge.dy - 30,
-      child: Semantics(
-        label: '$label ligt buiten beeld',
-        child: Column(
-          children: [
-            Transform.rotate(
-              angle: angle,
-              child: const Icon(
-                Icons.navigation,
-                color: Color(0xff8d3f54),
-                size: 36,
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                label,
-                style:
-                    const TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 class _PowerMapEffect extends StatelessWidget {
@@ -633,15 +551,6 @@ class _GameMapCanvas extends StatelessWidget {
                   color: Color(0xff6650a4)),
             ),
             const Positioned(
-              left: 930,
-              top: 105,
-              child: _MapMarker(
-                icon: Icons.directions_run,
-                label: 'Mila',
-                color: Color(0xff8d3f54),
-              ),
-            ),
-            const Positioned(
               left: 870,
               top: 520,
               child: _MapMarker(
@@ -742,7 +651,6 @@ class _MapLegend extends StatelessWidget {
             runSpacing: 8,
             children: [
               _LegendItem(Icons.person_pin_circle, 'Jij'),
-              _LegendItem(Icons.navigation, 'Speler buiten beeld'),
               _LegendItem(Icons.help_outline, 'Zoekcirkel'),
               _LegendItem(Icons.auto_awesome, 'Stobbekracht'),
               _LegendItem(Icons.inventory_2, 'Stobbekist: profielpunten'),

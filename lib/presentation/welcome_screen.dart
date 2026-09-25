@@ -66,10 +66,10 @@ class WelcomeScreen extends StatelessWidget {
                     ),
                   ] else if (backendError != null) ...[
                     const SizedBox(height: 12),
-                    Text(
+                    const Text(
                       'Je profiel kon nog niet worden opgeslagen. '
                       'Je kunt wel verdergaan; we proberen het later opnieuw.',
-                      key: const Key('backend-error'),
+                      key: Key('backend-error'),
                       textAlign: TextAlign.center,
                     ),
                   ],

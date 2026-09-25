@@ -21,8 +21,12 @@ class OnboardingScreen extends StatefulWidget {
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController controller = PageController();
   final TextEditingController name = TextEditingController();
+  final TextEditingController age = TextEditingController();
+  final TextEditingController city = TextEditingController();
   int page = 0;
   String? nameError;
+  String? ageError;
+  String? cityError;
   String? confirmationError;
   bool confirmed = false;
   late PlayerMarker marker;
@@ -37,6 +41,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   void dispose() {
     controller.dispose();
     name.dispose();
+    age.dispose();
+    city.dispose();
     super.dispose();
   }
 
@@ -55,7 +61,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
                     child: Row(
                       children: List.generate(
-                        5,
+                        6,
                         (index) => Expanded(
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 250),
@@ -89,7 +95,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             children: [
                               Image.asset(
                                 'assets/images/stobbekarakter.png',
-                                height: 220,
+                                height: 200,
                                 fit: BoxFit.contain,
                               ),
                               const SizedBox(height: 12),
@@ -108,28 +114,61 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           ),
                         ),
                         _OnboardingPage(
-                          icon: Icons.badge_outlined,
-                          title: 'Kies je kaartmarker',
+                          icon: Icons.forest_outlined,
+                          title: 'Hoeveel jaarringen heb jij?',
                           text:
-                              'Dank je! Ik zet je naam op mijn vinklijstje. Kies nu een marker, zodat ik je straks tussen alle spelers herken.',
-                          child: DropdownButtonFormField<PlayerMarker>(
-                            initialValue: marker,
-                            decoration: const InputDecoration(
-                              labelText: 'Mijn kaartmarker',
+                              'Ik heb al heel wat jaarringen verzameld. Geen zorgen: ik vraag niet naar mijn leeftijd. Hoeveel jaarringen mag ik bij jou noteren?',
+                          child: TextField(
+                            key: const Key('onboarding-age'),
+                            controller: age,
+                            keyboardType: TextInputType.number,
+                            maxLength: 3,
+                            decoration: InputDecoration(
+                              labelText: 'Jouw leeftijd',
+                              hintText: 'Bijvoorbeeld 12',
+                              errorText: ageError,
                             ),
-                            items: PlayerMarker.values
-                                .map(
-                                  (value) => DropdownMenuItem(
-                                    value: value,
-                                    child: Text(_markerLabel(value)),
-                                  ),
-                                )
-                                .toList(),
-                            onChanged: (value) {
-                              if (value != null) {
-                                setState(() => marker = value);
-                              }
-                            },
+                          ),
+                        ),
+                        _OnboardingPage(
+                          icon: Icons.badge_outlined,
+                          title: 'Jouw pionnetje',
+                          text:
+                              'Dank je! Waar staat jouw basis? En wat voor speler ben jij? Kies een pionnetje, zodat ik je straks tussen alle spelers herken.',
+                          child: Column(
+                            children: [
+                              TextField(
+                                key: const Key('onboarding-city'),
+                                controller: city,
+                                maxLength: 40,
+                                textInputAction: TextInputAction.done,
+                                decoration: InputDecoration(
+                                  labelText: 'Woonplaats',
+                                  hintText: 'Bijvoorbeeld Amsterdam',
+                                  errorText: cityError,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              DropdownButtonFormField<PlayerMarker>(
+                                initialValue: marker,
+                                decoration: const InputDecoration(
+                                  labelText: 'Mijn pionnetje',
+                                ),
+                                items: PlayerMarker.values
+                                    .map(
+                                      (value) => DropdownMenuItem(
+                                        value: value,
+                                        child: Text(_markerLabel(value)),
+                                      ),
+                                    )
+                                    .toList(),
+                                onChanged: (value) {
+                                  if (value != null) {
+                                    setState(() => marker = value);
+                                  }
+                                },
+                              ),
+                            ],
                           ),
                         ),
                         const _OnboardingPage(
@@ -165,6 +204,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               'Zo ${widget.state.displayName}, je bent er helemaal klaar voor. Nog één keer checken of ik alles goed heb genoteerd:',
                           child: _OnboardingConfirmation(
                             playerName: widget.state.displayName,
+                            playerAge: age.text,
+                            playerCity: city.text,
                             marker: marker,
                             confirmed: confirmed,
                             errorText: confirmationError,
@@ -190,11 +231,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         const Spacer(),
                         FilledButton.icon(
                           onPressed: _next,
-                          icon: Icon(page == 4
+                          icon: Icon(page == 5
                               ? Icons.menu_book
                               : Icons.arrow_forward),
                           label: Text(
-                            page == 4 ? 'Akkoord en ondertekenen' : 'Volgende',
+                            page == 5 ? 'Akkoord en ondertekenen' : 'Volgende',
                           ),
                         ),
                       ],
@@ -223,13 +264,27 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       }
     }
     if (page == 1) {
+      final value = age.text.trim();
+      if (value.isEmpty || int.tryParse(value) == null) {
+        setState(() => ageError = 'Vul je leeftijd in als getal.');
+        return;
+      }
+      widget.state.setProfileAge(value);
+    }
+    if (page == 2) {
+      final value = city.text.trim();
+      if (value.isEmpty) {
+        setState(() => cityError = 'Vul je woonplaats in.');
+        return;
+      }
+      widget.state.setProfileCity(value);
       widget.state.setPlayerMarker(marker);
       setState(() {
         confirmed = false;
         confirmationError = null;
       });
     }
-    if (page == 4) {
+    if (page == 5) {
       if (!confirmed) {
         setState(
           () => confirmationError = 'Vink eerst aan dat je gegevens kloppen.',
@@ -307,6 +362,8 @@ class _OnboardingFacts extends StatelessWidget {
 class _OnboardingConfirmation extends StatelessWidget {
   const _OnboardingConfirmation({
     required this.playerName,
+    required this.playerAge,
+    required this.playerCity,
     required this.marker,
     required this.confirmed,
     required this.errorText,
@@ -314,6 +371,8 @@ class _OnboardingConfirmation extends StatelessWidget {
   });
 
   final String playerName;
+  final String playerAge;
+  final String playerCity;
   final PlayerMarker marker;
   final bool confirmed;
   final String? errorText;
@@ -332,7 +391,7 @@ class _OnboardingConfirmation extends StatelessWidget {
                 onChanged: (value) => onChanged(value ?? false),
                 title: const Text('Mijn gegevens kloppen'),
                 subtitle: Text(
-                  'Naam: $playerName\nMarker: ${_markerLabel(marker)}',
+                  'Naam: $playerName\nLeeftijd: $playerAge\nWoonplaats: $playerCity\nPionnetje: ${_markerLabel(marker)}',
                 ),
                 controlAffinity: ListTileControlAffinity.leading,
               ),
@@ -347,15 +406,37 @@ class _OnboardingConfirmation extends StatelessWidget {
               if (confirmed) ...[
                 const Divider(),
                 const SizedBox(height: 4),
-                const Text(
-                  'Ondertekend door de Mr. Stobbe',
-                  key: Key('onboarding-signature'),
-                  style: TextStyle(
-                    fontStyle: FontStyle.italic,
-                    fontWeight: FontWeight.w700,
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Mr. Stobbe',
+                      key: Key('onboarding-signature'),
+                      style: TextStyle(
+                        fontFamily: 'cursive',
+                        fontStyle: FontStyle.italic,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(width: 2),
+                        color: Theme.of(context).colorScheme.secondaryContainer,
+                      ),
+                      child: const Text(
+                        'HIRED',
+                        key: Key('onboarding-hired-stamp'),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                const Text('Mr. Stobbe'),
               ],
             ],
           ),

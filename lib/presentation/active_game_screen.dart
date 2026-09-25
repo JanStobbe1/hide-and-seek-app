@@ -651,7 +651,6 @@ class _MapLegend extends StatelessWidget {
             runSpacing: 8,
             children: [
               _LegendItem(Icons.person_pin_circle, 'Jij'),
-              _LegendItem(Icons.navigation, 'Speler buiten beeld'),
               _LegendItem(Icons.help_outline, 'Zoekcirkel'),
               _LegendItem(Icons.auto_awesome, 'Stobbekracht'),
               _LegendItem(Icons.inventory_2, 'Stobbekist: profielpunten'),

@@ -308,14 +308,13 @@ class _ActiveMapPageState extends State<_ActiveMapPage>
     if (viewportSize.isEmpty) return;
     final scale = controller.value.getMaxScaleOnAxis().clamp(.55, 3.0);
     final center = viewportSize.center(Offset.zero);
+    // Build the transform around the player's scene position. Applying
+    // scale before the scene translation keeps the marker under the viewport
+    // center at every zoom level.
     controller.value = Matrix4.identity()
-      ..translateByDouble(
-        center.dx - playerPosition.dx * scale,
-        center.dy - playerPosition.dy * scale,
-        0,
-        1,
-      )
-      ..scaleByDouble(scale, scale, 1, 1);
+      ..translateByDouble(center.dx, center.dy, 0, 1)
+      ..scaleByDouble(scale, scale, 1, 1)
+      ..translateByDouble(-playerPosition.dx, -playerPosition.dy, 0, 1);
   }
 
   @override
@@ -335,6 +334,7 @@ class _ActiveMapPageState extends State<_ActiveMapPage>
                   child: InteractiveViewer(
                     transformationController: controller,
                     constrained: false,
+                    alignment: Alignment.center,
                     minScale: .55,
                     maxScale: 3,
                     boundaryMargin: const EdgeInsets.all(300),

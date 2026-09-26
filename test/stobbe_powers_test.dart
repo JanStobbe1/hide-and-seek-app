@@ -31,8 +31,12 @@ void main() {
         .startActivePhase();
     expect(inventory.slots.single.quantity, 2);
 
-    var slot = inventory.slots.single.use(inventory.phase);
-    slot = slot.use(inventory.phase);
+    final now = DateTime(2026, 9, 26, 8);
+    var slot = inventory.slots.single.use(inventory.phase, now);
+    slot = slot.use(
+      inventory.phase,
+      now.add(const Duration(seconds: 30)),
+    );
     expect(slot.quantity, 0);
     expect(slot.uses, 2);
     expect(slot.canUse(inventory.phase), isFalse);

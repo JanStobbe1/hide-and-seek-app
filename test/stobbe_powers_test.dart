@@ -8,6 +8,7 @@ void main() {
     maxUsesPerGame: 2,
     maxInventory: 2,
     duration: Duration(minutes: 2),
+    cooldown: Duration(seconds: 30),
   );
   const points = StobbePowerDefinition(
     kind: StobbePowerKind.profilePoints,
@@ -45,6 +46,24 @@ void main() {
 
     expect(afterUse.slotFor(StobbePowerKind.digitalDrone)!.quantity, 1);
     expect(afterUse.slotFor(StobbePowerKind.digitalDrone)!.uses, 1);
+  });
+
+  test('een gebruikte kracht toont de resterende cooldown', () {
+    final now = DateTime(2026, 9, 26, 8);
+    final inventory = const GamePowerInventory()
+        .add(drone)
+        .add(drone)
+        .startActivePhase();
+
+    final afterUse = inventory.use(StobbePowerKind.digitalDrone, now);
+    final slot = afterUse.slotFor(StobbePowerKind.digitalDrone)!;
+
+    expect(slot.cooldownRemaining(now), const Duration(seconds: 30));
+    expect(slot.canUse(GamePhase.active, now), isFalse);
+    expect(
+      slot.canUse(GamePhase.active, now.add(const Duration(seconds: 30))),
+      isTrue,
+    );
   });
 
   test('ongebruikte krachten vervallen na het spel', () {

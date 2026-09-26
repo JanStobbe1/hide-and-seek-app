@@ -544,7 +544,7 @@ class _ActiveMapPageState extends State<_ActiveMapPage>
                                           Icons.location_off,
                                           size: 48,
                                         ),
-                                        SizedBox(height: 12),
+                                        const SizedBox(height: 12),
                                         Text(
                                           locationError ??
                                               'Je echte locatie wordt opgehaald…',
@@ -553,8 +553,8 @@ class _ActiveMapPageState extends State<_ActiveMapPage>
                                             fontWeight: FontWeight.w700,
                                           ),
                                         ),
-                                        SizedBox(height: 8),
-                                        Text(
+                                        const SizedBox(height: 8),
+                                        const Text(
                                           'Geef in je browser locatietoestemming '
                                           'en probeer het daarna opnieuw.',
                                           textAlign: TextAlign.center,

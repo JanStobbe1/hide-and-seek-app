@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:latlong2/latlong.dart';
+import 'package:latlong2/latlong.dart' as latlong;
 
 import '../app_state.dart';
 import '../domain/models.dart';
@@ -32,7 +32,7 @@ class _RealLocationMap extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final center = LatLng(location.latitude, location.longitude);
+    final center = latlong.LatLng(location.latitude, location.longitude);
     return FlutterMap(
       key: ValueKey('${location.latitude}:${location.longitude}'),
       options: MapOptions(
@@ -55,7 +55,7 @@ class _RealLocationMap extends StatelessWidget {
               height: 72,
               child: Column(
                 children: [
-                  Icon(playerIcon, color: Color(0xff315c46), size: 42),
+                  Icon(playerIcon, color: const Color(0xff315c46), size: 42),
                   const Text(
                     'Jij',
                     style: TextStyle(fontWeight: FontWeight.w800),
@@ -717,132 +717,6 @@ class _MapButton extends StatelessWidget {
         tooltip: tooltip,
         onPressed: onPressed,
         child: Icon(icon),
-      );
-}
-
-class _GameMapCanvas extends StatelessWidget {
-  const _GameMapCanvas({required this.playerIcon});
-
-  final IconData playerIcon;
-
-  @override
-  Widget build(BuildContext context) => SizedBox(
-        width: 1100,
-        height: 820,
-        child: Stack(
-          children: [
-            Positioned.fill(child: CustomPaint(painter: _GameMapPainter())),
-            Positioned(
-              left: 520,
-              top: 375,
-              child: _MapMarker(
-                icon: playerIcon,
-                label: 'Jij',
-                color: const Color(0xff315c46),
-              ),
-            ),
-            const Positioned(
-              left: 730,
-              top: 230,
-              child: _MapMarker(
-                  icon: Icons.help_outline,
-                  label: 'Zoekcirkel',
-                  color: Color(0xffe5a62c)),
-            ),
-            const Positioned(
-              left: 275,
-              top: 565,
-              child: _MapMarker(
-                  icon: Icons.auto_awesome,
-                  label: 'Stobbekracht',
-                  color: Color(0xff6650a4)),
-            ),
-            const Positioned(
-              left: 870,
-              top: 520,
-              child: _MapMarker(
-                  icon: Icons.inventory_2,
-                  label: 'Stobbekist',
-                  color: Color(0xffa86b2d)),
-            ),
-          ],
-        ),
-      );
-}
-
-class _GameMapPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    canvas.drawRect(
-        Offset.zero & size, Paint()..color = const Color(0xffdce9d4));
-    final grid = Paint()
-      ..color = const Color(0x44315c46)
-      ..strokeWidth = 1;
-    for (double x = 0; x < size.width; x += 80) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), grid);
-    }
-    for (double y = 0; y < size.height; y += 80) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), grid);
-    }
-    final roads = Paint()
-      ..color = Colors.white70
-      ..strokeWidth = 22
-      ..style = PaintingStyle.stroke;
-    final road = Path()
-      ..moveTo(-40, 180)
-      ..cubicTo(260, 70, 520, 300, 1140, 120)
-      ..moveTo(120, 860)
-      ..cubicTo(180, 510, 690, 650, 980, -40);
-    canvas.drawPath(road, roads);
-    final boundary = Paint()
-      ..color = const Color(0xff315c46)
-      ..strokeWidth = 5
-      ..style = PaintingStyle.stroke;
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-          const Rect.fromLTWH(105, 80, 890, 650), const Radius.circular(60)),
-      boundary,
-    );
-    canvas.drawCircle(
-      const Offset(550, 410),
-      105,
-      Paint()
-        ..color = const Color(0x33315c46)
-        ..style = PaintingStyle.fill,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-class _MapMarker extends StatelessWidget {
-  const _MapMarker(
-      {required this.icon, required this.label, required this.color});
-  final IconData icon;
-  final String label;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) => Column(
-        children: [
-          Material(
-            color: color,
-            shape: const CircleBorder(),
-            elevation: 4,
-            child: Padding(
-              padding: const EdgeInsets.all(10),
-              child: Icon(icon, color: Colors.white, size: 28),
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-            color: Colors.white,
-            child: Text(label,
-                style:
-                    const TextStyle(fontSize: 11, fontWeight: FontWeight.w800)),
-          ),
-        ],
       );
 }
 

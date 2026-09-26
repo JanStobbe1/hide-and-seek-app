@@ -155,9 +155,9 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
   Duration get _powerEffectRemaining {
     final started = _powerEffectStartedAt;
     if (started == null) return Duration.zero;
-    final remaining = _powerEffectDuration.difference(
-      DateTime.now().difference(started),
-    );
+    final remaining = started
+        .add(_powerEffectDuration)
+        .difference(DateTime.now());
     return remaining.isNegative ? Duration.zero : remaining;
   }
 
@@ -272,6 +272,8 @@ class _ActiveMapPage extends StatefulWidget {
     required this.state,
     required this.onCatch,
     required this.activePowerEffect,
+    required this.activePowerDuration,
+    required this.activePowerRemaining,
     required this.powerEffectId,
   });
 

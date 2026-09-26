@@ -54,10 +54,8 @@ void main() {
 
   test('een gebruikte kracht toont de resterende cooldown', () {
     final now = DateTime(2026, 9, 26, 8);
-    final inventory = const GamePowerInventory()
-        .add(drone)
-        .add(drone)
-        .startActivePhase();
+    final inventory =
+        const GamePowerInventory().add(drone).add(drone).startActivePhase();
 
     final afterUse = inventory.use(StobbePowerKind.digitalDrone, now);
     final slot = afterUse.slotFor(StobbePowerKind.digitalDrone)!;

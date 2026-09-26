@@ -68,7 +68,7 @@ const createPlayerToken = async (env: Env, playerId: string) => {
 };
 
 const playerFromToken = async (request: Request, env: Env) => {
-  const value = request.headers.get("authorization")?.replace(/^Bearer\\s+/i, "");
+  const value = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
   if (!value) return null;
   const parts = value.split(".");
   if (parts.length !== 3) return null;

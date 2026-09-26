@@ -307,7 +307,6 @@ class _ActiveMapPageState extends State<_ActiveMapPage>
   void recenter() {
     if (viewportSize.isEmpty) return;
     final scale = controller.value.getMaxScaleOnAxis().clamp(.55, 3.0);
-    final center = viewportSize.center(Offset.zero);
     // Alignment.center already places the canvas center in the viewport.
     // Scale around the player's scene position so the marker stays centered
     // on small screens as well as on desktop.

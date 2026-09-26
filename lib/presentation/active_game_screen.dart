@@ -540,7 +540,10 @@ class _ActiveMapPageState extends State<_ActiveMapPage>
                                     child: Column(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        const Icon(Icons.location_off, size: 48),
+                                        const Icon(
+                                          Icons.location_off,
+                                          size: 48,
+                                        ),
                                         SizedBox(height: 12),
                                         Text(
                                           locationError ??

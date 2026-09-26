@@ -1046,8 +1046,7 @@ class _PowerDetailsSheetState extends State<_PowerDetailsSheet> {
   @override
   Widget build(BuildContext context) {
     final remaining = _cooldownRemaining;
-    final canActivate =
-        widget.showCooldownTimer && remaining == Duration.zero;
+    final canActivate = widget.showCooldownTimer && remaining == Duration.zero;
 
     return Padding(
       padding: const EdgeInsets.all(24),

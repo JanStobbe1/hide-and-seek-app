@@ -130,7 +130,7 @@ const route = async (request: Request, env: Env): Promise<Response> => {
 
   if (request.method === "GET" && path === "/api/v1/games") {
     const games = await env.DB.prepare(
-      `SELECT g.id, g.name, g.description, g.status, g.starts_at, g.ends_at,
+      `SELECT g.id, g.name, g.description,\n        CASE WHEN g.status = 'scheduled'\n          AND datetime(g.starts_at) <= CURRENT_TIMESTAMP\n          AND datetime(g.ends_at) > CURRENT_TIMESTAMP\n          THEN 'active' ELSE g.status END AS status,\n        g.starts_at, g.ends_at,
         g.created_at, g.created_by, g.country, g.province, g.city,
         g.neighbourhood, g.specific_area, g.duration_minutes,
         g.max_participants, g.distance_km, g.start_condition,

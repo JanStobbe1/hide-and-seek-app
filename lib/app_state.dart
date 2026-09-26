@@ -260,7 +260,7 @@ class AppState extends ChangeNotifier {
       ZoneRules.findDistance(activeZoneRadiusMeters);
 
   bool activateStobbePower(StobbePowerKind kind) {
-    final updated = powerInventory.use(kind);
+    final updated = powerInventory.use(kind, DateTime.now());
     if (identical(updated, powerInventory)) return false;
     powerInventory = updated;
     notifyListeners();
@@ -423,6 +423,7 @@ class AppState extends ChangeNotifier {
       maxUsesPerGame: 1,
       maxInventory: 1,
       duration: Duration(minutes: 2),
+      cooldown: Duration(minutes: 2),
     );
     const arm = StobbePowerDefinition(
       kind: StobbePowerKind.stobbeArm,
@@ -430,6 +431,7 @@ class AppState extends ChangeNotifier {
       maxUsesPerGame: 3,
       maxInventory: 3,
       duration: Duration(minutes: 3),
+      cooldown: Duration(minutes: 3),
     );
     const invisible = StobbePowerDefinition(
       kind: StobbePowerKind.invisibilityPotion,
@@ -437,6 +439,7 @@ class AppState extends ChangeNotifier {
       maxUsesPerGame: 1,
       maxInventory: 1,
       duration: Duration(minutes: 2),
+      cooldown: Duration(minutes: 2),
     );
     powerInventory = const GamePowerInventory()
         .add(drone)

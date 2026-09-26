@@ -871,8 +871,8 @@ class _PowerToken extends StatelessWidget {
                 clipBehavior: Clip.none,
                 children: [
                   Container(
-                    width: 78,
-                    height: 78,
+                    width: 68,
+                    height: 68,
                     decoration: BoxDecoration(
                       color: enabled ? color : Colors.grey,
                       shape: BoxShape.circle,
@@ -881,7 +881,7 @@ class _PowerToken extends StatelessWidget {
                         BoxShadow(color: Colors.black26, blurRadius: 6)
                       ],
                     ),
-                    child: Icon(icon, color: Colors.white, size: 38),
+                    child: Icon(icon, color: Colors.white, size: 34),
                   ),
                   Positioned(
                     right: -8,
@@ -898,21 +898,27 @@ class _PowerToken extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 9),
+              const SizedBox(height: 6),
               Text(name,
                   textAlign: TextAlign.center,
                   style: const TextStyle(fontWeight: FontWeight.w800)),
               if (cooldownRemaining > Duration.zero) ...[
-                const SizedBox(height: 5),
+                const SizedBox(height: 2),
                 Text(
                   'Opnieuw inzetbaar over ${_formatPowerDuration(cooldownRemaining)}',
                   textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 11, color: Colors.black54),
+                  style: const TextStyle(fontSize: 10, color: Colors.black54),
                 ),
               ],
               const SizedBox(height: 6),
               FilledButton.tonal(
                 onPressed: enabled ? onActivate : null,
+                style: const ButtonStyle(
+                  visualDensity: VisualDensity.compact,
+                  padding: WidgetStatePropertyAll(
+                    EdgeInsets.symmetric(horizontal: 10),
+                  ),
+                ),
                 child: const Text('INZETTEN'),
               ),
             ],

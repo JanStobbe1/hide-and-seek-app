@@ -165,7 +165,7 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
                     padding: const EdgeInsets.all(20),
                     children: [
                       _StatusRow(finished: state.gameFinished),
-                      const SizedBox(height: 12),
+                      const const SizedBox(height: 12),
                       _CountdownCard(state: state),
                     ],
                   ),
@@ -282,7 +282,7 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
                     .headlineSmall
                     ?.copyWith(fontWeight: FontWeight.w900),
               ),
-              const SizedBox(height: 8),
+              const const SizedBox(height: 8),
               Text(explanations[_pageIndex], textAlign: TextAlign.center),
             ],
           ),
@@ -529,24 +529,24 @@ class _ActiveMapPageState extends State<_ActiveMapPage>
                             width: 1100,
                             height: 820,
                             child: DecoratedBox(
-                              decoration: BoxDecoration(
+                              decoration: const BoxDecoration(
                                 color: Color(0xffe8f0e5),
                               ),
                               child: Center(
                                 child: Card(
-                                  margin: EdgeInsets.all(24),
+                                  margin: const EdgeInsets.all(24),
                                   child: Padding(
-                                    padding: EdgeInsets.all(24),
+                                    padding: const EdgeInsets.all(24),
                                     child: Column(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Icon(Icons.location_off, size: 48),
+                                        const Icon(Icons.location_off, size: 48),
                                         SizedBox(height: 12),
                                         Text(
                                           locationError ??
                                               'Je echte locatie wordt opgehaald…',
                                           textAlign: TextAlign.center,
-                                          style: TextStyle(
+                                          style: const TextStyle(
                                             fontWeight: FontWeight.w700,
                                           ),
                                         ),
@@ -556,11 +556,11 @@ class _ActiveMapPageState extends State<_ActiveMapPage>
                                           'en probeer het daarna opnieuw.',
                                           textAlign: TextAlign.center,
                                         ),
-                                        SizedBox(height: 16),
+                                        const SizedBox(height: 16),
                                         FilledButton.icon(
                                           onPressed: _startRealLocation,
-                                          icon: Icon(Icons.refresh),
-                                          label: Text('Opnieuw proberen'),
+                                          icon: const Icon(Icons.refresh),
+                                          label: const Text('Opnieuw proberen'),
                                         ),
                                       ],
                                     ),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../config/app_config.dart';
+
 import '../domain/profile_models.dart';
 
 class SectionTitle extends StatelessWidget {
@@ -77,7 +79,9 @@ class DemoBadge extends StatelessWidget {
   const DemoBadge({super.key});
 
   @override
-  Widget build(BuildContext context) => Container(
+  Widget build(BuildContext context) {
+    if (!AppConfig.demoMode) return const SizedBox.shrink();
+    return Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
           color: const Color(0xffffe19a),
@@ -92,6 +96,7 @@ class DemoBadge extends StatelessWidget {
           ),
         ),
       );
+  }
 }
 
 class MapPlaceholder extends StatelessWidget {

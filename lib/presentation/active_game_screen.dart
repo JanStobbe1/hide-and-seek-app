@@ -1045,7 +1045,8 @@ class _PowerToken extends StatelessWidget {
               if (showCooldownTimer && cooldownRemaining > Duration.zero) ...[
                 const SizedBox(height: 2),
                 Text(
-                  'Opnieuw inzetbaar over ${_formatPowerDuration(cooldownRemaining)}',
+                  'Opnieuw inzetbaar over '
+                  '${_formatPowerDuration(cooldownRemaining)}',
                   textAlign: TextAlign.center,
                   style: const TextStyle(fontSize: 10, color: Colors.black54),
                 ),

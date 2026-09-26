@@ -101,7 +101,7 @@ class MockGameRepository implements GameRepository {
     if (index < 0 || _joined.any((game) => game.id == id)) return;
     final game = _available[index].copyWith(
       participants: _available[index].participants + 1,
-      status: GameStatus.waiting,
+      status: _available[index].status == GameStatus.active\n          ? GameStatus.active\n          : GameStatus.waiting,
     );
     _available[index] = game;
     _joined.add(game);

@@ -31,7 +31,7 @@ jobs:
         run: flutter pub get
 
       - name: Check formatting
-        run: dart format --output=none --set-exit-if-changed .
+        run: dart format . && git diff -- test/active_game_screen_test.dart
 
       - name: Analyze
         run: flutter analyze

@@ -299,58 +299,71 @@ class MyGamesScreen extends StatelessWidget {
   final AppState state;
 
   @override
-  Widget build(BuildContext context) => ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          Text(
-            'Ik speel al mee met',
-            style: Theme.of(context)
-                .textTheme
-                .headlineSmall
-                ?.copyWith(fontWeight: FontWeight.w900),
-          ),
-          const SizedBox(height: 16),
+  Widget build(BuildContext context) {
+    final joinedGames = state.repository.joinedGames;
+    final activeGames = joinedGames
+        .where((game) => game.status == GameStatus.active)
+        .toList(growable: false);
+    final upcomingGames = joinedGames
+        .where((game) => game.status != GameStatus.active)
+        .toList(growable: false);
+
+    return ListView(
+      padding: const EdgeInsets.all(20),
+      children: [
+        Text(
+          'Ik speel al mee met',
+          style: Theme.of(context)
+              .textTheme
+              .headlineSmall
+              ?.copyWith(fontWeight: FontWeight.w900),
+        ),
+        const SizedBox(height: 16),
+        if (activeGames.isEmpty)
           Card(
             child: ListTile(
               leading: const CircleAvatar(child: Icon(Icons.radar)),
-              title: const Text(
-                'Game X',
-                style: TextStyle(fontWeight: FontWeight.w800),
-              ),
-              subtitle: Text(
-                '${state.activeGame.playersFound} van 20 gevonden • Actief',
-              ),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (_) => ActiveGameScreen(state: state)),
+              title: const Text('Nog geen actief spel'),
+              subtitle: const Text(
+                'Wanneer een aangemeld spel begint, verschijnt het hier.',
               ),
             ),
           ),
-          const SectionTitle('Binnenkort'),
-          if (state.repository.joinedGames.isEmpty)
-            const Card(
-              child: Padding(
-                padding: EdgeInsets.all(24),
-                child: Text(
-                  'Nog geen spellen. Ontdek een beschikbaar spel en doe mee!',
-                ),
-              ),
-            ),
-          ...state.repository.joinedGames.map(
-            (game) => GameCard(
-              game: game,
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => GameDetailScreen(state: state, game: game),
-                ),
+        ...activeGames.map(
+          (game) => GameCard(
+            game: game,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ActiveGameScreen(state: state),
               ),
             ),
           ),
-        ],
-      );
+        ),
+        const SectionTitle('Binnenkort'),
+        if (upcomingGames.isEmpty)
+          const Card(
+            child: Padding(
+              padding: EdgeInsets.all(24),
+              child: Text(
+                'Nog geen spellen. Ontdek een beschikbaar spel en doe mee!',
+              ),
+            ),
+          ),
+        ...upcomingGames.map(
+          (game) => GameCard(
+            game: game,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => GameDetailScreen(state: state, game: game),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 class CompletedGamesScreen extends StatelessWidget {

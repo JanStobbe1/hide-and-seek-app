@@ -20,6 +20,8 @@ class ActiveGameScreen extends StatefulWidget {
 class _ActiveGameScreenState extends State<ActiveGameScreen> {
   late final Timer _timer;
   Timer? _powerEffectTimer;
+  DateTime? _powerEffectStartedAt;
+  Duration _powerEffectDuration = Duration.zero;
   int _pageIndex = 1;
   StobbePowerKind? _activePowerEffect;
   int _powerEffectId = 0;
@@ -32,6 +34,7 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
     state.syncActiveGameClock();
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       state.syncActiveGameClock();
+      if (mounted) setState(() {});
       if (state.activeGame.countdown.isFinished) {
         _timer.cancel();
       }
@@ -83,6 +86,7 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
                 state: state,
                 onCatch: () => _showProximity(context),
                 activePowerEffect: _activePowerEffect,
+                activePowerRemaining: _powerEffectRemaining,
                 powerEffectId: _powerEffectId,
               ),
               _StobbePowersPage(
@@ -121,17 +125,39 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
       _notice(context, '$name is niet meer beschikbaar.');
       return;
     }
+    final definition = state.powerInventory.slotFor(kind)?.definition;
+    final duration = definition?.duration ?? const Duration(seconds: 4);
     _powerEffectTimer?.cancel();
+    _powerEffectStartedAt = DateTime.now();
+    _powerEffectDuration = duration;
     setState(() {
       _pageIndex = 1;
       _activePowerEffect = kind;
       _powerEffectId++;
     });
     _notice(context, '$name is ingezet.');
-    _powerEffectTimer = Timer(const Duration(seconds: 4), () {
+    _powerEffectTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!mounted) return;
-      setState(() => _activePowerEffect = null);
+      if (_powerEffectRemaining == Duration.zero) {
+        _powerEffectTimer?.cancel();
+        setState(() {
+          _activePowerEffect = null;
+          _powerEffectStartedAt = null;
+          _powerEffectDuration = Duration.zero;
+        });
+      } else {
+        setState(() {});
+      }
     });
+  }
+
+  Duration get _powerEffectRemaining {
+    final started = _powerEffectStartedAt;
+    if (started == null) return Duration.zero;
+    final remaining = _powerEffectDuration.difference(
+      DateTime.now().difference(started),
+    );
+    return remaining.isNegative ? Duration.zero : remaining;
   }
 
   void _showDetectiveHelp() {
@@ -251,6 +277,7 @@ class _ActiveMapPage extends StatefulWidget {
   final AppState state;
   final VoidCallback onCatch;
   final StobbePowerKind? activePowerEffect;
+  final Duration activePowerRemaining;
   final int powerEffectId;
 
   @override
@@ -397,6 +424,10 @@ class _ActiveMapPageState extends State<_ActiveMapPage>
                     child: _PowerMapEffect(
                       kind: widget.activePowerEffect!,
                       animation: powerAnimation,
+                      remaining: widget.activePowerRemaining,
+                      total: widget.activePowerRemaining > Duration.zero
+                          ? widget.activePowerRemaining
+                          : const Duration(seconds: 1),
                     ),
                   ),
                 ),
@@ -424,10 +455,17 @@ class _ActiveMapPageState extends State<_ActiveMapPage>
 }
 
 class _PowerMapEffect extends StatelessWidget {
-  const _PowerMapEffect({required this.kind, required this.animation});
+  const _PowerMapEffect({
+    required this.kind,
+    required this.animation,
+    required this.remaining,
+    required this.total,
+  });
 
   final StobbePowerKind kind;
   final Animation<double> animation;
+  final Duration remaining;
+  final Duration total;
 
   @override
   Widget build(BuildContext context) => LayoutBuilder(
@@ -453,6 +491,14 @@ class _PowerMapEffect extends StatelessWidget {
               StobbePowerKind.invisibilityPotion => Icons.visibility_off,
               _ => Icons.auto_awesome,
             };
+            final seconds = remaining.inSeconds.clamp(0, 5999);
+            final minutes = seconds ~/ 60;
+            final rest = seconds % 60;
+            final timeLabel =
+                '$minutes:${rest.toString().padLeft(2, '0')} resterend';
+            final progress =
+                (remaining.inMilliseconds / total.inMilliseconds)
+                    .clamp(0.0, 1.0);
             return Stack(
               children: [
                 Positioned(
@@ -480,12 +526,36 @@ class _PowerMapEffect extends StatelessWidget {
                         horizontal: 14,
                         vertical: 8,
                       ),
-                      child: Text(
-                        label,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w800,
-                        ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(icon, color: Colors.white, size: 18),
+                              const SizedBox(width: 6),
+                              Text(label, style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
+                              )),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(timeLabel, style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 12,
+                          )),
+                          const SizedBox(height: 4),
+                          SizedBox(
+                            width: 150,
+                            child: LinearProgressIndicator(
+                              value: progress,
+                              minHeight: 3,
+                              backgroundColor: Colors.white24,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -740,6 +810,7 @@ class _StobbePowersPage extends StatelessWidget {
                           description: details.description,
                           count: slot.quantity,
                           color: details.color,
+                          cooldownRemaining: slot.cooldownRemaining(),
                           enabled: !state.gameFinished &&
                               slot.canUse(state.powerInventory.phase),
                           onActivate: () => onActivate(
@@ -765,6 +836,7 @@ class _PowerToken extends StatelessWidget {
     required this.description,
     required this.count,
     required this.color,
+    required this.cooldownRemaining,
     required this.enabled,
     required this.onActivate,
   });
@@ -773,6 +845,7 @@ class _PowerToken extends StatelessWidget {
   final String description;
   final int count;
   final Color color;
+  final Duration cooldownRemaining;
   final bool enabled;
   final VoidCallback onActivate;
 
@@ -825,6 +898,14 @@ class _PowerToken extends StatelessWidget {
               Text(name,
                   textAlign: TextAlign.center,
                   style: const TextStyle(fontWeight: FontWeight.w800)),
+              if (cooldownRemaining > Duration.zero) ...[
+                const SizedBox(height: 5),
+                Text(
+                  'Opnieuw inzetbaar over ${_formatPowerDuration(cooldownRemaining)}',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 11, color: Colors.black54),
+                ),
+              ],
               const SizedBox(height: 6),
               FilledButton.tonal(
                 onPressed: enabled ? onActivate : null,
@@ -853,6 +934,8 @@ class _PowerToken extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(description, textAlign: TextAlign.center),
+            if (cooldownRemaining > Duration.zero)
+              Text('Opnieuw inzetbaar over ${_formatPowerDuration(cooldownRemaining)}'),
             const SizedBox(height: 14),
             FilledButton(
               onPressed: enabled
@@ -868,6 +951,13 @@ class _PowerToken extends StatelessWidget {
       ),
     );
   }
+}
+
+String _formatPowerDuration(Duration duration) {
+  final seconds = duration.inSeconds.clamp(0, 5999);
+  final minutes = seconds ~/ 60;
+  final rest = seconds % 60;
+  return '$minutes:${rest.toString().padLeft(2, '0')}';
 }
 
 ({IconData icon, String description, Color color}) _powerDetails(

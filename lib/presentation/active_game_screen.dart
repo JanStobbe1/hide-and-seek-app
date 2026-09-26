@@ -34,7 +34,7 @@ class _RealLocationMap extends StatelessWidget {
   Widget build(BuildContext context) {
     final center = LatLng(location.latitude, location.longitude);
     return FlutterMap(
-      key: ValueKey('\${location.latitude}:\${location.longitude}'),
+      key: ValueKey('${location.latitude}:${location.longitude}'),
       options: MapOptions(
         initialCenter: center,
         initialZoom: 16,
@@ -375,7 +375,9 @@ class _ActiveMapPageState extends State<_ActiveMapPage>
   Future<void> _startRealLocation() async {
     try {
       if (!await Geolocator.isLocationServiceEnabled()) {
-        if (mounted) setState(() => locationError = 'Locatieservice staat uit.');
+        if (mounted) {
+          setState(() => locationError = 'Locatieservice staat uit.');
+        }
         return;
       }
       var permission = await Geolocator.checkPermission();
@@ -384,7 +386,9 @@ class _ActiveMapPageState extends State<_ActiveMapPage>
       }
       if (permission == LocationPermission.denied ||
           permission == LocationPermission.deniedForever) {
-        if (mounted) setState(() => locationError = 'Locatietoestemming is nodig.');
+        if (mounted) {
+          setState(() => locationError = 'Locatietoestemming is nodig.');
+        }
         return;
       }
       final position = await Geolocator.getCurrentPosition(
@@ -401,7 +405,9 @@ class _ActiveMapPageState extends State<_ActiveMapPage>
       ).listen(_setRealLocation);
     } catch (_) {
       if (mounted) {
-        setState(() => locationError = 'Je locatie kon niet worden opgehaald.');
+        setState(() {
+          locationError = 'Je locatie kon niet worden opgehaald.';
+        });
       }
     }
   }

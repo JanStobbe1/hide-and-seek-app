@@ -320,9 +320,9 @@ class MyGamesScreen extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         if (activeGames.isEmpty)
-          Card(
+          const Card(
             child: ListTile(
-              leading: const CircleAvatar(child: Icon(Icons.radar)),
+              leading: CircleAvatar(child: Icon(Icons.radar)),
               title: const Text('Nog geen actief spel'),
               subtitle: const Text(
                 'Wanneer een aangemeld spel begint, verschijnt het hier.',

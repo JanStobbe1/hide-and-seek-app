@@ -25,16 +25,23 @@ class _PlayerLocation {
 }
 
 class _RealLocationMap extends StatelessWidget {
-  const _RealLocationMap({required this.location, required this.playerIcon});
+  const _RealLocationMap({
+    required this.location,
+    required this.playerIcon,
+    required this.controller,
+  });
 
   final _PlayerLocation location;
   final IconData playerIcon;
+  final MapController controller;
 
   @override
   Widget build(BuildContext context) {
     final center = latlong.LatLng(location.latitude, location.longitude);
-    return FlutterMap(
-      key: ValueKey('${location.latitude}:${location.longitude}'),
+    return Stack(
+      children: [
+        FlutterMap(
+          key: ValueKey('${location.latitude}:${location.longitude}'),
       options: MapOptions(
         initialCenter: center,
         initialZoom: 16,
@@ -64,6 +71,48 @@ class _RealLocationMap extends StatelessWidget {
               ),
             ),
           ],
+        ),
+          children: [
+            TileLayer(
+              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+              userAgentPackageName: 'nl.janstobbe.verstobbertje',
+            ),
+            MarkerLayer(
+              markers: [
+                Marker(
+                  point: center,
+                  width: 72,
+                  height: 72,
+                  child: Column(
+                    children: [
+                      Icon(
+                        playerIcon,
+                        color: const Color(0xff315c46),
+                        size: 42,
+                      ),
+                      const Text(
+                        'Jij',
+                        style: TextStyle(fontWeight: FontWeight.w800),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        const Positioned(
+          right: 8,
+          bottom: 8,
+          child: Card(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+              child: Text(
+                '© OpenStreetMap contributors',
+                style: TextStyle(fontSize: 10),
+              ),
+            ),
+          ),
         ),
       ],
     );
@@ -354,6 +403,7 @@ class _ActiveMapPageState extends State<_ActiveMapPage>
   static const playerPosition = Offset(550, 410);
 
   final TransformationController controller = TransformationController();
+  final MapController mapController = MapController();
   late final AnimationController powerAnimation;
   bool showLegend = false;
   bool didInitialCenter = false;
@@ -396,7 +446,9 @@ class _ActiveMapPageState extends State<_ActiveMapPage>
           accuracy: LocationAccuracy.high,
         ),
       );
+      if (!mounted) return;
       _setRealLocation(position);
+      if (!mounted) return;
       locationSubscription = Geolocator.getPositionStream(
         locationSettings: const LocationSettings(
           accuracy: LocationAccuracy.high,
@@ -454,6 +506,14 @@ class _ActiveMapPageState extends State<_ActiveMapPage>
   }
 
   void recenter() {
+    final location = currentLocation;
+    if (location != null) {
+      mapController.move(
+        latlong.LatLng(location.latitude, location.longitude),
+        16,
+      );
+      return;
+    }
     if (viewportSize.isEmpty) return;
     final scale = controller.value.getMaxScaleOnAxis().clamp(.55, 3.0);
     // Alignment.center already places the canvas center in the viewport.
@@ -502,6 +562,7 @@ class _ActiveMapPageState extends State<_ActiveMapPage>
                         : _RealLocationMap(
                             location: currentLocation!,
                             playerIcon: markerIcon(widget.state.playerMarker),
+                            controller: mapController,
                           ),
                   ),
                 ),

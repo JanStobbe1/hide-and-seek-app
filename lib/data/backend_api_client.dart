@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../domain/models.dart';
+
 class PlayerSession {
   const PlayerSession({
     required this.playerId,
@@ -84,6 +86,129 @@ class BackendApiClient {
     );
     await preferences.setString('verstobbertje.playerToken', session.token);
     return session;
+  }
+
+  Future<List<Game>> fetchAvailableGames() async {
+    final response = await client.get(_endpoint('/api/v1/games'));
+    final data = _decode(response);
+    final games = data['games'];
+    if (games is! List) return const [];
+    return games
+        .whereType<Map<String, dynamic>>()
+        .map(_gameFromJson)
+        .toList(growable: false);
+  }
+
+  Future<Game> createGame(Game game) async {
+    final token = _playerToken;
+    if (token == null) {
+      throw const BackendApiException(401, 'player_session_required');
+    }
+    final startsAt = game.scheduledStart?.toUtc().toIso8601String() ??
+        DateTime.now().toUtc().toIso8601String();
+    final response = await client.post(
+      _endpoint('/api/v1/games'),
+      headers: {
+        'content-type': 'application/json',
+        'authorization': 'Bearer $token',
+      },
+      body: jsonEncode({
+        'id': game.id,
+        'name': game.name,
+        'description': game.description,
+        'startsAt': startsAt,
+        'durationMinutes': game.duration.inMinutes,
+        'maxParticipants': game.maxParticipants,
+        'distanceKm': game.distanceKm,
+        'country': game.area.country,
+        'province': game.area.province,
+        'city': game.area.city,
+        'neighbourhood': game.area.neighbourhood,
+        'specificArea': game.area.specificArea,
+        'startCondition': game.startCondition.name,
+        'participantThreshold': game.participantThreshold,
+        'isPublic': game.isPublic,
+        'hintsEnabled': game.rules.hintsEnabled,
+        'questionsEnabled': game.rules.questionsEnabled,
+        'gameType': game.rules.gameType.name,
+        'allowRejoinAfterFound': game.rules.allowRejoinAfterFound,
+      }),
+    );
+    final data = _decode(response);
+    final created = data['game'];
+    if (created is! Map<String, dynamic>) {
+      throw const BackendApiException(502, 'invalid_game_response');
+    }
+    return _gameFromJson(created);
+  }
+
+  Future<void> joinGame(String gameId) async {
+    final token = _playerToken;
+    if (token == null) {
+      throw const BackendApiException(401, 'player_session_required');
+    }
+    final response = await client.post(
+      _endpoint('/api/v1/games/$gameId/join'),
+      headers: {
+        'authorization': 'Bearer $token',
+      },
+    );
+    _decode(response);
+  }
+
+  Game _gameFromJson(Map<String, dynamic> value) {
+    final status = switch (value['status']) {
+      'active' => GameStatus.active,
+      'waiting' => GameStatus.waiting,
+      'completed' => GameStatus.completed,
+      'abandoned' => GameStatus.abandoned,
+      _ => GameStatus.available,
+    };
+    final startCondition = value['start_condition'] == 'participantCount'
+        ? StartCondition.participantCount
+        : StartCondition.scheduled;
+    final startValue = DateTime.tryParse('${value['starts_at'] ?? ''}');
+    final gameType = GameType.values.firstWhere(
+      (item) => item.name == value['game_type'],
+      orElse: () => GameType.classic,
+    );
+    final asInt = (Object? item, int fallback) =>
+        item is num ? item.toInt() : int.tryParse('$item') ?? fallback;
+    final asDouble = (Object? item, double fallback) =>
+        item is num ? item.toDouble() : double.tryParse('$item') ?? fallback;
+    return Game(
+      id: '${value['id']}',
+      name: '${value['name'] ?? 'Naamloos spel'}',
+      organizer: '${value['organizer'] ?? 'Verstobbertje'}',
+      description: '${value['description'] ?? ''}',
+      area: SearchArea(
+        country: '${value['country'] ?? ''}',
+        province: '${value['province'] ?? ''}',
+        city: '${value['city'] ?? ''}',
+        neighbourhood: '${value['neighbourhood'] ?? ''}',
+        specificArea: '${value['specific_area'] ?? ''}',
+      ),
+      status: status,
+      duration: Duration(minutes: asInt(value['duration_minutes'], 120)),
+      participants: asInt(value['participant_count'], 0),
+      maxParticipants: asInt(value['max_participants'], 24),
+      distanceKm: asDouble(value['distance_km'], 0),
+      startCondition: startCondition,
+      scheduledStart: startValue,
+      participantThreshold: value['participant_threshold'] == null
+          ? null
+          : asInt(value['participant_threshold'], 1),
+      isPublic: value['is_public'] != 0 && value['is_public'] != false,
+      rules: GameRules(
+        hintsEnabled: value['hints_enabled'] != 0 &&
+            value['hints_enabled'] != false,
+        questionsEnabled: value['questions_enabled'] != 0 &&
+            value['questions_enabled'] != false,
+        gameType: gameType,
+        allowRejoinAfterFound: value['allow_rejoin_after_found'] != 0 &&
+            value['allow_rejoin_after_found'] != false,
+      ),
+    );
   }
 
   Future<void> sendGameEvent({

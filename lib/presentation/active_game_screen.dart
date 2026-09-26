@@ -165,7 +165,7 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
                     padding: const EdgeInsets.all(20),
                     children: [
                       _StatusRow(finished: state.gameFinished),
-                      const const SizedBox(height: 12),
+                      const SizedBox(height: 12),
                       _CountdownCard(state: state),
                     ],
                   ),
@@ -282,7 +282,7 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
                     .headlineSmall
                     ?.copyWith(fontWeight: FontWeight.w900),
               ),
-              const const SizedBox(height: 8),
+              const SizedBox(height: 8),
               Text(explanations[_pageIndex], textAlign: TextAlign.center),
             ],
           ),

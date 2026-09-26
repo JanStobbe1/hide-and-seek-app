@@ -82,18 +82,18 @@ class DemoBadge extends StatelessWidget {
     if (!AppConfig.demoMode) return const SizedBox.shrink();
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        decoration: BoxDecoration(
-          color: const Color(0xffffe19a),
-          borderRadius: BorderRadius.circular(99),
-        ),
+      decoration: BoxDecoration(
+        color: const Color(0xffffe19a),
+        borderRadius: BorderRadius.circular(99),
+      ),
       child: const Text(
-          'DEMO MODE',
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w900,
-            letterSpacing: .5,
-          ),
+        'DEMO MODE',
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w900,
+          letterSpacing: .5,
         ),
+      ),
     );
   }
 }

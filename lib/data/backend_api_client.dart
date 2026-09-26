@@ -104,9 +104,8 @@ class BackendApiClient {
     if (token == null) {
       throw const BackendApiException(401, 'player_session_required');
     }
-    final startsAt =
-        game.scheduledStart?.toUtc().toIso8601String() ??
-            DateTime.now().toUtc().toIso8601String();
+    final startsAt = game.scheduledStart?.toUtc().toIso8601String() ??
+        DateTime.now().toUtc().toIso8601String();
     final response = await client.post(
       _endpoint('/api/v1/games'),
       headers: {

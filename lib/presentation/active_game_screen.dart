@@ -3,10 +3,99 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import 'package:flutter_map/flutter_map.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:latlong2/latlong.dart' as latlong;
+
 import '../app_state.dart';
 import '../domain/models.dart';
 import '../domain/stobbe_powers.dart';
 import 'widgets.dart';
+
+class _PlayerLocation {
+  const _PlayerLocation({
+    required this.latitude,
+    required this.longitude,
+    required this.accuracyMeters,
+  });
+
+  final double latitude;
+  final double longitude;
+  final double accuracyMeters;
+}
+
+class _RealLocationMap extends StatelessWidget {
+  const _RealLocationMap({
+    required this.location,
+    required this.playerIcon,
+    required this.controller,
+  });
+
+  final _PlayerLocation location;
+  final IconData playerIcon;
+  final MapController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final center = latlong.LatLng(location.latitude, location.longitude);
+    return Stack(
+      children: [
+        FlutterMap(
+          key: ValueKey('${location.latitude}:${location.longitude}'),
+          mapController: controller,
+          options: MapOptions(
+            initialCenter: center,
+            initialZoom: 16,
+            interactionOptions: const InteractionOptions(
+              flags: InteractiveFlag.all,
+            ),
+          ),
+          children: [
+            TileLayer(
+              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+              userAgentPackageName: 'nl.janstobbe.verstobbertje',
+            ),
+            MarkerLayer(
+              markers: [
+                Marker(
+                  point: center,
+                  width: 72,
+                  height: 72,
+                  child: Column(
+                    children: [
+                      Icon(
+                        playerIcon,
+                        color: const Color(0xff315c46),
+                        size: 42,
+                      ),
+                      const Text(
+                        'Jij',
+                        style: TextStyle(fontWeight: FontWeight.w800),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        const Positioned(
+          right: 8,
+          bottom: 8,
+          child: Card(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+              child: Text(
+                '© OpenStreetMap contributors',
+                style: TextStyle(fontSize: 10),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
 
 class ActiveGameScreen extends StatefulWidget {
   const ActiveGameScreen({required this.state, super.key});
@@ -292,10 +381,14 @@ class _ActiveMapPageState extends State<_ActiveMapPage>
   static const playerPosition = Offset(550, 410);
 
   final TransformationController controller = TransformationController();
+  final MapController mapController = MapController();
   late final AnimationController powerAnimation;
   bool showLegend = false;
   bool didInitialCenter = false;
   Size viewportSize = Size.zero;
+  _PlayerLocation? currentLocation;
+  StreamSubscription<Position>? locationSubscription;
+  String? locationError;
 
   @override
   void initState() {
@@ -304,6 +397,61 @@ class _ActiveMapPageState extends State<_ActiveMapPage>
       vsync: this,
       duration: const Duration(seconds: 3),
     );
+    _startRealLocation();
+  }
+
+  Future<void> _startRealLocation() async {
+    try {
+      if (!await Geolocator.isLocationServiceEnabled()) {
+        if (mounted) {
+          setState(() => locationError = 'Locatieservice staat uit.');
+        }
+        return;
+      }
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        if (mounted) {
+          setState(() => locationError = 'Locatietoestemming is nodig.');
+        }
+        return;
+      }
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
+      );
+      if (!mounted) return;
+      _setRealLocation(position);
+      if (!mounted) return;
+      locationSubscription = Geolocator.getPositionStream(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          distanceFilter: 5,
+        ),
+      ).listen(_setRealLocation);
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          locationError = 'Je locatie kon niet worden opgehaald.';
+        });
+      }
+    }
+  }
+
+  void _setRealLocation(Position position) {
+    if (!mounted) return;
+    setState(() {
+      locationError = null;
+      currentLocation = _PlayerLocation(
+        latitude: position.latitude,
+        longitude: position.longitude,
+        accuracyMeters: position.accuracy,
+      );
+    });
   }
 
   @override
@@ -316,6 +464,7 @@ class _ActiveMapPageState extends State<_ActiveMapPage>
 
   @override
   void dispose() {
+    locationSubscription?.cancel();
     controller.dispose();
     powerAnimation.dispose();
     super.dispose();
@@ -335,6 +484,14 @@ class _ActiveMapPageState extends State<_ActiveMapPage>
   }
 
   void recenter() {
+    final location = currentLocation;
+    if (location != null) {
+      mapController.move(
+        latlong.LatLng(location.latitude, location.longitude),
+        16,
+      );
+      return;
+    }
     if (viewportSize.isEmpty) return;
     final scale = controller.value.getMaxScaleOnAxis().clamp(.55, 3.0);
     // Alignment.center already places the canvas center in the viewport.
@@ -367,9 +524,24 @@ class _ActiveMapPageState extends State<_ActiveMapPage>
                     minScale: .55,
                     maxScale: 3,
                     boundaryMargin: const EdgeInsets.all(300),
-                    child: _GameMapCanvas(
-                      playerIcon: markerIcon(widget.state.playerMarker),
-                    ),
+                    child: currentLocation == null
+                        ? Center(
+                            child: Card(
+                              child: Padding(
+                                padding: const EdgeInsets.all(18),
+                                child: Text(
+                                  locationError ??
+                                      'Je echte locatie wordt opgehaald…',
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                          )
+                        : _RealLocationMap(
+                            location: currentLocation!,
+                            playerIcon: markerIcon(widget.state.playerMarker),
+                            controller: mapController,
+                          ),
                   ),
                 ),
               ),
@@ -587,132 +759,6 @@ class _MapButton extends StatelessWidget {
       );
 }
 
-class _GameMapCanvas extends StatelessWidget {
-  const _GameMapCanvas({required this.playerIcon});
-
-  final IconData playerIcon;
-
-  @override
-  Widget build(BuildContext context) => SizedBox(
-        width: 1100,
-        height: 820,
-        child: Stack(
-          children: [
-            Positioned.fill(child: CustomPaint(painter: _GameMapPainter())),
-            Positioned(
-              left: 520,
-              top: 375,
-              child: _MapMarker(
-                icon: playerIcon,
-                label: 'Jij',
-                color: const Color(0xff315c46),
-              ),
-            ),
-            const Positioned(
-              left: 730,
-              top: 230,
-              child: _MapMarker(
-                  icon: Icons.help_outline,
-                  label: 'Zoekcirkel',
-                  color: Color(0xffe5a62c)),
-            ),
-            const Positioned(
-              left: 275,
-              top: 565,
-              child: _MapMarker(
-                  icon: Icons.auto_awesome,
-                  label: 'Stobbekracht',
-                  color: Color(0xff6650a4)),
-            ),
-            const Positioned(
-              left: 870,
-              top: 520,
-              child: _MapMarker(
-                  icon: Icons.inventory_2,
-                  label: 'Stobbekist',
-                  color: Color(0xffa86b2d)),
-            ),
-          ],
-        ),
-      );
-}
-
-class _GameMapPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    canvas.drawRect(
-        Offset.zero & size, Paint()..color = const Color(0xffdce9d4));
-    final grid = Paint()
-      ..color = const Color(0x44315c46)
-      ..strokeWidth = 1;
-    for (double x = 0; x < size.width; x += 80) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), grid);
-    }
-    for (double y = 0; y < size.height; y += 80) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), grid);
-    }
-    final roads = Paint()
-      ..color = Colors.white70
-      ..strokeWidth = 22
-      ..style = PaintingStyle.stroke;
-    final road = Path()
-      ..moveTo(-40, 180)
-      ..cubicTo(260, 70, 520, 300, 1140, 120)
-      ..moveTo(120, 860)
-      ..cubicTo(180, 510, 690, 650, 980, -40);
-    canvas.drawPath(road, roads);
-    final boundary = Paint()
-      ..color = const Color(0xff315c46)
-      ..strokeWidth = 5
-      ..style = PaintingStyle.stroke;
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-          const Rect.fromLTWH(105, 80, 890, 650), const Radius.circular(60)),
-      boundary,
-    );
-    canvas.drawCircle(
-      const Offset(550, 410),
-      105,
-      Paint()
-        ..color = const Color(0x33315c46)
-        ..style = PaintingStyle.fill,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-class _MapMarker extends StatelessWidget {
-  const _MapMarker(
-      {required this.icon, required this.label, required this.color});
-  final IconData icon;
-  final String label;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) => Column(
-        children: [
-          Material(
-            color: color,
-            shape: const CircleBorder(),
-            elevation: 4,
-            child: Padding(
-              padding: const EdgeInsets.all(10),
-              child: Icon(icon, color: Colors.white, size: 28),
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-            color: Colors.white,
-            child: Text(label,
-                style:
-                    const TextStyle(fontSize: 11, fontWeight: FontWeight.w800)),
-          ),
-        ],
-      );
-}
-
 class _MapLegend extends StatelessWidget {
   const _MapLegend();
 
@@ -912,7 +958,8 @@ class _PowerToken extends StatelessWidget {
               if (showCooldownTimer && cooldownRemaining > Duration.zero) ...[
                 const SizedBox(height: 2),
                 Text(
-                  'Opnieuw inzetbaar over ${_formatPowerDuration(cooldownRemaining)}',
+                  'Opnieuw inzetbaar over '
+                  '${_formatPowerDuration(cooldownRemaining)}',
                   textAlign: TextAlign.center,
                   style: const TextStyle(fontSize: 10, color: Colors.black54),
                 ),
@@ -999,8 +1046,7 @@ class _PowerDetailsSheetState extends State<_PowerDetailsSheet> {
   @override
   Widget build(BuildContext context) {
     final remaining = _cooldownRemaining;
-    final canActivate =
-        widget.showCooldownTimer && remaining == Duration.zero;
+    final canActivate = widget.showCooldownTimer && remaining == Duration.zero;
 
     return Padding(
       padding: const EdgeInsets.all(24),

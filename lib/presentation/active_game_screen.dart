@@ -308,11 +308,11 @@ class _ActiveMapPageState extends State<_ActiveMapPage>
     if (viewportSize.isEmpty) return;
     final scale = controller.value.getMaxScaleOnAxis().clamp(.55, 3.0);
     final center = viewportSize.center(Offset.zero);
-    // Build the transform around the player's scene position. Applying
-    // scale before the scene translation keeps the marker under the viewport
-    // center at every zoom level.
+    // Alignment.center already places the canvas center in the viewport.
+    // Scale around the player's scene position so the marker stays centered
+    // on small screens as well as on desktop.
     controller.value = Matrix4.identity()
-      ..translateByDouble(center.dx, center.dy, 0, 1)
+      ..translateByDouble(playerPosition.dx, playerPosition.dy, 0, 1)
       ..scaleByDouble(scale, scale, 1, 1)
       ..translateByDouble(-playerPosition.dx, -playerPosition.dy, 0, 1);
   }

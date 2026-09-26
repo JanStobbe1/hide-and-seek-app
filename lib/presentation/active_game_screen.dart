@@ -41,7 +41,7 @@ class _RealLocationMap extends StatelessWidget {
     return Stack(
       children: [
         FlutterMap(
-          key: ValueKey('\${location.latitude}:\${location.longitude}'),
+          key: ValueKey('${location.latitude}:${location.longitude}'),
           mapController: controller,
           options: MapOptions(
             initialCenter: center,

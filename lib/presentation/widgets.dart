@@ -47,7 +47,7 @@ class StatPill extends StatelessWidget {
           label: '$label: $value',
           child: Container(
             padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
+            decoration: BoxDecoration(
               color: const Color(0x1fffffff),
               borderRadius: BorderRadius.circular(16),
             ),

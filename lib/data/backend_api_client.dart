@@ -200,8 +200,8 @@ class BackendApiClient {
           : asInt(value['participant_threshold'], 1),
       isPublic: value['is_public'] != 0 && value['is_public'] != false,
       rules: GameRules(
-        hintsEnabled: value['hints_enabled'] != 0 &&
-            value['hints_enabled'] != false,
+        hintsEnabled:
+            value['hints_enabled'] != 0 && value['hints_enabled'] != false,
         questionsEnabled: value['questions_enabled'] != 0 &&
             value['questions_enabled'] != false,
         gameType: gameType,

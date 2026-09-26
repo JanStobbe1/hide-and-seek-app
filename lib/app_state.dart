@@ -289,30 +289,44 @@ class AppState extends ChangeNotifier {
       publish(game);
       return false;
     }
-    try {
-      await client.createGame(game);
-      await refreshBackendGames();
-      return true;
-    } on BackendApiException catch (error) {
-      backendError = error.code;
-      notifyListeners();
-      return false;
+    for (var attempt = 0; attempt < 2; attempt++) {
+      try {
+        await client.createGame(game);
+        await refreshBackendGames();
+        return true;
+      } on BackendApiException catch (error) {
+        if (error.statusCode == 401 && attempt == 0) {
+          final reconnected = await connectBackend();
+          if (reconnected) continue;
+        }
+        backendError = error.code;
+        notifyListeners();
+        return false;
+      }
     }
+    return false;
   }
 
   Future<bool> joinAsync(String id, [DateTime? timestamp]) async {
     final client = backendClient;
     if (client == null || !backendConnected) return join(id, timestamp);
-    try {
-      await client.joinGame(id);
-      final joined = join(id, timestamp);
-      await refreshBackendGames();
-      return joined;
-    } on BackendApiException catch (error) {
-      backendError = error.code;
-      notifyListeners();
-      return false;
+    for (var attempt = 0; attempt < 2; attempt++) {
+      try {
+        await client.joinGame(id);
+        final joined = join(id, timestamp);
+        await refreshBackendGames();
+        return joined;
+      } on BackendApiException catch (error) {
+        if (error.statusCode == 401 && attempt == 0) {
+          final reconnected = await connectBackend();
+          if (reconnected) continue;
+        }
+        backendError = error.code;
+        notifyListeners();
+        return false;
+      }
     }
+    return false;
   }
 
   Future<bool> restoreBackendSession() async {

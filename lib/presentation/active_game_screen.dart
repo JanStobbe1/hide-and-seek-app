@@ -500,7 +500,8 @@ class _PowerMapEffect extends StatelessWidget {
                 '$minutes:${rest.toString().padLeft(2, '0')} resterend';
             final progress =
                 (remaining.inMilliseconds / total.inMilliseconds)
-                    .clamp(0.0, 1.0);
+                    .clamp(0.0, 1.0)
+                    .toDouble();
             return Stack(
               children: [
                 Positioned(

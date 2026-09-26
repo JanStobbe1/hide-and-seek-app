@@ -18,6 +18,12 @@ class _AvailableGamesScreenState extends State<AvailableGamesScreen> {
   String sort = 'Afstand';
 
   @override
+  void initState() {
+    super.initState();
+    widget.state.refreshBackendGames();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final games = [...widget.state.repository.availableGames];
     switch (sort) {
@@ -238,21 +244,22 @@ class GameDetailScreen extends StatelessWidget {
               FilledButton.icon(
                 onPressed: joined
                     ? null
-                    : () {
-                        final joinedNow = state.join(game.id);
+                    : () async {
+                        final joinedNow = await state.joinAsync(game.id);
+                        if (!context.mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(
                               joinedNow
                                   ? 'Je doet mee! Het spel staat nu bij Mijn spellen.'
-                                  : 'De deelnameperiode voor dit spel is gesloten.',
+                                  : 'Deelname is niet gelukt of de deelnameperiode is gesloten.',
                             ),
                           ),
                         );
                         if (joinedNow) Navigator.pop(context);
                       },
                 icon: Icon(joined ? Icons.check : Icons.sports_kabaddi),
-                label: Text(joined ? 'Je doet al mee' : 'Doe mee (simulatie)'),
+                label: Text(joined ? 'Je doet al mee' : 'Doe mee'),
               ),
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 12),

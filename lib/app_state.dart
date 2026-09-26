@@ -267,6 +267,54 @@ class AppState extends ChangeNotifier {
     return true;
   }
 
+  bool get backendAvailable => backendClient != null && backendConnected;
+
+  Future<void> refreshBackendGames() async {
+    final client = backendClient;
+    if (client == null || !backendConnected) return;
+    try {
+      final games = await client.fetchAvailableGames();
+      repository.replaceAvailableGames(games);
+      backendError = null;
+      notifyListeners();
+    } on BackendApiException catch (error) {
+      backendError = error.code;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> publishAsync(Game game) async {
+    final client = backendClient;
+    if (client == null || !backendConnected) {
+      publish(game);
+      return false;
+    }
+    try {
+      await client.createGame(game);
+      await refreshBackendGames();
+      return true;
+    } on BackendApiException catch (error) {
+      backendError = error.code;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> joinAsync(String id, [DateTime? timestamp]) async {
+    final client = backendClient;
+    if (client == null || !backendConnected) return join(id, timestamp);
+    try {
+      await client.joinGame(id);
+      final joined = join(id, timestamp);
+      await refreshBackendGames();
+      return joined;
+    } on BackendApiException catch (error) {
+      backendError = error.code;
+      notifyListeners();
+      return false;
+    }
+  }
+
   Future<bool> restoreBackendSession() async {
     final client = backendClient;
     if (client == null) return false;
@@ -276,6 +324,7 @@ class AppState extends ChangeNotifier {
     displayName = session.profileName;
     backendConnected = true;
     backendError = null;
+    await refreshBackendGames();
     notifyListeners();
     return true;
   }
@@ -293,6 +342,7 @@ class AppState extends ChangeNotifier {
       backendPlayerId = session.playerId;
       backendConnected = true;
       backendError = null;
+      await refreshBackendGames();
       notifyListeners();
       return true;
     } on BackendApiException catch (error) {

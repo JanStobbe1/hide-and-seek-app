@@ -128,13 +128,128 @@ const route = async (request: Request, env: Env): Promise<Response> => {
     return json({ player: { id: playerId, profileName }, token }, 201, origin);
   }
 
+  if (request.method === "GET" && path === "/api/v1/games") {
+    const games = await env.DB.prepare(
+      `SELECT g.id, g.name, g.description, g.status, g.starts_at, g.ends_at,
+        g.created_at, g.created_by, g.country, g.province, g.city,
+        g.neighbourhood, g.specific_area, g.duration_minutes,
+        g.max_participants, g.distance_km, g.start_condition,
+        g.participant_threshold, g.is_public, g.hints_enabled,
+        g.questions_enabled, g.game_type, g.allow_rejoin_after_found,
+        COUNT(gp.player_id) AS participant_count
+       FROM games g
+       LEFT JOIN game_players gp ON gp.game_id = g.id AND gp.left_at IS NULL
+       WHERE g.is_public = 1
+         AND g.status IN ('scheduled', 'active')
+       GROUP BY g.id
+       ORDER BY g.starts_at ASC
+       LIMIT 100`,
+    ).all();
+    return json({ games: games.results }, 200, origin);
+  }
+
+  if (request.method === "POST" && path === "/api/v1/games") {
+    const authenticatedPlayer = await playerFromToken(request, env);
+    if (!authenticatedPlayer) return json({ error: "unauthorized" }, 401, origin);
+    const body = await parseBody(request);
+    const name = typeof body.name === "string" ? body.name.trim() : "";
+    const startsAt = typeof body.startsAt === "string" ? body.startsAt : "";
+    const maxParticipants = Number(body.maxParticipants);
+    const durationMinutes = Number(body.durationMinutes);
+    if (!name || !startsAt || !Number.isFinite(maxParticipants) ||
+        !Number.isFinite(durationMinutes)) {
+      return json({ error: "game_fields_required" }, 400, origin);
+    }
+    const gameId = typeof body.id === "string" && body.id.trim()
+      ? body.id.trim()
+      : crypto.randomUUID();
+    const game = {
+      id: gameId,
+      name,
+      description: typeof body.description === "string" ? body.description : "",
+      status: "scheduled",
+      starts_at: startsAt,
+      ends_at: new Date(Date.parse(startsAt) + durationMinutes * 60000).toISOString(),
+      created_by: authenticatedPlayer,
+      country: typeof body.country === "string" ? body.country : "",
+      province: typeof body.province === "string" ? body.province : "",
+      city: typeof body.city === "string" ? body.city : "",
+      neighbourhood: typeof body.neighbourhood === "string" ? body.neighbourhood : "",
+      specific_area: typeof body.specificArea === "string" ? body.specificArea : "",
+      duration_minutes: durationMinutes,
+      max_participants: maxParticipants,
+      distance_km: Number(body.distanceKm) || 0,
+      start_condition: typeof body.startCondition === "string"
+        ? body.startCondition : "scheduled",
+      participant_threshold: body.participantThreshold == null
+        ? null : Number(body.participantThreshold),
+      is_public: body.isPublic === false ? 0 : 1,
+      hints_enabled: body.hintsEnabled === false ? 0 : 1,
+      questions_enabled: body.questionsEnabled === false ? 0 : 1,
+      game_type: typeof body.gameType === "string" ? body.gameType : "classic",
+      allow_rejoin_after_found: body.allowRejoinAfterFound === true ? 1 : 0,
+    };
+    await env.DB.batch([
+      env.DB.prepare(
+        `INSERT INTO games
+          (id, name, description, status, starts_at, ends_at, created_by,
+           country, province, city, neighbourhood, specific_area,
+           duration_minutes, max_participants, distance_km, start_condition,
+           participant_threshold, is_public, hints_enabled, questions_enabled,
+           game_type, allow_rejoin_after_found)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ).bind(
+        game.id, game.name, game.description, game.status, game.starts_at,
+        game.ends_at, game.created_by, game.country, game.province, game.city,
+        game.neighbourhood, game.specific_area, game.duration_minutes,
+        game.max_participants, game.distance_km, game.start_condition,
+        game.participant_threshold, game.is_public, game.hints_enabled,
+        game.questions_enabled, game.game_type, game.allow_rejoin_after_found,
+      ),
+      env.DB.prepare(
+        "INSERT INTO game_players (game_id, player_id, role) VALUES (?, ?, 'host')",
+      ).bind(game.id, authenticatedPlayer),
+    ]);
+    return json({ game: { ...game, participant_count: 1 } }, 201, origin);
+  }
+
   const gameMatch = path.match(/^\/api\/v1\/games\/([^/]+)$/);
   if (request.method === "GET" && gameMatch) {
     const game = await env.DB.prepare(
-      "SELECT id, status, starts_at, ends_at, created_at, paused_at, stopped_at FROM games WHERE id = ?",
+      `SELECT g.*, COUNT(gp.player_id) AS participant_count
+       FROM games g
+       LEFT JOIN game_players gp ON gp.game_id = g.id AND gp.left_at IS NULL
+       WHERE g.id = ?
+       GROUP BY g.id`,
     ).bind(gameMatch[1]).first();
     if (!game) return json({ error: "game_not_found" }, 404, origin);
     return json({ game }, 200, origin);
+  }
+
+  const joinMatch = path.match(/^\/api\/v1\/games\/([^/]+)\/join$/);
+  if (request.method === "POST" && joinMatch) {
+    const authenticatedPlayer = await playerFromToken(request, env);
+    if (!authenticatedPlayer) return json({ error: "unauthorized" }, 401, origin);
+    const game = await env.DB.prepare(
+      "SELECT id, status, starts_at, max_participants, is_public FROM games WHERE id = ?",
+    ).bind(joinMatch[1]).first();
+    if (!game || Number(game.is_public) !== 1) {
+      return json({ error: "game_not_found" }, 404, origin);
+    }
+    const startsAt = Date.parse(String(game.starts_at));
+    if (!Number.isFinite(startsAt) || Date.now() > startsAt + 5 * 60 * 1000) {
+      return json({ error: "join_window_closed" }, 409, origin);
+    }
+    const count = await env.DB.prepare(
+      "SELECT COUNT(*) AS count FROM game_players WHERE game_id = ? AND left_at IS NULL",
+    ).bind(joinMatch[1]).first();
+    if (Number(count?.count ?? 0) >= Number(game.max_participants)) {
+      return json({ error: "game_full" }, 409, origin);
+    }
+    await env.DB.prepare(
+      "INSERT OR IGNORE INTO game_players (game_id, player_id, role) VALUES (?, ?, 'player')",
+    ).bind(joinMatch[1], authenticatedPlayer).run();
+    return json({ joined: true, gameId: joinMatch[1] }, 200, origin);
   }
 
   const eventMatch = path.match(/^\/api\/v1\/games\/([^/]+)\/events$/);

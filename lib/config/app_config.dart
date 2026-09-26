@@ -1,6 +1,6 @@
 abstract final class AppConfig {
   static const appName = 'Verstobbertje';
-  static const demoMode = true;
+  static const demoMode = false;
   static const backendBaseUrl = String.fromEnvironment('BACKEND_BASE_URL');
 
   static const joinGrace = Duration(minutes: 5);

@@ -512,7 +512,7 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
     if (selected != null && mounted) setState(() => scheduledTime = selected);
   }
 
-  void _publish() {
+  Future<void> _publish() async {
     final now = widget.clock.now();
     if (condition == StartCondition.scheduled &&
         !GameSchedulingRules(now).isAllowedStart(selectedStart)) {
@@ -523,39 +523,43 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
       );
       return;
     }
-    widget.state.publish(
-      Game(
-        id: 'created-${now.millisecondsSinceEpoch}',
-        name: name.text.trim().isEmpty ? 'Naamloos spel' : name.text.trim(),
-        organizer: 'Arie',
-        description: intro.text.trim().isEmpty
-            ? 'Een nieuw avontuur in Almere.'
-            : intro.text.trim(),
-        area: selectedArea,
-        status: GameStatus.available,
-        duration: Duration(minutes: duration),
-        participants: 1,
-        maxParticipants: players,
-        distanceKm: 1.2,
-        startCondition: condition,
-        scheduledStart: selectedScheduledStart,
-        participantThreshold: selectedParticipantThreshold,
-        isPublic: isPublic,
-        rules: GameRules(
-          hintsEnabled: hints,
-          questionsEnabled: questions,
-          gameType: gameType,
-          allowRejoinAfterFound: allowRejoinAfterFound,
-        ),
+    final game = Game(
+      id: 'created-${now.millisecondsSinceEpoch}',
+      name: name.text.trim().isEmpty ? 'Naamloos spel' : name.text.trim(),
+      organizer: widget.state.displayName,
+      description: intro.text.trim().isEmpty
+          ? 'Een nieuw avontuur in Almere.'
+          : intro.text.trim(),
+      area: selectedArea,
+      status: GameStatus.available,
+      duration: Duration(minutes: duration),
+      participants: 1,
+      maxParticipants: players,
+      distanceKm: 1.2,
+      startCondition: condition,
+      scheduledStart: selectedScheduledStart,
+      participantThreshold: selectedParticipantThreshold,
+      isPublic: isPublic,
+      rules: GameRules(
+        hintsEnabled: hints,
+        questionsEnabled: questions,
+        gameType: gameType,
+        allowRejoinAfterFound: allowRejoinAfterFound,
       ),
     );
+    final persisted = await widget.state.publishAsync(game);
+    if (!mounted) return;
     showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         icon: const Icon(Icons.rocket_launch, size: 46),
-        title: const Text('Spel is beschikbaar!'),
+        title: Text(
+          persisted ? 'Spel is beschikbaar!' : 'Spel lokaal opgeslagen',
+        ),
         content: Text(
-          '${name.text} staat nu lokaal tussen Beschikbare spellen.',
+          persisted
+              ? '${name.text} staat nu bij Beschikbare spellen.'
+              : '${name.text} staat lokaal opgeslagen. De backendverbinding is niet beschikbaar.',
         ),
         actions: [
           FilledButton(

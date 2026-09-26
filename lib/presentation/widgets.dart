@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../config/app_config.dart';
-
 import '../domain/profile_models.dart';
 
 class SectionTitle extends StatelessWidget {
@@ -48,7 +47,7 @@ class StatPill extends StatelessWidget {
           label: '$label: $value',
           child: Container(
             padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
+          decoration: BoxDecoration(
               color: const Color(0x1fffffff),
               borderRadius: BorderRadius.circular(16),
             ),
@@ -82,12 +81,12 @@ class DemoBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     if (!AppConfig.demoMode) return const SizedBox.shrink();
     return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
           color: const Color(0xffffe19a),
           borderRadius: BorderRadius.circular(99),
         ),
-        child: const Text(
+      child: const Text(
           'DEMO MODE',
           style: TextStyle(
             fontSize: 11,
@@ -95,7 +94,7 @@ class DemoBadge extends StatelessWidget {
             letterSpacing: .5,
           ),
         ),
-      );
+    );
   }
 }
 

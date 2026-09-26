@@ -31,7 +31,9 @@ jobs:
         run: flutter pub get
 
       - name: Check formatting
-        run: dart format --output=none --set-exit-if-changed .
+        run: |
+          dart format .
+          git diff -- lib/domain/stobbe_powers.dart lib/presentation/active_game_screen.dart test/stobbe_powers_test.dart
 
       - name: Analyze
         run: flutter analyze

@@ -3,10 +3,72 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import 'package:flutter_map/flutter_map.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:latlong2/latlong.dart';
+
 import '../app_state.dart';
 import '../domain/models.dart';
 import '../domain/stobbe_powers.dart';
 import 'widgets.dart';
+
+class _PlayerLocation {
+  const _PlayerLocation({
+    required this.latitude,
+    required this.longitude,
+    required this.accuracyMeters,
+  });
+
+  final double latitude;
+  final double longitude;
+  final double accuracyMeters;
+}
+
+class _RealLocationMap extends StatelessWidget {
+  const _RealLocationMap({required this.location, required this.playerIcon});
+
+  final _PlayerLocation location;
+  final IconData playerIcon;
+
+  @override
+  Widget build(BuildContext context) {
+    final center = LatLng(location.latitude, location.longitude);
+    return FlutterMap(
+      key: ValueKey('\${location.latitude}:\${location.longitude}'),
+      options: MapOptions(
+        initialCenter: center,
+        initialZoom: 16,
+        interactionOptions: const InteractionOptions(
+          flags: InteractiveFlag.all,
+        ),
+      ),
+      children: [
+        TileLayer(
+          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+          userAgentPackageName: 'nl.janstobbe.verstobbertje',
+        ),
+        MarkerLayer(
+          markers: [
+            Marker(
+              point: center,
+              width: 72,
+              height: 72,
+              child: Column(
+                children: [
+                  Icon(playerIcon, color: Color(0xff315c46), size: 42),
+                  const Text(
+                    'Jij',
+                    style: TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
 
 class ActiveGameScreen extends StatefulWidget {
   const ActiveGameScreen({required this.state, super.key});
@@ -296,6 +358,9 @@ class _ActiveMapPageState extends State<_ActiveMapPage>
   bool showLegend = false;
   bool didInitialCenter = false;
   Size viewportSize = Size.zero;
+  _PlayerLocation? currentLocation;
+  StreamSubscription<Position>? locationSubscription;
+  String? locationError;
 
   @override
   void initState() {
@@ -304,6 +369,53 @@ class _ActiveMapPageState extends State<_ActiveMapPage>
       vsync: this,
       duration: const Duration(seconds: 3),
     );
+    _startRealLocation();
+  }
+
+  Future<void> _startRealLocation() async {
+    try {
+      if (!await Geolocator.isLocationServiceEnabled()) {
+        if (mounted) setState(() => locationError = 'Locatieservice staat uit.');
+        return;
+      }
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        if (mounted) setState(() => locationError = 'Locatietoestemming is nodig.');
+        return;
+      }
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
+      );
+      _setRealLocation(position);
+      locationSubscription = Geolocator.getPositionStream(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          distanceFilter: 5,
+        ),
+      ).listen(_setRealLocation);
+    } catch (_) {
+      if (mounted) {
+        setState(() => locationError = 'Je locatie kon niet worden opgehaald.');
+      }
+    }
+  }
+
+  void _setRealLocation(Position position) {
+    if (!mounted) return;
+    setState(() {
+      locationError = null;
+      currentLocation = _PlayerLocation(
+        latitude: position.latitude,
+        longitude: position.longitude,
+        accuracyMeters: position.accuracy,
+      );
+    });
   }
 
   @override
@@ -316,6 +428,7 @@ class _ActiveMapPageState extends State<_ActiveMapPage>
 
   @override
   void dispose() {
+    locationSubscription?.cancel();
     controller.dispose();
     powerAnimation.dispose();
     super.dispose();
@@ -367,9 +480,23 @@ class _ActiveMapPageState extends State<_ActiveMapPage>
                     minScale: .55,
                     maxScale: 3,
                     boundaryMargin: const EdgeInsets.all(300),
-                    child: _GameMapCanvas(
-                      playerIcon: markerIcon(widget.state.playerMarker),
-                    ),
+                    child: currentLocation == null
+                        ? Center(
+                            child: Card(
+                              child: Padding(
+                                padding: const EdgeInsets.all(18),
+                                child: Text(
+                                  locationError ??
+                                      'Je echte locatie wordt opgehaald…',
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                          )
+                        : _RealLocationMap(
+                            location: currentLocation!,
+                            playerIcon: markerIcon(widget.state.playerMarker),
+                          ),
                   ),
                 ),
               ),

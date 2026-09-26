@@ -172,9 +172,9 @@ class BackendApiClient {
       (item) => item.name == value['game_type'],
       orElse: () => GameType.classic,
     );
-    final asInt = (Object? item, int fallback) =>
+    int asInt(Object? item, int fallback) =>
         item is num ? item.toInt() : int.tryParse('$item') ?? fallback;
-    final asDouble = (Object? item, double fallback) =>
+    double asDouble(Object? item, double fallback) =>
         item is num ? item.toDouble() : double.tryParse('$item') ?? fallback;
     return Game(
       id: '${value['id']}',

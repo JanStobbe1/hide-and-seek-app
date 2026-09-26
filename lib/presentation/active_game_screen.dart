@@ -425,8 +425,8 @@ class _ActiveMapPageState extends State<_ActiveMapPage>
                       kind: widget.activePowerEffect!,
                       animation: powerAnimation,
                       remaining: widget.activePowerRemaining,
-                      total: widget.activePowerRemaining > Duration.zero
-                          ? widget.activePowerRemaining
+                      total: _powerEffectDuration > Duration.zero
+                          ? _powerEffectDuration
                           : const Duration(seconds: 1),
                     ),
                   ),

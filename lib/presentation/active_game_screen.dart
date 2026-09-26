@@ -946,7 +946,8 @@ class _PowerToken extends StatelessWidget {
             const SizedBox(height: 8),
             Text(description, textAlign: TextAlign.center),
             if (cooldownRemaining > Duration.zero)
-              Text('Opnieuw inzetbaar over ${_formatPowerDuration(cooldownRemaining)}'),
+              Text(
+                  'Opnieuw inzetbaar over ${_formatPowerDuration(cooldownRemaining)}'),
             const SizedBox(height: 14),
             FilledButton(
               onPressed: enabled

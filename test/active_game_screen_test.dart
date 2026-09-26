@@ -56,9 +56,13 @@ void main() {
     expect(find.text('PAK SPELER'), findsOneWidget);
     expect(find.byTooltip('Inzoomen'), findsOneWidget);
     expect(find.byTooltip('Uitzoomen'), findsOneWidget);
-    expect(find.byIcon(Icons.help_outline), findsOneWidget);
-    expect(find.byIcon(Icons.cruelty_free), findsOneWidget);
+    expect(find.byIcon(Icons.help_outline), findsNothing);
+    expect(find.byIcon(Icons.cruelty_free), findsNothing);
     expect(find.byIcon(Icons.navigation), findsNothing);
+    expect(
+      find.textContaining('Je echte locatie wordt opgehaald'),
+      findsOneWidget,
+    );
     expect(find.text('Mila'), findsNothing);
 
     final viewer = tester.widget<InteractiveViewer>(

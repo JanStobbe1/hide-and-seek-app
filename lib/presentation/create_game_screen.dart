@@ -573,7 +573,6 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
       ),
     );
   }
-
 }
 
 class _SettingSlider extends StatelessWidget {

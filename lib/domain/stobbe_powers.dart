@@ -66,9 +66,7 @@ class StobbePowerSlot {
       definition: definition,
       quantity: quantity - 1,
       uses: uses + 1,
-      cooldownUntil: cooldown == Duration.zero
-          ? null
-          : current.add(cooldown),
+      cooldownUntil: cooldown == Duration.zero ? null : current.add(cooldown),
     );
   }
 }

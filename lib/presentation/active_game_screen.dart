@@ -41,37 +41,15 @@ class _RealLocationMap extends StatelessWidget {
     return Stack(
       children: [
         FlutterMap(
-          key: ValueKey('${location.latitude}:${location.longitude}'),
-      options: MapOptions(
-        initialCenter: center,
-        initialZoom: 16,
-        interactionOptions: const InteractionOptions(
-          flags: InteractiveFlag.all,
-        ),
-      ),
-      children: [
-        TileLayer(
-          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-          userAgentPackageName: 'nl.janstobbe.verstobbertje',
-        ),
-        MarkerLayer(
-          markers: [
-            Marker(
-              point: center,
-              width: 72,
-              height: 72,
-              child: Column(
-                children: [
-                  Icon(playerIcon, color: const Color(0xff315c46), size: 42),
-                  const Text(
-                    'Jij',
-                    style: TextStyle(fontWeight: FontWeight.w800),
-                  ),
-                ],
-              ),
+          key: ValueKey('\${location.latitude}:\${location.longitude}'),
+          mapController: controller,
+          options: MapOptions(
+            initialCenter: center,
+            initialZoom: 16,
+            interactionOptions: const InteractionOptions(
+              flags: InteractiveFlag.all,
             ),
-          ],
-        ),
+          ),
           children: [
             TileLayer(
               urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',

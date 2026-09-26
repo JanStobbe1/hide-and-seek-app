@@ -816,6 +816,9 @@ class _StobbePowersPage extends StatelessWidget {
                           count: slot.quantity,
                           color: details.color,
                           cooldownRemaining: slot.cooldownRemaining(),
+                          cooldownUntil: slot.cooldownUntil,
+                          showCooldownTimer: slot.quantity > 0 &&
+                              slot.uses < slot.definition.maxUsesPerGame,
                           enabled: !state.gameFinished &&
                               slot.canUse(state.powerInventory.phase),
                           onActivate: () => onActivate(
@@ -842,6 +845,8 @@ class _PowerToken extends StatelessWidget {
     required this.count,
     required this.color,
     required this.cooldownRemaining,
+    required this.cooldownUntil,
+    required this.showCooldownTimer,
     required this.enabled,
     required this.onActivate,
   });
@@ -851,6 +856,8 @@ class _PowerToken extends StatelessWidget {
   final int count;
   final Color color;
   final Duration cooldownRemaining;
+  final DateTime? cooldownUntil;
+  final bool showCooldownTimer;
   final bool enabled;
   final VoidCallback onActivate;
 
@@ -903,7 +910,7 @@ class _PowerToken extends StatelessWidget {
               Text(name,
                   textAlign: TextAlign.center,
                   style: const TextStyle(fontWeight: FontWeight.w800)),
-              if (cooldownRemaining > Duration.zero) ...[
+              if (showCooldownTimer && cooldownRemaining > Duration.zero) ...[
                 const SizedBox(height: 2),
                 Text(
                   'Opnieuw inzetbaar over ${_formatPowerDuration(cooldownRemaining)}',
@@ -930,36 +937,105 @@ class _PowerToken extends StatelessWidget {
   void _showPower(BuildContext context) {
     showModalBottomSheet<void>(
       context: context,
-      builder: (sheetContext) => Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: color, size: 52),
+      builder: (_) => _PowerDetailsSheet(
+        icon: icon,
+        name: name,
+        description: description,
+        color: color,
+        cooldownUntil: cooldownUntil,
+        showCooldownTimer: showCooldownTimer,
+        onActivate: onActivate,
+      ),
+    );
+  }
+}
+
+class _PowerDetailsSheet extends StatefulWidget {
+  const _PowerDetailsSheet({
+    required this.icon,
+    required this.name,
+    required this.description,
+    required this.color,
+    required this.cooldownUntil,
+    required this.showCooldownTimer,
+    required this.onActivate,
+  });
+
+  final IconData icon;
+  final String name;
+  final String description;
+  final Color color;
+  final DateTime? cooldownUntil;
+  final bool showCooldownTimer;
+  final VoidCallback onActivate;
+
+  @override
+  State<_PowerDetailsSheet> createState() => _PowerDetailsSheetState();
+}
+
+class _PowerDetailsSheetState extends State<_PowerDetailsSheet> {
+  late final Timer _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
+  Duration get _cooldownRemaining {
+    final until = widget.cooldownUntil;
+    if (until == null) return Duration.zero;
+    final remaining = until.difference(DateTime.now());
+    return remaining.isNegative ? Duration.zero : remaining;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final remaining = _cooldownRemaining;
+    final canActivate =
+        widget.showCooldownTimer && remaining == Duration.zero;
+
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(widget.icon, color: widget.color, size: 52),
+          Text(
+            widget.name,
+            style: Theme.of(context)
+                .textTheme
+                .titleLarge
+                ?.copyWith(fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 8),
+          Text(widget.description, textAlign: TextAlign.center),
+          if (widget.showCooldownTimer && remaining > Duration.zero)
             Text(
-              name,
-              style: Theme.of(context)
-                  .textTheme
-                  .titleLarge
-                  ?.copyWith(fontWeight: FontWeight.w900),
+              'Opnieuw inzetbaar over '
+              '${_formatPowerDuration(remaining)}',
             ),
-            const SizedBox(height: 8),
-            Text(description, textAlign: TextAlign.center),
-            if (cooldownRemaining > Duration.zero)
-              Text(
-                  'Opnieuw inzetbaar over ${_formatPowerDuration(cooldownRemaining)}'),
-            const SizedBox(height: 14),
-            FilledButton(
-              onPressed: enabled
-                  ? () {
-                      Navigator.pop(sheetContext);
-                      onActivate();
-                    }
-                  : null,
-              child: const Text('Zet Stobbekracht in'),
-            ),
-          ],
-        ),
+          if (!widget.showCooldownTimer)
+            const Text('Deze kracht is opgebruikt.'),
+          const SizedBox(height: 14),
+          FilledButton(
+            onPressed: canActivate
+                ? () {
+                    Navigator.pop(context);
+                    widget.onActivate();
+                  }
+                : null,
+            child: const Text('Zet Stobbekracht in'),
+          ),
+        ],
       ),
     );
   }

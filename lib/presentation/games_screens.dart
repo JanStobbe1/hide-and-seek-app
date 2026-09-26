@@ -323,8 +323,8 @@ class MyGamesScreen extends StatelessWidget {
           const Card(
             child: ListTile(
               leading: CircleAvatar(child: Icon(Icons.radar)),
-              title: const Text('Nog geen actief spel'),
-              subtitle: const Text(
+              title: Text('Nog geen actief spel'),
+              subtitle: Text(
                 'Wanneer een aangemeld spel begint, verschijnt het hier.',
               ),
             ),

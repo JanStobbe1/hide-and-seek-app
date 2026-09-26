@@ -285,9 +285,16 @@ class AppState extends ChangeNotifier {
 
   Future<bool> publishAsync(Game game) async {
     final client = backendClient;
-    if (client == null || !backendConnected) {
+    if (client == null) {
       publish(game);
       return false;
+    }
+    if (!backendConnected) {
+      final connected = await connectBackend();
+      if (!connected) {
+        publish(game);
+        return false;
+      }
     }
     for (var attempt = 0; attempt < 2; attempt++) {
       try {
@@ -309,7 +316,11 @@ class AppState extends ChangeNotifier {
 
   Future<bool> joinAsync(String id, [DateTime? timestamp]) async {
     final client = backendClient;
-    if (client == null || !backendConnected) return join(id, timestamp);
+    if (client == null) return join(id, timestamp);
+    if (!backendConnected) {
+      final connected = await connectBackend();
+      if (!connected) return join(id, timestamp);
+    }
     for (var attempt = 0; attempt < 2; attempt++) {
       try {
         await client.joinGame(id);

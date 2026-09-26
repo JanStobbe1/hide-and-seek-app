@@ -155,9 +155,8 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
   Duration get _powerEffectRemaining {
     final started = _powerEffectStartedAt;
     if (started == null) return Duration.zero;
-    final remaining = started
-        .add(_powerEffectDuration)
-        .difference(DateTime.now());
+    final remaining =
+        started.add(_powerEffectDuration).difference(DateTime.now());
     return remaining.isNegative ? Duration.zero : remaining;
   }
 
@@ -538,17 +537,19 @@ class _PowerMapEffect extends StatelessWidget {
                             children: [
                               Icon(icon, color: Colors.white, size: 18),
                               const SizedBox(width: 6),
-                              Text(label, style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w800,
-                              )),
+                              Text(label,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w800,
+                                  )),
                             ],
                           ),
                           const SizedBox(height: 4),
-                          Text(timeLabel, style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 12,
-                          )),
+                          Text(timeLabel,
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontSize: 12,
+                              )),
                           const SizedBox(height: 4),
                           SizedBox(
                             width: 150,

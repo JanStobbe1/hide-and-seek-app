@@ -86,6 +86,7 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
                 state: state,
                 onCatch: () => _showProximity(context),
                 activePowerEffect: _activePowerEffect,
+                activePowerDuration: _powerEffectDuration,
                 activePowerRemaining: _powerEffectRemaining,
                 powerEffectId: _powerEffectId,
               ),
@@ -277,6 +278,7 @@ class _ActiveMapPage extends StatefulWidget {
   final AppState state;
   final VoidCallback onCatch;
   final StobbePowerKind? activePowerEffect;
+  final Duration activePowerDuration;
   final Duration activePowerRemaining;
   final int powerEffectId;
 
@@ -425,7 +427,7 @@ class _ActiveMapPageState extends State<_ActiveMapPage>
                       kind: widget.activePowerEffect!,
                       animation: powerAnimation,
                       remaining: widget.activePowerRemaining,
-                      total: _powerEffectDuration > Duration.zero
+                      total: widget.activePowerDuration > Duration.zero
                           ? _powerEffectDuration
                           : const Duration(seconds: 1),
                     ),

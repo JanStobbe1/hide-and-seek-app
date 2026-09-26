@@ -525,14 +525,46 @@ class _ActiveMapPageState extends State<_ActiveMapPage>
                     maxScale: 3,
                     boundaryMargin: const EdgeInsets.all(300),
                     child: currentLocation == null
-                        ? Center(
-                            child: Card(
-                              child: Padding(
-                                padding: const EdgeInsets.all(18),
-                                child: Text(
-                                  locationError ??
-                                      'Je echte locatie wordt opgehaald…',
-                                  textAlign: TextAlign.center,
+                        ? SizedBox(
+                            width: 1100,
+                            height: 820,
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                color: Color(0xffe8f0e5),
+                              ),
+                              child: Center(
+                                child: Card(
+                                  margin: EdgeInsets.all(24),
+                                  child: Padding(
+                                    padding: EdgeInsets.all(24),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.location_off, size: 48),
+                                        SizedBox(height: 12),
+                                        Text(
+                                          locationError ??
+                                              'Je echte locatie wordt opgehaald…',
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                        SizedBox(height: 8),
+                                        Text(
+                                          'Geef in je browser locatietoestemming '
+                                          'en probeer het daarna opnieuw.',
+                                          textAlign: TextAlign.center,
+                                        ),
+                                        SizedBox(height: 16),
+                                        FilledButton.icon(
+                                          onPressed: _startRealLocation,
+                                          icon: Icon(Icons.refresh),
+                                          label: Text('Opnieuw proberen'),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),

@@ -136,6 +136,7 @@ const route = async (request: Request, env: Env): Promise<Response> => {
         g.max_participants, g.distance_km, g.start_condition,
         g.participant_threshold, g.is_public, g.hints_enabled,
         g.questions_enabled, g.game_type, g.allow_rejoin_after_found,
+        g.seekers_count, g.hiders_count, g.role_switch_enabled, g.stobbe_powers_enabled,
         COUNT(gp.player_id) AS participant_count
        FROM games g
        LEFT JOIN game_players gp ON gp.game_id = g.id AND gp.left_at IS NULL
@@ -188,6 +189,10 @@ const route = async (request: Request, env: Env): Promise<Response> => {
       questions_enabled: body.questionsEnabled === false ? 0 : 1,
       game_type: typeof body.gameType === "string" ? body.gameType : "classic",
       allow_rejoin_after_found: body.allowRejoinAfterFound === true ? 1 : 0,
+      seekers_count: Number(body.seekersCount) || 1,
+      hiders_count: Number(body.hidersCount) || 0,
+      role_switch_enabled: body.roleSwitchEnabled === true ? 1 : 0,
+      stobbe_powers_enabled: body.stobbePowersEnabled === true ? 1 : 0,
     };
     await env.DB.batch([
       env.DB.prepare(
@@ -196,8 +201,9 @@ const route = async (request: Request, env: Env): Promise<Response> => {
            country, province, city, neighbourhood, specific_area,
            duration_minutes, max_participants, distance_km, start_condition,
            participant_threshold, is_public, hints_enabled, questions_enabled,
-           game_type, allow_rejoin_after_found)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+           game_type, allow_rejoin_after_found,
+           seekers_count, hiders_count, role_switch_enabled, stobbe_powers_enabled)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       ).bind(
         game.id, game.name, game.description, game.status, game.starts_at,
         game.ends_at, game.created_by, game.country, game.province, game.city,
@@ -205,6 +211,8 @@ const route = async (request: Request, env: Env): Promise<Response> => {
         game.max_participants, game.distance_km, game.start_condition,
         game.participant_threshold, game.is_public, game.hints_enabled,
         game.questions_enabled, game.game_type, game.allow_rejoin_after_found,
+        game.seekers_count, game.hiders_count, game.role_switch_enabled,
+        game.stobbe_powers_enabled,
       ),
       env.DB.prepare(
         "INSERT INTO game_players (game_id, player_id, role) VALUES (?, ?, 'host')",
@@ -227,6 +235,7 @@ const route = async (request: Request, env: Env): Promise<Response> => {
         g.max_participants, g.distance_km, g.start_condition,
         g.participant_threshold, g.is_public, g.hints_enabled,
         g.questions_enabled, g.game_type, g.allow_rejoin_after_found,
+        g.seekers_count, g.hiders_count, g.role_switch_enabled, g.stobbe_powers_enabled,
         COUNT(gp.player_id) AS participant_count
        FROM games g
        LEFT JOIN game_players gp ON gp.game_id = g.id AND gp.left_at IS NULL

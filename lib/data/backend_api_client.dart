@@ -131,6 +131,10 @@ class BackendApiClient {
         'hintsEnabled': game.rules.hintsEnabled,
         'questionsEnabled': game.rules.questionsEnabled,
         'gameType': game.rules.gameType.name,
+        'seekersCount': game.rules.seekersCount,
+        'hidersCount': game.rules.hidersCount,
+        'roleSwitchEnabled': game.rules.roleSwitchEnabled,
+        'stobbePowersEnabled': game.rules.stobbePowersEnabled,
         'allowRejoinAfterFound': game.rules.allowRejoinAfterFound,
       }),
     );
@@ -172,6 +176,8 @@ class BackendApiClient {
       (item) => item.name == value['game_type'],
       orElse: () => GameType.classic,
     );
+    final maxParticipants = asInt(value['max_participants'], 24);
+    final seekersCount = asInt(value['seekers_count'], 1);
     int asInt(Object? item, int fallback) =>
         item is num ? item.toInt() : int.tryParse('$item') ?? fallback;
     double asDouble(Object? item, double fallback) =>
@@ -191,7 +197,7 @@ class BackendApiClient {
       status: status,
       duration: Duration(minutes: asInt(value['duration_minutes'], 120)),
       participants: asInt(value['participant_count'], 0),
-      maxParticipants: asInt(value['max_participants'], 24),
+      maxParticipants: maxParticipants,
       distanceKm: asDouble(value['distance_km'], 0),
       startCondition: startCondition,
       scheduledStart: startValue,
@@ -205,6 +211,15 @@ class BackendApiClient {
         questionsEnabled: value['questions_enabled'] != 0 &&
             value['questions_enabled'] != false,
         gameType: gameType,
+        seekersCount: seekersCount,
+        hidersCount: asInt(
+          value['hiders_count'],
+          (maxParticipants - seekersCount).clamp(0, maxParticipants),
+        ),
+        roleSwitchEnabled: value['role_switch_enabled'] != 0 &&
+            value['role_switch_enabled'] != false,
+        stobbePowersEnabled: value['stobbe_powers_enabled'] != 0 &&
+            value['stobbe_powers_enabled'] != false,
         allowRejoinAfterFound: value['allow_rejoin_after_found'] != 0 &&
             value['allow_rejoin_after_found'] != false,
       ),

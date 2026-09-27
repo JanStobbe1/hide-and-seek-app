@@ -297,8 +297,7 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
               'Spelers kunnen tijdelijke Stobbekrachten inzetten.',
             ),
             value: stobbePowersEnabled,
-            onChanged: (value) =>
-                setState(() => stobbePowersEnabled = value),
+            onChanged: (value) => setState(() => stobbePowersEnabled = value),
           ),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,

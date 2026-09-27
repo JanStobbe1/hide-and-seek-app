@@ -23,6 +23,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final TextEditingController name = TextEditingController();
   int page = 0;
   String? nameError;
+  String? confirmationError;
+  bool confirmed = false;
   late PlayerMarker marker;
 
   @override
@@ -53,7 +55,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
                     child: Row(
                       children: List.generate(
-                        4,
+                        5,
                         (index) => Expanded(
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 250),
@@ -154,6 +156,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             ],
                           ),
                         ),
+                        _OnboardingPage(
+                          icon: Icons.fact_check_outlined,
+                          title: 'Even controleren, detective',
+                          text:
+                              'Kijk je vinklijstje nog één keer na. Klopt alles? Dan zet ik mijn handtekening eronder en maken we je profiel definitief.',
+                          child: _OnboardingConfirmation(
+                            playerName: widget.state.displayName,
+                            marker: marker,
+                            confirmed: confirmed,
+                            errorText: confirmationError,
+                            onChanged: (value) => setState(() {
+                              confirmed = value;
+                              confirmationError = null;
+                            }),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -170,11 +188,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         const Spacer(),
                         FilledButton.icon(
                           onPressed: _next,
-                          icon: Icon(page == 3
+                          icon: Icon(page == 4
                               ? Icons.menu_book
                               : Icons.arrow_forward),
                           label: Text(
-                              page == 3 ? 'Naar de inhoudsopgave' : 'Volgende'),
+                            page == 4 ? 'Akkoord en ondertekenen' : 'Volgende',
+                          ),
                         ),
                       ],
                     ),
@@ -201,8 +220,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         return;
       }
       widget.state.setPlayerMarker(marker);
+      setState(() {
+        confirmed = false;
+        confirmationError = null;
+      });
     }
-    if (page == 3) {
+    if (page == 4) {
+      if (!confirmed) {
+        setState(
+          () => confirmationError = 'Vink eerst aan dat je gegevens kloppen.',
+        );
+        return;
+      }
       widget.onComplete();
       return;
     }
@@ -266,6 +295,65 @@ class _OnboardingFacts extends StatelessWidget {
                   ),
                 )
                 .toList(),
+          ),
+        ),
+      );
+}
+
+class _OnboardingConfirmation extends StatelessWidget {
+  const _OnboardingConfirmation({
+    required this.playerName,
+    required this.marker,
+    required this.confirmed,
+    required this.errorText,
+    required this.onChanged,
+  });
+
+  final String playerName;
+  final PlayerMarker marker;
+  final bool confirmed;
+  final String? errorText;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) => Card(
+        key: const Key('onboarding-checklist'),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            children: [
+              CheckboxListTile(
+                key: const Key('onboarding-confirmation'),
+                value: confirmed,
+                onChanged: (value) => onChanged(value ?? false),
+                title: const Text('Mijn gegevens kloppen'),
+                subtitle: Text(
+                  'Naam: $playerName\nMarker: ${_markerLabel(marker)}',
+                ),
+                controlAffinity: ListTileControlAffinity.leading,
+              ),
+              if (errorText != null)
+                Text(
+                  errorText!,
+                  key: const Key('onboarding-confirmation-error'),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+                ),
+              if (confirmed) ...[
+                const Divider(),
+                const SizedBox(height: 4),
+                const Text(
+                  'Ondertekend door de Stobbedetective',
+                  key: Key('onboarding-signature'),
+                  style: TextStyle(
+                    fontStyle: FontStyle.italic,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const Text('Stobbe ✍️'),
+              ],
+            ],
           ),
         ),
       );

@@ -8,6 +8,8 @@
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
 	<string>Verstobbertje</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Verstobbertje gebruikt je locatie om spelers, speelgebieden en kaartposities tijdens het spel te tonen.</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>

@@ -57,7 +57,7 @@ class AppState extends ChangeNotifier {
   String displayName = 'Arie';
   String profileCity = '';
   String profileAge = '';
-  String profileAvatar = 'A';
+  String profileAvatar = 'avatar-1';
   ThemePreference themePreference = ThemePreference.forest;
   PlayerMarker playerMarker = PlayerMarker.ghost;
   final List<FriendProfile> friends = const [
@@ -447,7 +447,7 @@ class AppState extends ChangeNotifier {
     displayName = 'Arie';
     profileCity = '';
     profileAge = '';
-    profileAvatar = 'A';
+    profileAvatar = 'avatar-1';
     themePreference = ThemePreference.forest;
     playerMarker = PlayerMarker.ghost;
     privacy

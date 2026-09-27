@@ -600,9 +600,8 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
         questionsEnabled: questions,
         gameType: gameType,
         seekersCount: gameType == GameType.everyoneHunts ? players : seekers,
-        hidersCount: gameType == GameType.everyoneHunts
-            ? players
-            : players - seekers,
+        hidersCount:
+            gameType == GameType.everyoneHunts ? players : players - seekers,
         roleSwitchEnabled: roleSwitchEnabled,
         stobbePowersEnabled: stobbePowersEnabled,
         allowRejoinAfterFound: allowRejoinAfterFound,

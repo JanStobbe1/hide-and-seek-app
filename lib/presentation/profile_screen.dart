@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../app_state.dart';
 import '../config/app_theme.dart';
 import '../domain/profile_models.dart';
+import 'player_avatar.dart';
 import 'widgets.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -16,14 +17,7 @@ class ProfileScreen extends StatelessWidget {
         children: [
           Row(
             children: [
-              CircleAvatar(
-                radius: 38,
-                child: Text(
-                  state.profileAvatar,
-                  style: const TextStyle(
-                      fontSize: 30, fontWeight: FontWeight.w900),
-                ),
-              ),
+              PlayerAvatar(avatarId: state.profileAvatar, radius: 38),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
@@ -220,41 +214,38 @@ class ProfileScreen extends StatelessWidget {
   }
 
   void _choosePhoto(BuildContext context) {
-    const choices = ['A', '🧭', '👻', '🐺'];
     showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Kies een profielfoto'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'Demo: kies een lokale avatar. Bestandsupload en opslag volgen '
-              'pas met een veilige backend.',
+        content: SizedBox(
+          width: 420,
+          child: GridView.builder(
+            shrinkWrap: true,
+            itemCount: playerAvatarIds.length,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 4,
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
             ),
-            const SizedBox(height: 16),
-            Wrap(
-              spacing: 12,
-              children: choices
-                  .map(
-                    (choice) => InkWell(
-                      onTap: () {
-                        state.setProfileAvatar(choice);
-                        Navigator.pop(dialogContext);
-                      },
-                      borderRadius: BorderRadius.circular(30),
-                      child: CircleAvatar(
-                        radius: 26,
-                        child: Text(
-                          choice,
-                          style: const TextStyle(fontSize: 22),
-                        ),
-                      ),
-                    ),
-                  )
-                  .toList(),
-            ),
-          ],
+            itemBuilder: (_, index) {
+              final avatarId = playerAvatarIds[index];
+              return InkWell(
+                onTap: () {
+                  state.setProfileAvatar(avatarId);
+                  Navigator.pop(dialogContext);
+                },
+                borderRadius: BorderRadius.circular(40),
+                child: PlayerAvatar(
+                  avatarId: avatarId,
+                  radius: 34,
+                  borderColor: avatarId == state.profileAvatar
+                      ? Theme.of(context).colorScheme.secondary
+                      : null,
+                ),
+              );
+            },
+          ),
         ),
       ),
     );

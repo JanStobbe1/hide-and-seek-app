@@ -10,6 +10,7 @@ import 'package:latlong2/latlong.dart' as latlong;
 import '../app_state.dart';
 import '../domain/models.dart';
 import '../domain/stobbe_powers.dart';
+import 'player_avatar.dart';
 import 'widgets.dart';
 
 class _PlayerLocation {
@@ -28,11 +29,13 @@ class _RealLocationMap extends StatelessWidget {
   const _RealLocationMap({
     required this.location,
     required this.playerIcon,
+    required this.avatarId,
     required this.controller,
   });
 
   final _PlayerLocation location;
   final IconData playerIcon;
+  final String avatarId;
   final MapController controller;
 
   @override
@@ -62,11 +65,22 @@ class _RealLocationMap extends StatelessWidget {
                   width: 72,
                   height: 72,
                   child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
-                        playerIcon,
-                        color: const Color(0xff315c46),
-                        size: 42,
+                      Stack(
+                        alignment: Alignment.bottomCenter,
+                        children: [
+                          PlayerAvatar(
+                            avatarId: avatarId,
+                            radius: 24,
+                            borderColor: const Color(0xff315c46),
+                          ),
+                          Icon(
+                            playerIcon,
+                            color: const Color(0xff315c46),
+                            size: 16,
+                          ),
+                        ],
                       ),
                       const Text(
                         'Jij',
@@ -575,6 +589,7 @@ class _ActiveMapPageState extends State<_ActiveMapPage>
                         : _RealLocationMap(
                             location: currentLocation!,
                             playerIcon: markerIcon(widget.state.playerMarker),
+                            avatarId: widget.state.profileAvatar,
                             controller: mapController,
                           ),
                   ),

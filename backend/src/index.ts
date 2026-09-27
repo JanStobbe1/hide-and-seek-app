@@ -89,6 +89,28 @@ const playerFromToken = async (request: Request, env: Env) => {
   }
 };
 
+const touchPlayer = async (env: Env, playerId: string) => {
+  await env.DB.prepare(
+    "UPDATE players SET last_activity_at = CURRENT_TIMESTAMP WHERE id = ?",
+  ).bind(playerId).run();
+};
+
+const purgeInactivePlayers = async (env: Env) => {
+  await env.DB.batch([
+    env.DB.prepare(
+      "UPDATE games SET created_by = NULL WHERE created_by IN "
+      + "(SELECT id FROM players WHERE COALESCE(last_activity_at, created_at) < datetime('now', '-12 months'))",
+    ),
+    env.DB.prepare(
+      "UPDATE game_events SET player_id = NULL WHERE player_id IN "
+      + "(SELECT id FROM players WHERE COALESCE(last_activity_at, created_at) < datetime('now', '-12 months'))",
+    ),
+    env.DB.prepare(
+      "DELETE FROM players WHERE COALESCE(last_activity_at, created_at) < datetime('now', '-12 months')",
+    ),
+  ]);
+};
+
 const audit = async (
   env: Env,
   adminId: string,
@@ -269,6 +291,7 @@ const route = async (request: Request, env: Env): Promise<Response> => {
     await env.DB.prepare(
       "INSERT OR IGNORE INTO game_players (game_id, player_id, role) VALUES (?, ?, 'player')",
     ).bind(joinMatch[1], authenticatedPlayer).run();
+    await touchPlayer(env, authenticatedPlayer);
     return json({ joined: true, gameId: joinMatch[1] }, 200, origin);
   }
 
@@ -331,6 +354,7 @@ const route = async (request: Request, env: Env): Promise<Response> => {
       JSON.stringify(body.payload ?? {}),
       occurredAt,
     ).run();
+    await touchPlayer(env, authenticatedPlayer);
     return json({ accepted: result.meta.changes === 1, duplicate: result.meta.changes === 0 }, 202, origin);
   }
 
@@ -419,5 +443,8 @@ const route = async (request: Request, env: Env): Promise<Response> => {
 export default {
   fetch(request: Request, env: Env): Promise<Response> {
     return route(request, env);
+  },
+  scheduled(_event: ScheduledController, env: Env): Promise<void> {
+    return purgeInactivePlayers(env);
   },
 };

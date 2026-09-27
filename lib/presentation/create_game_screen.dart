@@ -600,9 +600,7 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
         hintsEnabled: hints,
         questionsEnabled: questions,
         gameType: gameType,
-        seekersCount: gameType == GameType.everyoneHunts
-            ? players
-            : seekers,
+        seekersCount: gameType == GameType.everyoneHunts ? players : seekers,
         hidersCount: gameType == GameType.everyoneHunts
             ? players
             : players - seekers,

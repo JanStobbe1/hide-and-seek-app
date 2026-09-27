@@ -340,6 +340,41 @@ class AppState extends ChangeNotifier {
     return false;
   }
 
+  Future<bool> deleteAccount() async {
+    final client = backendClient;
+    if (client == null || !backendConnected) return false;
+    try {
+      await client.deleteAccount();
+      await client.clearSession();
+      backendPlayerId = null;
+      backendConnected = false;
+      backendError = null;
+      notifyListeners();
+      return true;
+    } on BackendApiException catch (error) {
+      backendError = error.code;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> withdrawGame(String gameId) async {
+    final client = backendClient;
+    if (client == null || !backendConnected) return false;
+    try {
+      await client.withdrawGame(gameId);
+      repository.removeJoined(gameId);
+      await refreshBackendGames();
+      notifyListeners();
+      return true;
+    } on BackendApiException catch (error) {
+      backendError = error.code;
+      notifyListeners();
+      return false;
+    }
+  }
+
+
   Future<bool> restoreBackendSession() async {
     final client = backendClient;
     if (client == null) return false;

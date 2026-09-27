@@ -1,55 +1,52 @@
-# Privacy policy draft — Verstobbertje
+# Privacybeleid — Verstobbertje
 
-**Status:** draft for review before publication.
+**Status:** concept ter controle vóór publicatie.
 
-## What Verstobbertje processes
+## Welke gegevens verwerkt Verstobbertje?
 
-Verstobbertje may process:
+Verstobbertje kan de volgende gegevens verwerken:
 
-- A player name or profile name.
-- Game participation and game-related events.
-- Location data while a player uses location-based game features.
-- Technical information needed to keep the app secure and functioning.
-- Optional profile information and avatar/marker choices when the player uses those features.
+- Een spelersnaam of profielnaam.
+- Deelname aan spellen en spelgebeurtenissen.
+- Locatiegegevens wanneer een speler locatiegebonden functies gebruikt.
+- Technische informatie die nodig is om de app veilig en werkend te houden.
+- Optionele profielgegevens en avatar-/markerkeuzes wanneer de speler deze functies gebruikt.
 
-The app should request location only when the player uses a feature that needs it. Location access is not needed for merely opening the app.
+De app vraagt alleen om locatietoegang wanneer een functie deze nodig heeft. Alleen het openen van de app vereist geen locatietoegang.
 
-## Why this information is used
+## Waarvoor worden deze gegevens gebruikt?
 
-The information is used to:
+De gegevens worden gebruikt om:
 
-- authenticate players;
-- create and join games;
-- show relevant players and game areas on the map;
-- apply game rules and register game events;
-- prevent abuse and investigate abnormal game activity;
-- keep the service secure and operational.
+- spelers te identificeren;
+- spellen aan te maken en eraan deel te nemen;
+- relevante spelers en speelgebieden op de kaart te tonen;
+- spelregels toe te passen en spelgebeurtenissen te registreren;
+- misbruik te voorkomen en afwijkende spelactiviteiten te onderzoeken;
+- de dienst veilig en operationeel te houden.
 
-## Sharing
+## Delen van gegevens
 
-Verstobbertje should not sell player data. Data may be processed by infrastructure providers used to operate the service, including Cloudflare for the API and database infrastructure and the map tile/data providers used by the map.
+Verstobbertje verkoopt geen spelergegevens. Gegevens kunnen worden verwerkt door infrastructuurproviders die nodig zijn om de dienst te laten werken, waaronder Cloudflare voor de API en database-infrastructuur en kaartdata- en kaarttegelproviders.
 
-The app must show the required OpenStreetMap attribution in the map interface.
+De app toont de vereiste OpenStreetMap-naamsvermelding in de kaartweergave.
 
-## Location controls
+## Locatietoestemming
 
-Players can manage location permissions through Android or iOS settings. Refusing permission can prevent map and location-based game features from working, but should not prevent the player from viewing non-location parts of the app.
+Spelers kunnen locatierechten beheren via de instellingen van Android of iOS. Het weigeren van toestemming kan ervoor zorgen dat kaart- en locatiegebonden functies niet werken. Het moet echter wel mogelijk blijven om niet-locatiegebonden onderdelen van de app te bekijken.
 
-## Retention and deletion
+## Bewaartermijn en verwijderen van gegevens
 
-The final published policy must specify:
+Een account dat twaalf maanden niet is gebruikt en niet eerder door de speler is verwijderd, wordt automatisch verwijderd. Daarbij worden de bijbehorende gegevens verwijderd, voor zover deze niet langer noodzakelijk zijn voor een wettelijke verplichting of een lopend veiligheids- of misbruikonderzoek.
 
-- how long player profiles and game events are retained;
-- how a player can request deletion;
-- how an organizer can request deletion of a game;
-- who is responsible for privacy questions.
+Een speler kan zelf verwijdering aanvragen via de profielpagina door op **Verwijder account** te drukken.
 
-These details must be completed before store submission.
+Een spel loopt na afloop automatisch af. Wanneer een spel niet correct is aangemaakt, kan de organisator het spel tot vijf minuten vóór de start intrekken. Dit kan via **Mijn spellen** en vervolgens de knop **Intrekken spel**.
 
 ## Contact
 
-**Privacy contact:** [add a monitored contact address]
+**Privacycontact:** info@jsadministratieenadvies.nl
 
-**Controller/operator:** [add the legal name or business name]
+**Verantwoordelijke/beheerder:** JS Administratie en Advies
 
-**Last updated:** [add publication date]
+**Laatst bijgewerkt:** 27 september 2026

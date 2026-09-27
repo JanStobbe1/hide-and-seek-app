@@ -8,7 +8,7 @@ Een spannend locatiegebaseerd verstopspel met GPS, kaart en Stobbekrachten.
 
 Verstobbertje maakt van je eigen omgeving een spannend verstopspel.
 
-Kies een openbaar spel, ontdek het speelgebied op de kaart en probeer andere spelers te vinden — of blijf juist uit handen van de zoekers. Organisatoren kunnen kiezen tussen:
+Kies een openbaar spel en gebruik tijdens het spelen de kaart en je eigen locatie om je spel te volgen en andere spelers te vinden — of blijf juist uit handen van de zoekers. Organisatoren kunnen kiezen tussen:
 
 - Klassiek
 - Iedereen jaagt
@@ -18,25 +18,25 @@ Bij Klassiek stelt de organisator de verhouding tussen zoekers en verstoppers in
 ### Belangrijkste functies
 
 - Locatiegebaseerde spellen
-- Live kaart met spelers en speelgebied
+- Kaartweergave tijdens het spelen
 - Zoekers en verstoppers
 - Tijdelijke Stobbekrachten
 - Punten, vragen en hints
 - Onboarding door Mr. Stobbe
 - Spellen voor groepen en buitenactiviteiten
 
-De app gebruikt locatiegegevens wanneer kaart- en spelonderdelen daarom vragen. Geef alleen locatie toegang tijdens het spelen als je de locatie functies wilt gebruiken.
+De app gebruikt locatiegegevens wanneer kaart- en spelfuncties daarom vragen. Geef alleen locatietoegang tijdens het spelen wanneer je de locatiegebonden functies wilt gebruiken.
 
 ## Store metadata still to complete
 
 - Definitieve korte beschrijving per store
-- App-icon in store-resoluties
+- App-icoon in store-resoluties
 - Screenshots voor telefoon en tablet
 - Leeftijdsclassificatie
 - Privacy policy URL
 - Support URL
 - Marketing URL
 - Contactgegevens
-- Review-account/instructies
+- Reviewaccount en instructies
 - Data Safety-formulier voor Google Play
 - App Privacy-formulier voor Apple

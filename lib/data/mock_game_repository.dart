@@ -109,6 +109,10 @@ class MockGameRepository implements GameRepository {
     _joined.add(game);
   }
 
+  void removeJoined(String id) {
+    _joined.removeWhere((game) => game.id == id);
+  }
+
   @override
   void publish(Game game) => _available.add(game);
 }

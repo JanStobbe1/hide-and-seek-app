@@ -374,7 +374,6 @@ class AppState extends ChangeNotifier {
     }
   }
 
-
   Future<bool> restoreBackendSession() async {
     final client = backendClient;
     if (client == null) return false;

@@ -7,9 +7,6 @@ enum StartCondition { participantCount, scheduled }
 enum GameType {
   classic,
   everyoneHunts,
-  seekerMajority,
-  surpriseRoleSwitch,
-  stobbePowers,
 }
 
 extension GameTypePresentation on GameType {
@@ -25,12 +22,6 @@ extension GameTypePresentation on GameType {
         GameType.classic => 'Vaste zoekers en verstoppers tot het einde.',
         GameType.everyoneHunts =>
           'Iedere speler is tegelijk zoeker én verstopper.',
-        GameType.seekerMajority =>
-          'Een klopjacht met veel zoekers en weinig verstoppers.',
-        GameType.surpriseRoleSwitch =>
-          'De rollen ruilen volgens de gekozen spelregel tijdens het spel.',
-        GameType.stobbePowers =>
-          'Spelers vinden en gebruiken tijdelijke Stobbekrachten.',
       };
 }
 

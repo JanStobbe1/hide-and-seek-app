@@ -16,8 +16,8 @@ extension GameTypePresentation on GameType {
   String get label => switch (this) {
         GameType.classic => 'Klassiek',
         GameType.everyoneHunts => 'Iedereen jaagt',
-        GameType.seekerMajority => 'Meer zoekers',
-        GameType.surpriseRoleSwitch => 'Onverwachte rolwissel',
+        GameType.seekerMajority => 'Klopjacht',
+        GameType.surpriseRoleSwitch => 'Rollenruil',
         GameType.stobbePowers => 'Stobbekrachten',
       };
 
@@ -26,9 +26,9 @@ extension GameTypePresentation on GameType {
         GameType.everyoneHunts =>
           'Iedere speler is tegelijk zoeker én verstopper.',
         GameType.seekerMajority =>
-          'Er beginnen bewust meer zoekers dan verstoppers.',
+          'Een klopjacht met veel zoekers en weinig verstoppers.',
         GameType.surpriseRoleSwitch =>
-          'Rollen wisselen op een onverwacht moment tijdens het spel.',
+          'De rollen ruilen volgens de gekozen spelregel tijdens het spel.',
         GameType.stobbePowers =>
           'Spelers vinden en gebruiken tijdelijke Stobbekrachten.',
       };

@@ -70,11 +70,12 @@ void main() {
   });
 
   test('game types expose distinct player-facing descriptions', () {
-    expect(GameType.values, hasLength(5));
+    expect(GameType.values, hasLength(2));
     expect(GameType.everyoneHunts.label, 'Iedereen jaagt');
+    expect(GameType.classic.label, 'Klassiek');
     expect(
-      GameType.surpriseRoleSwitch.description,
-      contains('rollen ruilen'),
+      GameType.classic.description,
+      contains('Vaste zoekers'),
     );
   });
 }

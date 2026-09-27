@@ -74,7 +74,7 @@ void main() {
     expect(GameType.everyoneHunts.label, 'Iedereen jaagt');
     expect(
       GameType.surpriseRoleSwitch.description,
-      contains('onverwacht moment'),
+      contains('rollen ruilen'),
     );
   });
 }

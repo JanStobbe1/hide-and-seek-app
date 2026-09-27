@@ -10,6 +10,7 @@ import 'package:latlong2/latlong.dart' as latlong;
 import '../app_state.dart';
 import '../domain/models.dart';
 import '../domain/stobbe_powers.dart';
+import 'player_avatar.dart';
 import 'widgets.dart';
 
 class _PlayerLocation {
@@ -28,11 +29,13 @@ class _RealLocationMap extends StatelessWidget {
   const _RealLocationMap({
     required this.location,
     required this.playerIcon,
+    required this.avatarId,
     required this.controller,
   });
 
   final _PlayerLocation location;
   final IconData playerIcon;
+  final String avatarId;
   final MapController controller;
 
   @override
@@ -62,11 +65,22 @@ class _RealLocationMap extends StatelessWidget {
                   width: 72,
                   height: 72,
                   child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
-                        playerIcon,
-                        color: const Color(0xff315c46),
-                        size: 42,
+                      Stack(
+                        alignment: Alignment.bottomCenter,
+                        children: [
+                          PlayerAvatar(
+                            avatarId: avatarId,
+                            radius: 24,
+                            borderColor: const Color(0xff315c46),
+                          ),
+                          Icon(
+                            playerIcon,
+                            color: const Color(0xff315c46),
+                            size: 16,
+                          ),
+                        ],
                       ),
                       const Text(
                         'Jij',
@@ -339,10 +353,18 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
       builder: (dialogContext) => AlertDialog(
         icon: const Icon(Icons.celebration, size: 46),
         title: const Text('Gevonden!'),
-        content: const Text(
-          'Je hebt speler XYZ uitgeschakeld.\n\n'
-          'Jij ontvangt 80 punten. Iedere andere actieve zoeker ontvangt '
-          '20 punten en iedere resterende hider 10 punten.',
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            PlayerAvatar(avatarId: 'avatar-3', radius: 42),
+            SizedBox(height: 12),
+            Text(
+              'Je hebt speler Mila uitgeschakeld.\n\n'
+              'Jij ontvangt 80 punten. Iedere andere actieve zoeker ontvangt '
+              '20 punten en iedere resterende hider 10 punten.',
+              textAlign: TextAlign.center,
+            ),
+          ],
         ),
         actions: [
           FilledButton(
@@ -575,6 +597,7 @@ class _ActiveMapPageState extends State<_ActiveMapPage>
                         : _RealLocationMap(
                             location: currentLocation!,
                             playerIcon: markerIcon(widget.state.playerMarker),
+                            avatarId: widget.state.profileAvatar,
                             controller: mapController,
                           ),
                   ),

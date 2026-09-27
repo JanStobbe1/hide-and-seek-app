@@ -45,6 +45,9 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
   bool questions = true;
   bool allowRejoinAfterFound = false;
   GameType gameType = GameType.classic;
+  int seekers = 1;
+  bool roleSwitchEnabled = false;
+  bool stobbePowersEnabled = false;
   int players = 30;
   int duration = 120;
   int participantThreshold = 10;
@@ -165,6 +168,10 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
                     hints: hints,
                     questions: questions,
                     gameType: gameType,
+                    seekers: seekers,
+                    hiders: players - seekers,
+                    roleSwitchEnabled: roleSwitchEnabled,
+                    stobbePowersEnabled: stobbePowersEnabled,
                     allowRejoinAfterFound: allowRejoinAfterFound,
                     intro: intro.text,
                     area: selectedArea,
@@ -247,6 +254,52 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
               ),
             ),
           ),
+          const SizedBox(height: 8),
+          if (gameType == GameType.classic) ...[
+            _SettingSlider(
+              label: 'Zoekers',
+              value: seekers.toDouble(),
+              min: 1,
+              max: (players - 1).toDouble(),
+              divisions: players - 2,
+              suffix: ' zoekers',
+              onChanged: (value) => setState(() => seekers = value.round()),
+            ),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Daarmee zijn er ${players - seekers} verstoppers.',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
+          ] else
+            const Card(
+              child: Padding(
+                padding: EdgeInsets.all(12),
+                child: Text(
+                  'Iedere speler is tegelijk zoeker en verstopper.',
+                ),
+              ),
+            ),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Rollenruil'),
+            subtitle: const Text(
+              'Laat de rollen onverwacht tijdens het spel wisselen.',
+            ),
+            value: roleSwitchEnabled,
+            onChanged: (value) => setState(() => roleSwitchEnabled = value),
+          ),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Stobbekrachten'),
+            subtitle: const Text(
+              'Spelers kunnen tijdelijke Stobbekrachten inzetten.',
+            ),
+            value: stobbePowersEnabled,
+            onChanged: (value) =>
+                setState(() => stobbePowersEnabled = value),
+          ),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
             title: const Text('Opnieuw meedoen na gevonden worden'),
@@ -286,6 +339,9 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
               players = value.round();
               if (participantThreshold > players) {
                 participantThreshold = players;
+              }
+              if (seekers >= players) {
+                seekers = players - 1;
               }
             }),
           ),
@@ -544,6 +600,10 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
         hintsEnabled: hints,
         questionsEnabled: questions,
         gameType: gameType,
+        seekersCount: seekers,
+        hidersCount: players - seekers,
+        roleSwitchEnabled: roleSwitchEnabled,
+        stobbePowersEnabled: stobbePowersEnabled,
         allowRejoinAfterFound: allowRejoinAfterFound,
       ),
     );
@@ -814,6 +874,10 @@ class _Review extends StatelessWidget {
     required this.hints,
     required this.questions,
     required this.gameType,
+    required this.seekers,
+    required this.hiders,
+    required this.roleSwitchEnabled,
+    required this.stobbePowersEnabled,
     required this.allowRejoinAfterFound,
     required this.intro,
     required this.area,
@@ -828,6 +892,10 @@ class _Review extends StatelessWidget {
   final bool hints;
   final bool questions;
   final GameType gameType;
+  final int seekers;
+  final int hiders;
+  final bool roleSwitchEnabled;
+  final bool stobbePowersEnabled;
   final bool allowRejoinAfterFound;
   final int duration;
   final int players;
@@ -854,6 +922,20 @@ class _Review extends StatelessWidget {
         Text(isPublic ? 'Openbaar' : 'Privé'),
         const Divider(),
         _ReviewRow(label: 'Speltype', value: gameType.label),
+        _ReviewRow(
+          label: 'Rolverdeling',
+          value: gameType == GameType.everyoneHunts
+              ? 'Iedereen zoeker én verstopper'
+              : '$seekers zoekers • $hiders verstoppers',
+        ),
+        _ReviewRow(
+          label: 'Rollenruil',
+          value: roleSwitchEnabled ? 'Aan' : 'Uit',
+        ),
+        _ReviewRow(
+          label: 'Stobbekrachten',
+          value: stobbePowersEnabled ? 'Aan' : 'Uit',
+        ),
         _ReviewRow(
           label: 'Na gevonden',
           value: allowRejoinAfterFound

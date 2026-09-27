@@ -166,6 +166,23 @@ class ProfileScreen extends StatelessWidget {
               onChanged: (value) => state.setPrivacy(entry.key, value),
             ),
           ),
+          const SectionTitle('Privacy & account'),
+          OutlinedButton.icon(
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Theme.of(context).colorScheme.error,
+              minimumSize: const Size.fromHeight(52),
+            ),
+            onPressed: state.backendConnected
+                ? () => _confirmDeleteAccount(context)
+                : null,
+            icon: const Icon(Icons.delete_forever_outlined),
+            label: const Text('Verwijder account'),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Je account en bijbehorende gegevens worden definitief verwijderd.',
+            style: TextStyle(fontSize: 12),
+          ),
           const SectionTitle('Demo beheren'),
           OutlinedButton.icon(
             style: OutlinedButton.styleFrom(
@@ -247,6 +264,42 @@ class ProfileScreen extends StatelessWidget {
             },
           ),
         ),
+      ),
+    );
+  }
+
+  void _confirmDeleteAccount(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Account verwijderen?'),
+        content: const Text(
+          'Je account en de bijbehorende gegevens worden definitief verwijderd. '
+          'Dit kan niet ongedaan worden gemaakt.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Annuleren'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              Navigator.pop(dialogContext);
+              final deleted = await state.deleteAccount();
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    deleted
+                        ? 'Je account is verwijderd.'
+                        : 'Het account kon niet worden verwijderd.',
+                  ),
+                ),
+              );
+            },
+            child: const Text('Definitief verwijderen'),
+          ),
+        ],
       ),
     );
   }

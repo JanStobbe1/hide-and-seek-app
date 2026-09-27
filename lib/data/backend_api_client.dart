@@ -176,12 +176,12 @@ class BackendApiClient {
       (item) => item.name == value['game_type'],
       orElse: () => GameType.classic,
     );
-    final maxParticipants = asInt(value['max_participants'], 24);
-    final seekersCount = asInt(value['seekers_count'], 1);
     int asInt(Object? item, int fallback) =>
         item is num ? item.toInt() : int.tryParse('$item') ?? fallback;
     double asDouble(Object? item, double fallback) =>
         item is num ? item.toDouble() : double.tryParse('$item') ?? fallback;
+    final maxParticipants = asInt(value['max_participants'], 24);
+    final seekersCount = asInt(value['seekers_count'], 1);
     return Game(
       id: '${value['id']}',
       name: '${value['name'] ?? 'Naamloos spel'}',

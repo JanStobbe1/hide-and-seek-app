@@ -216,7 +216,18 @@ const route = async (request: Request, env: Env): Promise<Response> => {
   const gameMatch = path.match(/^\/api\/v1\/games\/([^/]+)$/);
   if (request.method === "GET" && gameMatch) {
     const game = await env.DB.prepare(
-      `SELECT g.*, COUNT(gp.player_id) AS participant_count
+      `SELECT g.id, g.name, g.description,
+        CASE WHEN g.status = 'scheduled'
+          AND datetime(g.starts_at) <= CURRENT_TIMESTAMP
+          AND datetime(g.ends_at) > CURRENT_TIMESTAMP
+          THEN 'active' ELSE g.status END AS status,
+        g.starts_at, g.ends_at, g.created_by, g.created_at,
+        g.paused_at, g.stopped_at, g.country, g.province, g.city,
+        g.neighbourhood, g.specific_area, g.duration_minutes,
+        g.max_participants, g.distance_km, g.start_condition,
+        g.participant_threshold, g.is_public, g.hints_enabled,
+        g.questions_enabled, g.game_type, g.allow_rejoin_after_found,
+        COUNT(gp.player_id) AS participant_count
        FROM games g
        LEFT JOIN game_players gp ON gp.game_id = g.id AND gp.left_at IS NULL
        WHERE g.id = ?

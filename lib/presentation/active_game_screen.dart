@@ -353,10 +353,18 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
       builder: (dialogContext) => AlertDialog(
         icon: const Icon(Icons.celebration, size: 46),
         title: const Text('Gevonden!'),
-        content: const Text(
-          'Je hebt speler XYZ uitgeschakeld.\n\n'
-          'Jij ontvangt 80 punten. Iedere andere actieve zoeker ontvangt '
-          '20 punten en iedere resterende hider 10 punten.',
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const PlayerAvatar(avatarId: 'avatar-3', radius: 42),
+            const SizedBox(height: 12),
+            const Text(
+              'Je hebt speler Mila uitgeschakeld.\n\n'
+              'Jij ontvangt 80 punten. Iedere andere actieve zoeker ontvangt '
+              '20 punten en iedere resterende hider 10 punten.',
+              textAlign: TextAlign.center,
+            ),
+          ],
         ),
         actions: [
           FilledButton(

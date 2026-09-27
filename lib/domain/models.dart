@@ -89,6 +89,7 @@ class Game {
     required this.id,
     required this.name,
     required this.organizer,
+    this.createdBy,
     required this.description,
     required this.area,
     required this.status,
@@ -114,6 +115,7 @@ class Game {
   final String id;
   final String name;
   final String organizer;
+  final String? createdBy;
   final String description;
   final SearchArea area;
   final GameStatus status;
@@ -133,6 +135,7 @@ class Game {
         id: id,
         name: name,
         organizer: organizer,
+        createdBy: createdBy,
         description: description,
         area: area,
         status: status ?? this.status,

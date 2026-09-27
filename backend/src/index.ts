@@ -272,6 +272,41 @@ const route = async (request: Request, env: Env): Promise<Response> => {
     return json({ joined: true, gameId: joinMatch[1] }, 200, origin);
   }
 
+  if (request.method === "DELETE" && path === "/api/v1/account") {
+    const authenticatedPlayer = await playerFromToken(request, env);
+    if (!authenticatedPlayer) return json({ error: "unauthorized" }, 401, origin);
+    await env.DB.batch([
+      env.DB.prepare("UPDATE games SET created_by = NULL WHERE created_by = ?")
+        .bind(authenticatedPlayer),
+      env.DB.prepare("DELETE FROM players WHERE id = ?").bind(authenticatedPlayer),
+    ]);
+    return json({}, 204, origin);
+  }
+
+  const withdrawMatch = path.match(/^\/api\/v1\/games\/([^/]+)\/withdraw$/);
+  if (request.method === "POST" && withdrawMatch) {
+    const authenticatedPlayer = await playerFromToken(request, env);
+    if (!authenticatedPlayer) return json({ error: "unauthorized" }, 401, origin);
+    const game = await env.DB.prepare(
+      "SELECT id, status, starts_at, created_by FROM games WHERE id = ?",
+    ).bind(withdrawMatch[1]).first();
+    if (!game) return json({ error: "game_not_found" }, 404, origin);
+    if (String(game.created_by) !== authenticatedPlayer) {
+      return json({ error: "organizer_required" }, 403, origin);
+    }
+    if (String(game.status) !== "scheduled") {
+      return json({ error: "game_not_withdrawable" }, 409, origin);
+    }
+    const startsAt = Date.parse(String(game.starts_at));
+    if (!Number.isFinite(startsAt) || Date.now() > startsAt - 5 * 60 * 1000) {
+      return json({ error: "withdrawal_window_closed" }, 409, origin);
+    }
+    await env.DB.prepare(
+      "UPDATE games SET status = 'stopped', stopped_at = CURRENT_TIMESTAMP WHERE id = ?",
+    ).bind(withdrawMatch[1]).run();
+    return json({ withdrawn: true, gameId: withdrawMatch[1] }, 200, origin);
+  }
+
   const eventMatch = path.match(/^\/api\/v1\/games\/([^/]+)\/events$/);
   if (request.method === "POST" && eventMatch) {
     const authenticatedPlayer = await playerFromToken(request, env);

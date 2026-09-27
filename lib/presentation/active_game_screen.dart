@@ -353,7 +353,7 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
       builder: (dialogContext) => AlertDialog(
         icon: const Icon(Icons.celebration, size: 46),
         title: const Text('Gevonden!'),
-        content: Column(
+        content: const Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             const PlayerAvatar(avatarId: 'avatar-3', radius: 42),

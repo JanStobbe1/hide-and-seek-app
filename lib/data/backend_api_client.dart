@@ -160,6 +160,38 @@ class BackendApiClient {
     _decode(response);
   }
 
+  Future<void> deleteAccount() async {
+    final token = _playerToken;
+    if (token == null) {
+      throw const BackendApiException(401, 'player_session_required');
+    }
+    final response = await client.delete(
+      _endpoint('/api/v1/account'),
+      headers: {'authorization': 'Bearer $token'},
+    );
+    _decode(response);
+  }
+
+  Future<void> withdrawGame(String gameId) async {
+    final token = _playerToken;
+    if (token == null) {
+      throw const BackendApiException(401, 'player_session_required');
+    }
+    final response = await client.post(
+      _endpoint('/api/v1/games/$gameId/withdraw'),
+      headers: {'authorization': 'Bearer $token'},
+    );
+    _decode(response);
+  }
+
+  Future<void> clearSession() async {
+    _playerToken = null;
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.remove('verstobbertje.playerId');
+    await preferences.remove('verstobbertje.profileName');
+    await preferences.remove('verstobbertje.playerToken');
+  }
+
   Game _gameFromJson(Map<String, dynamic> value) {
     final status = switch (value['status']) {
       'active' => GameStatus.active,
@@ -186,6 +218,7 @@ class BackendApiClient {
       id: '${value['id']}',
       name: '${value['name'] ?? 'Naamloos spel'}',
       organizer: '${value['organizer'] ?? 'Verstobbertje'}',
+      createdBy: value['created_by']?.toString(),
       description: '${value['description'] ?? ''}',
       area: SearchArea(
         country: '${value['country'] ?? ''}',

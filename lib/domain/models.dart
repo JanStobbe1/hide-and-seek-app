@@ -13,9 +13,6 @@ extension GameTypePresentation on GameType {
   String get label => switch (this) {
         GameType.classic => 'Klassiek',
         GameType.everyoneHunts => 'Iedereen jaagt',
-        GameType.seekerMajority => 'Klopjacht',
-        GameType.surpriseRoleSwitch => 'Rollenruil',
-        GameType.stobbePowers => 'Stobbekrachten',
       };
 
   String get description => switch (this) {
@@ -66,6 +63,10 @@ class GameRules {
     this.hidersCanWin = true,
     this.topSeekerCanWin = true,
     this.playersPerSeeker = 6,
+    this.seekersCount = 1,
+    this.hidersCount = 0,
+    this.roleSwitchEnabled = false,
+    this.stobbePowersEnabled = false,
     this.gameType = GameType.classic,
     this.allowRejoinAfterFound = false,
   });
@@ -75,6 +76,10 @@ class GameRules {
   final bool hidersCanWin;
   final bool topSeekerCanWin;
   final int playersPerSeeker;
+  final int seekersCount;
+  final int hidersCount;
+  final bool roleSwitchEnabled;
+  final bool stobbePowersEnabled;
   final GameType gameType;
   final bool allowRejoinAfterFound;
 }

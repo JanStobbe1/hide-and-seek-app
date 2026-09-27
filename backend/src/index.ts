@@ -14,7 +14,7 @@ const json = (body: unknown, status = 200, origin = "*") =>
       "content-type": "application/json; charset=utf-8",
       "access-control-allow-origin": origin,
       "access-control-allow-headers": "authorization, content-type, idempotency-key",
-      "access-control-allow-methods": "GET, POST, OPTIONS",
+      "access-control-allow-methods": "GET, POST, DELETE, OPTIONS",
     },
   });
 

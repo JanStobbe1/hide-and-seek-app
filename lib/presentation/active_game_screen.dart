@@ -179,7 +179,7 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
                     padding: const EdgeInsets.all(20),
                     children: [
                       _StatusRow(finished: state.gameFinished),
-                      SizedBox(height: 12),
+                      const SizedBox(height: 12),
                       _CountdownCard(state: state),
                     ],
                   ),
@@ -357,7 +357,7 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             PlayerAvatar(avatarId: 'avatar-3', radius: 42),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             Text(
               'Je hebt speler Mila uitgeschakeld.\n\n'
               'Jij ontvangt 80 punten. Iedere andere actieve zoeker ontvangt '

@@ -351,17 +351,69 @@ class MyGamesScreen extends StatelessWidget {
             ),
           ),
         ...upcomingGames.map(
-          (game) => GameCard(
-            game: game,
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => GameDetailScreen(state: state, game: game),
+          (game) => Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              GameCard(
+                game: game,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => GameDetailScreen(state: state, game: game),
+                  ),
+                ),
               ),
-            ),
+              if ((game.createdBy != null &&
+                      game.createdBy == state.backendPlayerId) ||
+                  game.organizer == state.displayName)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: OutlinedButton.icon(
+                    onPressed: () => _confirmWithdraw(context, state, game),
+                    icon: const Icon(Icons.undo),
+                    label: const Text('Intrekken spel'),
+                  ),
+                ),
+            ],
           ),
         ),
       ],
+    );
+  }
+
+  void _confirmWithdraw(BuildContext context, AppState state, Game game) {
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Spel intrekken?'),
+        content: const Text(
+          'Dit spel wordt vóór de start ingetrokken en is daarna niet meer '
+          'beschikbaar voor deelnemers.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Annuleren'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              Navigator.pop(dialogContext);
+              final withdrawn = await state.withdrawGame(game.id);
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    withdrawn
+                        ? 'Het spel is ingetrokken.'
+                        : 'Het spel kon niet worden ingetrokken.',
+                  ),
+                ),
+              );
+            },
+            child: const Text('Intrekken'),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -14,16 +14,11 @@ Een spannend locatiegebaseerd verstopspel met GPS, kaart en Stobbekrachten.
 
 Verstobbertje maakt van verstoppertje een spannend buitenspel voor vrienden en gezinnen.
 
-Maak een spel aan, nodig spelers uit en ga op pad. De kaart helpt je om het speelgebied en de andere spelers te volgen. Zoek slim, verstop je goed en gebruik je omgeving om de andere spelers te slim af te zijn.
+Start een spel en ga op pad. De kaart helpt je om je eigen speelgebied en locatie te bekijken. Zoek slim, verstop je goed en gebruik je omgeving om de andere spelers te slim af te zijn.
 
 Mr. Stobbe — onze gewortelde detective — helpt nieuwe spelers op weg. Hij legt rustig uit hoe het spel werkt en begeleidt je door de belangrijkste schermen.
 
-Je kunt spelen in verschillende spelvormen, waaronder:
-
-- Klassiek verstoppertje
-- Iedereen jaagt
-
-De organisator kan het spel verder instellen, zoals de speelduur, het aantal zoekers en hiders, rollenruil en het gebruik van Stobbekrachten.
+In de huidige versie staat klassiek verstoppertje centraal. De organisator kan het spel instellen, zoals de speelduur en het gebruik van rollenruil en Stobbekrachten wanneer deze opties beschikbaar zijn.
 
 Met Stobbekrachten kan het spel onverwachte wendingen krijgen. Gebruik ze op het juiste moment en houd rekening met de timer en het beperkte aantal inzetten.
 

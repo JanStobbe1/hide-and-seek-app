@@ -155,7 +155,17 @@ class _AppShellState extends State<AppShell> {
                   .toList(),
             ),
             const VerticalDivider(width: 1),
-            Expanded(child: content),
+            Expanded(
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                    child: StobbeGuide(explanation: helpTexts[index]),
+                  ),
+                  Expanded(child: content),
+                ],
+              ),
+            ),
           ],
         ),
         floatingActionButton: index == 0
@@ -201,6 +211,10 @@ class _AppShellState extends State<AppShell> {
 
   void _nextTourStep() {
     skippedInARow = 0;
+    _advanceTour();
+  }
+
+  void _advanceTour() {
     if (tourStep >= _GuidedTourOverlay.steps.length - 1) {
       _finishTour();
       return;
@@ -211,7 +225,7 @@ class _AppShellState extends State<AppShell> {
   void _skipTour() {
     skippedInARow++;
     if (skippedInARow < 2) {
-      _nextTourStep();
+      _advanceTour();
       return;
     }
     showDialog<bool>(
@@ -238,7 +252,7 @@ class _AppShellState extends State<AppShell> {
       if (!mounted) return;
       skippedInARow = 0;
       if (continueTour == true) {
-        _nextTourStep();
+        _advanceTour();
       } else if (continueTour == false) {
         _finishTour();
       }
@@ -394,6 +408,7 @@ class _TourSpotlightPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    canvas.saveLayer(Offset.zero & size, Paint());
     final overlay = Paint()..color = Colors.black54;
     canvas.drawRect(Offset.zero & size, overlay);
 
@@ -411,6 +426,7 @@ class _TourSpotlightPainter extends CustomPainter {
         ..strokeWidth = 3
         ..color = Colors.white,
     );
+    canvas.restore();
   }
 
   @override

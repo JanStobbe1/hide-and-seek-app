@@ -164,6 +164,7 @@ const route = async (request: Request, env: Env): Promise<Response> => {
        LEFT JOIN game_players gp ON gp.game_id = g.id AND gp.left_at IS NULL
        WHERE g.is_public = 1
          AND g.status IN ('scheduled', 'active')
+         AND (g.ends_at IS NULL OR datetime(g.ends_at) > CURRENT_TIMESTAMP)
        GROUP BY g.id
        ORDER BY g.starts_at ASC
        LIMIT 100`,

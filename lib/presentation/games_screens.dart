@@ -502,6 +502,7 @@ class CompletedGamesScreen extends StatelessWidget {
           location: 'Almere',
           players: const ['Jij', 'Houda', 'Mila', 'Sam', 'Noa'],
         ),
+      if (state.backendClient == null) ...games,
     ];
     return ListView(
       padding: const EdgeInsets.all(20),

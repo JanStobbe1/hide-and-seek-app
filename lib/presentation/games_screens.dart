@@ -27,7 +27,10 @@ class _AvailableGamesScreenState extends State<AvailableGamesScreen> {
   Widget build(BuildContext context) {
     final now = DateTime.now();
     final games = widget.state.repository.availableGames
-        .where((game) => game.scheduledEnd == null || game.scheduledEnd!.isAfter(now))
+        .where(
+          (game) =>
+              game.scheduledEnd == null || game.scheduledEnd!.isAfter(now),
+        )
         .toList();
     switch (sort) {
       case 'Alfabetisch':

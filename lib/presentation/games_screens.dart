@@ -25,7 +25,13 @@ class _AvailableGamesScreenState extends State<AvailableGamesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final games = [...widget.state.repository.availableGames];
+    final now = DateTime.now();
+    final games = widget.state.repository.availableGames
+        .where(
+          (game) =>
+              game.scheduledEnd == null || game.scheduledEnd!.isAfter(now),
+        )
+        .toList();
     switch (sort) {
       case 'Alfabetisch':
         games.sort((a, b) => a.name.compareTo(b.name));
@@ -496,7 +502,7 @@ class CompletedGamesScreen extends StatelessWidget {
           location: 'Almere',
           players: const ['Jij', 'Houda', 'Mila', 'Sam', 'Noa'],
         ),
-      ...games,
+      if (state.backendClient == null) ...games,
     ];
     return ListView(
       padding: const EdgeInsets.all(20),
@@ -511,6 +517,11 @@ class CompletedGamesScreen extends StatelessWidget {
         const Text(
             'Open een avontuur om je uitslag en medespelers te bekijken.'),
         const SizedBox(height: 16),
+        if (visibleGames.isEmpty)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 48),
+            child: Center(child: Text('Je hebt nog geen afgeronde spellen.')),
+          ),
         ...visibleGames.map(
           (game) => Padding(
             padding: const EdgeInsets.only(bottom: 10),

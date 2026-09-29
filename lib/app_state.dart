@@ -26,6 +26,7 @@ class AppState extends ChangeNotifier {
     );
     _lastGameClockUpdate = DateTime.now();
     _initializeV1Demo();
+    if (backendClient != null) _initializeProductionState();
   }
   final MockGameRepository repository;
   final Duration activeGameDuration;
@@ -60,7 +61,7 @@ class AppState extends ChangeNotifier {
   String profileAvatar = 'avatar-1';
   ThemePreference themePreference = ThemePreference.forest;
   PlayerMarker playerMarker = PlayerMarker.ghost;
-  final List<FriendProfile> friends = const [
+  List<FriendProfile> friends = const [
     FriendProfile(
       name: 'Mila',
       city: 'Almere',
@@ -286,7 +287,8 @@ class AppState extends ChangeNotifier {
   Future<bool> publishAsync(Game game) async {
     final client = backendClient;
     if (client == null) {
-      publish(game);
+      backendError = 'backend_not_configured';
+      notifyListeners();
       return false;
     }
     if (!backendConnected) {
@@ -492,6 +494,19 @@ class AppState extends ChangeNotifier {
       ..['Meld deelname aan eerdere tegenstanders'] = true
       ..['Meld deelname aan eerdere vrienden'] = true;
     notifyListeners();
+  }
+
+  void _initializeProductionState() {
+    repository.replaceAvailableGames(const []);
+    friends = const [];
+    gamesPlayed = 0;
+    wins = 0;
+    points = 0;
+    displayName = '';
+    profileCity = '';
+    profileAge = '';
+    profileAvatar = 'avatar-1';
+    playerMarker = PlayerMarker.ghost;
   }
 
   void _initializeV1Demo() {

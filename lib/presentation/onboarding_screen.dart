@@ -265,11 +265,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
     if (page == 1) {
       final value = age.text.trim();
-      if (value.isEmpty || int.tryParse(value) == null) {
+      final parsed = int.tryParse(value);
+      if (parsed == null) {
         setState(() => ageError = 'Vul je leeftijd in als getal.');
         return;
       }
-      widget.state.setProfileAge(value);
+      if (parsed < 6 || parsed > 120) {
+        setState(() => ageError = 'Vul een leeftijd tussen 6 en 120 jaar in.');
+        return;
+      }
+      setState(() => ageError = null);
+      widget.state.setProfileAge(parsed.toString());
     }
     if (page == 2) {
       final value = city.text.trim();

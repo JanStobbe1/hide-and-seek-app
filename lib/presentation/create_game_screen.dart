@@ -24,7 +24,7 @@ class CreateGameScreen extends StatefulWidget {
 
 class _CreateGameScreenState extends State<CreateGameScreen> {
   int step = 0;
-  final name = TextEditingController(text: 'Test123');
+  final name = TextEditingController();
   final intro = TextEditingController();
   final specificArea = TextEditingController(text: 'Niet van toepassing');
   final LocationRepository locations = const DemoLocationRepository();
@@ -51,6 +51,7 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
   int players = 30;
   int duration = 120;
   int participantThreshold = 10;
+  bool isPublishing = false;
   StartCondition condition = StartCondition.participantCount;
   late DateTime scheduledDate;
   late TimeOfDay scheduledTime;
@@ -198,8 +199,12 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
           children: [
             Expanded(
               child: FilledButton(
-                onPressed: details.onStepContinue,
-                child: Text(step == 3 ? 'Stel spel beschikbaar' : 'Volgende'),
+                onPressed: isPublishing ? null : details.onStepContinue,
+                child: Text(isPublishing
+                    ? 'Bezig met opslaan…'
+                    : step == 3
+                        ? 'Stel spel beschikbaar'
+                        : 'Volgende'),
               ),
             ),
             if (step > 0) ...[
@@ -569,8 +574,17 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
 
   Future<void> _publish() async {
     final now = widget.clock.now();
+    if (name.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Geef je spel eerst een naam.')),
+      );
+      return;
+    }
+    if (isPublishing) return;
+    setState(() => isPublishing = true);
     if (condition == StartCondition.scheduled &&
         !GameSchedulingRules(now).isAllowedStart(selectedStart)) {
+      if (mounted) setState(() => isPublishing = false);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Kies een startmoment dat nog in de toekomst ligt.'),
@@ -580,11 +594,9 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
     }
     final game = Game(
       id: 'created-${now.millisecondsSinceEpoch}',
-      name: name.text.trim().isEmpty ? 'Naamloos spel' : name.text.trim(),
+      name: name.text.trim(),
       organizer: widget.state.displayName,
-      description: intro.text.trim().isEmpty
-          ? 'Een nieuw avontuur in Almere.'
-          : intro.text.trim(),
+      description: intro.text.trim(),
       area: selectedArea,
       status: GameStatus.available,
       duration: Duration(minutes: duration),
@@ -609,6 +621,18 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
     );
     final persisted = await widget.state.publishAsync(game);
     if (!mounted) return;
+    setState(() => isPublishing = false);
+    if (!persisted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Het spel kon niet online worden aangemaakt. Controleer je verbinding en probeer het opnieuw.'
+            '${widget.state.backendError == null ? '' : ' (${widget.state.backendError})'}',
+          ),
+        ),
+      );
+      return;
+    }
     showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(

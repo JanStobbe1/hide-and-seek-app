@@ -30,13 +30,7 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
   final LocationRepository locations = const DemoLocationRepository();
   final IntroductionService introductionService =
       const DemoIntroductionService();
-  LocationSelection location = const LocationSelection(
-    country: 'Nederland',
-    province: 'Flevoland',
-    cities: ['Almere'],
-    districts: ['Alle'],
-    neighbourhoods: ['Alle'],
-  );
+  LocationSelection location = const LocationSelection();
   int introductionVariant = 0;
   bool introductionWasGenerated = false;
 

@@ -130,6 +130,9 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 760),
             child: Stepper(
+              // Recreate the Stepper for each step so a previous step's
+              // scroll position cannot hide the top of the new content.
+              key: ValueKey('create-game-step-$step'),
               currentStep: step,
               onStepTapped: (value) => setState(() => step = value),
               onStepContinue:

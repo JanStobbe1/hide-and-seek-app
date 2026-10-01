@@ -42,7 +42,10 @@ class BackendApiClient {
   Future<http.Response> _request(Future<http.Response> request) =>
       request.timeout(
         _requestTimeout,
-        onTimeout: () => throw const BackendApiException(408, 'request_timeout'),
+        onTimeout: () => throw const BackendApiException(
+          408,
+          'request_timeout',
+        ),
       );
 
   Uri _endpoint(String path) => baseUri.replace(

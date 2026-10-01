@@ -226,7 +226,7 @@ const route = async (request: Request, env: Env): Promise<Response> => {
            participant_threshold, is_public, hints_enabled, questions_enabled,
            game_type, allow_rejoin_after_found,
            seekers_count, hiders_count, role_switch_enabled, stobbe_powers_enabled)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       ).bind(
         game.id, game.name, game.description, game.status, game.starts_at,
         game.ends_at, game.created_by, game.country, game.province, game.city,

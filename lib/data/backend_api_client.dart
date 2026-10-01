@@ -37,6 +37,14 @@ class BackendApiClient {
   final http.Client client;
   String? _playerToken;
 
+  static const _requestTimeout = Duration(seconds: 15);
+
+  Future<http.Response> _request(Future<http.Response> request) =>
+      request.timeout(
+        _requestTimeout,
+        onTimeout: () => throw const BackendApiException(408, 'request_timeout'),
+      );
+
   Uri _endpoint(String path) => baseUri.replace(
         path: baseUri.path.replaceFirst(RegExp(r'/$'), '') + path,
       );
@@ -56,11 +64,11 @@ class BackendApiClient {
   }
 
   Future<PlayerSession> registerPlayer(String profileName) async {
-    final response = await client.post(
+    final response = await _request(client.post(
       _endpoint('/api/v1/auth/player'),
       headers: const {'content-type': 'application/json'},
       body: jsonEncode({'profileName': profileName}),
-    );
+    ));
     final data = _decode(response);
     final player = data['player'];
     final token = data['token'];
@@ -89,7 +97,7 @@ class BackendApiClient {
   }
 
   Future<List<Game>> fetchAvailableGames() async {
-    final response = await client.get(_endpoint('/api/v1/games'));
+    final response = await _request(client.get(_endpoint('/api/v1/games')));
     final data = _decode(response);
     final games = data['games'];
     if (games is! List) return const [];
@@ -106,7 +114,7 @@ class BackendApiClient {
     }
     final startsAt = game.scheduledStart?.toUtc().toIso8601String() ??
         DateTime.now().toUtc().toIso8601String();
-    final response = await client.post(
+    final response = await _request(client.post(
       _endpoint('/api/v1/games'),
       headers: {
         'content-type': 'application/json',
@@ -137,7 +145,7 @@ class BackendApiClient {
         'stobbePowersEnabled': game.rules.stobbePowersEnabled,
         'allowRejoinAfterFound': game.rules.allowRejoinAfterFound,
       }),
-    );
+    ));
     final data = _decode(response);
     final created = data['game'];
     if (created is! Map<String, dynamic>) {
@@ -151,12 +159,12 @@ class BackendApiClient {
     if (token == null) {
       throw const BackendApiException(401, 'player_session_required');
     }
-    final response = await client.post(
+    final response = await _request(client.post(
       _endpoint('/api/v1/games/$gameId/join'),
       headers: {
         'authorization': 'Bearer $token',
       },
-    );
+    ));
     _decode(response);
   }
 
@@ -165,10 +173,10 @@ class BackendApiClient {
     if (token == null) {
       throw const BackendApiException(401, 'player_session_required');
     }
-    final response = await client.delete(
+    final response = await _request(client.delete(
       _endpoint('/api/v1/account'),
       headers: {'authorization': 'Bearer $token'},
-    );
+    ));
     _decode(response);
   }
 
@@ -177,10 +185,10 @@ class BackendApiClient {
     if (token == null) {
       throw const BackendApiException(401, 'player_session_required');
     }
-    final response = await client.post(
+    final response = await _request(client.post(
       _endpoint('/api/v1/games/$gameId/withdraw'),
       headers: {'authorization': 'Bearer $token'},
-    );
+    ));
     _decode(response);
   }
 
@@ -271,7 +279,7 @@ class BackendApiClient {
     if (token == null) {
       throw const BackendApiException(401, 'player_session_required');
     }
-    final response = await client.post(
+    final response = await _request(client.post(
       _endpoint('/api/v1/games/$gameId/events'),
       headers: {
         'content-type': 'application/json',
@@ -284,15 +292,19 @@ class BackendApiClient {
         if (playerId != null) 'playerId': playerId,
         'payload': payload,
       }),
-    );
+    ));
     _decode(response);
   }
 
   Map<String, dynamic> _decode(http.Response response) {
     Map<String, dynamic> data = {};
     if (response.body.isNotEmpty) {
-      final decoded = jsonDecode(response.body);
-      if (decoded is Map<String, dynamic>) data = decoded;
+      try {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map<String, dynamic>) data = decoded;
+      } on FormatException {
+        throw const BackendApiException(502, 'invalid_backend_response');
+      }
     }
     if (response.statusCode < 200 || response.statusCode >= 300) {
       final code = data['error'];

@@ -311,6 +311,10 @@ class AppState extends ChangeNotifier {
         backendError = error.code;
         notifyListeners();
         return false;
+      } catch (_) {
+        backendError = 'connection_failed';
+        notifyListeners();
+        return false;
       }
     }
     return false;

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../config/app_config.dart';
+import 'seasonal_stobbe.dart';
 
 class CoverScreen extends StatefulWidget {
   const CoverScreen({required this.onEnter, super.key});
@@ -163,8 +164,8 @@ class _CoverScreenState extends State<CoverScreen>
                 scale: 0.9 + (0.1 * entrance),
                 child: Opacity(
                   opacity: entrance.clamp(0.0, 1.0).toDouble(),
-                  child: Image.asset(
-                    isGreeting
+                  child: SeasonalStobbe(
+                    assetPath: isGreeting
                         ? 'assets/images/stobbekarakter_welkom.webp'
                         : 'assets/images/stobbekarakter.png',
                     key: ValueKey(

@@ -157,7 +157,7 @@ const route = async (request: Request, env: Env): Promise<Response> => {
         g.neighbourhood, g.specific_area, g.duration_minutes,
         g.max_participants, g.distance_km, g.start_condition,
         g.participant_threshold, g.is_public, g.hints_enabled,
-        g.questions_enabled, g.game_type, g.allow_rejoin_after_found,
+        g.questions_enabled, g.question_count, g.game_type, g.allow_rejoin_after_found,
         g.seekers_count, g.hiders_count, g.role_switch_enabled, g.stobbe_powers_enabled,
         COUNT(gp.player_id) AS participant_count
        FROM games g
@@ -210,6 +210,7 @@ const route = async (request: Request, env: Env): Promise<Response> => {
       is_public: body.isPublic === false ? 0 : 1,
       hints_enabled: body.hintsEnabled === false ? 0 : 1,
       questions_enabled: body.questionsEnabled === false ? 0 : 1,
+      question_count: Math.min(5, Math.max(3, Number(body.questionCount) || 3)),
       game_type: typeof body.gameType === "string" ? body.gameType : "classic",
       allow_rejoin_after_found: body.allowRejoinAfterFound === true ? 1 : 0,
       seekers_count: Number(body.seekersCount) || 1,
@@ -224,7 +225,7 @@ const route = async (request: Request, env: Env): Promise<Response> => {
            country, province, city, neighbourhood, specific_area,
            duration_minutes, max_participants, distance_km, start_condition,
            participant_threshold, is_public, hints_enabled, questions_enabled,
-           game_type, allow_rejoin_after_found,
+           question_count, game_type, allow_rejoin_after_found,
            seekers_count, hiders_count, role_switch_enabled, stobbe_powers_enabled)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       ).bind(
@@ -233,7 +234,7 @@ const route = async (request: Request, env: Env): Promise<Response> => {
         game.neighbourhood, game.specific_area, game.duration_minutes,
         game.max_participants, game.distance_km, game.start_condition,
         game.participant_threshold, game.is_public, game.hints_enabled,
-        game.questions_enabled, game.game_type, game.allow_rejoin_after_found,
+        game.questions_enabled, game.question_count, game.game_type, game.allow_rejoin_after_found,
         game.seekers_count, game.hiders_count, game.role_switch_enabled,
         game.stobbe_powers_enabled,
       ),
@@ -267,6 +268,18 @@ const route = async (request: Request, env: Env): Promise<Response> => {
     ).bind(gameMatch[1]).first();
     if (!game) return json({ error: "game_not_found" }, 404, origin);
     return json({ game }, 200, origin);
+  }
+
+  const participantsMatch = path.match(/^\/api\/v1\/games\/([^/]+)\/participants$/);
+  if (request.method === "GET" && participantsMatch) {
+    const participants = await env.DB.prepare(
+      `SELECT p.profile_name AS name
+       FROM game_players gp
+       JOIN players p ON p.id = gp.player_id
+       WHERE gp.game_id = ? AND gp.left_at IS NULL
+       ORDER BY gp.joined_at ASC`,
+    ).bind(participantsMatch[1]).all();
+    return json({ participants: participants.results }, 200, origin);
   }
 
   const joinMatch = path.match(/^\/api\/v1\/games\/([^/]+)\/join$/);

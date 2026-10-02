@@ -300,7 +300,8 @@ class AppState extends ChangeNotifier {
     }
     for (var attempt = 0; attempt < 2; attempt++) {
       try {
-        await client.createGame(game);
+        final created = await client.createGame(game);
+        repository.publish(created);
         await refreshBackendGames();
         return true;
       } on BackendApiException catch (error) {

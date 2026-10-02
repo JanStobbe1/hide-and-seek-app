@@ -60,6 +60,7 @@ class GameRules {
   const GameRules({
     this.hintsEnabled = true,
     this.questionsEnabled = true,
+    this.questionCount = 3,
     this.hidersCanWin = true,
     this.topSeekerCanWin = true,
     this.playersPerSeeker = 6,
@@ -73,6 +74,7 @@ class GameRules {
 
   final bool hintsEnabled;
   final bool questionsEnabled;
+  final int questionCount;
   final bool hidersCanWin;
   final bool topSeekerCanWin;
   final int playersPerSeeker;

@@ -141,6 +141,7 @@ class BackendApiClient {
         'isPublic': game.isPublic,
         'hintsEnabled': game.rules.hintsEnabled,
         'questionsEnabled': game.rules.questionsEnabled,
+        'questionCount': game.rules.questionCount,
         'gameType': game.rules.gameType.name,
         'seekersCount': game.rules.seekersCount,
         'hidersCount': game.rules.hidersCount,
@@ -155,6 +156,20 @@ class BackendApiClient {
       throw const BackendApiException(502, 'invalid_game_response');
     }
     return _gameFromJson(created);
+  }
+
+  Future<List<String>> fetchGameParticipants(String gameId) async {
+    final response = await _request(
+      client.get(_endpoint('/api/v1/games/$gameId/participants')),
+    );
+    final data = _decode(response);
+    final participants = data['participants'];
+    if (participants is! List) return const [];
+    return participants
+        .whereType<Map<String, dynamic>>()
+        .map((item) => item['name'])
+        .whereType<String>()
+        .toList(growable: false);
   }
 
   Future<void> joinGame(String gameId) async {
@@ -254,6 +269,7 @@ class BackendApiClient {
             value['hints_enabled'] != 0 && value['hints_enabled'] != false,
         questionsEnabled: value['questions_enabled'] != 0 &&
             value['questions_enabled'] != false,
+        questionCount: asInt(value['question_count'], 3).clamp(3, 5),
         gameType: gameType,
         seekersCount: seekersCount,
         hidersCount: asInt(

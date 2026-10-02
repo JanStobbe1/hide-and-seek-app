@@ -114,5 +114,11 @@ class MockGameRepository implements GameRepository {
   }
 
   @override
-  void publish(Game game) => _available.add(game);
+  void publish(Game game) {
+    _available.removeWhere((item) => item.id == game.id);
+    _available.add(game);
+    if (_joined.every((item) => item.id != game.id)) {
+      _joined.add(game);
+    }
+  }
 }

@@ -26,10 +26,13 @@ class _AvailableGamesScreenState extends State<AvailableGamesScreen> {
   @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
+    final joinedIds =
+        widget.state.repository.joinedGames.map((game) => game.id).toSet();
     final games = widget.state.repository.availableGames
         .where(
           (game) =>
-              game.scheduledEnd == null || game.scheduledEnd!.isAfter(now),
+              !joinedIds.contains(game.id) &&
+              (game.scheduledEnd == null || game.scheduledEnd!.isAfter(now)),
         )
         .toList();
     switch (sort) {
@@ -155,15 +158,57 @@ class GameCard extends StatelessWidget {
       );
 }
 
-class GameDetailScreen extends StatelessWidget {
+class GameDetailScreen extends StatefulWidget {
   const GameDetailScreen({required this.state, required this.game, super.key});
 
   final AppState state;
   final Game game;
 
   @override
+  State<GameDetailScreen> createState() => _GameDetailScreenState();
+}
+
+class _GameDetailScreenState extends State<GameDetailScreen> {
+  List<String> participantNames = const [];
+  bool loadingParticipants = true;
+  bool participantsFailed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadParticipants();
+  }
+
+  Future<void> _loadParticipants() async {
+    try {
+      final game = widget.game;
+      final names = widget.state.backendClient == null
+          ? [
+              game.organizer,
+              ...List<String>.filled(
+                (game.participants - 1).clamp(0, game.maxParticipants),
+                'Deelnemer',
+              ),
+            ]
+          : await widget.state.backendClient!.fetchGameParticipants(game.id);
+      if (!mounted) return;
+      setState(() {
+        participantNames = names;
+        loadingParticipants = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        participantsFailed = true;
+        loadingParticipants = false;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final joined = state.repository.joinedGames.any(
+    final game = widget.game;
+    final joined = widget.state.repository.joinedGames.any(
       (item) => item.id == game.id,
     );
     return Scaffold(
@@ -209,10 +254,8 @@ class GameDetailScreen extends StatelessWidget {
                     avatar: const Icon(Icons.public, size: 18),
                   ),
                   Chip(
-                    label: Text(
-                      '${game.participants}/${game.maxParticipants} spelers',
-                    ),
-                  ),
+                      label: Text(
+                          '${game.participants}/${game.maxParticipants} spelers')),
                 ],
               ),
               Text(
@@ -230,18 +273,35 @@ class GameDetailScreen extends StatelessWidget {
               _Info(Icons.person, 'Organisator', game.organizer),
               _Info(Icons.schedule, 'Start & einde', _dateRange(game)),
               _Info(Icons.map, 'Zoekgebied', _areaDetails(game.area)),
-              const SectionTitle('Bekende gezichten'),
-              const Card(
+              SectionTitle(
+                'Deelnemers',
+                action: TextButton.icon(
+                  onPressed: () => _showParticipants(context),
+                  icon: const Icon(Icons.people_outline),
+                  label: const Text('Bekijk'),
+                ),
+              ),
+              Card(
                 child: ListTile(
-                  leading: CircleAvatar(child: Text('M')),
-                  title: Text('Mila en 2 eerdere spelers doen mee'),
-                  subtitle: Text('Jullie speelden eerder samen'),
+                  leading: const CircleAvatar(child: Icon(Icons.people)),
+                  title: Text(
+                    '${game.participants} '
+                    '${game.participants == 1 ? 'deelnemer' : 'deelnemers'}',
+                  ),
+                  subtitle: Text(
+                    loadingParticipants
+                        ? 'Deelnemers worden geladen…'
+                        : participantsFailed
+                            ? 'Deelnemers konden niet worden geladen.'
+                            : 'Tik op Bekijk om te zien wie meedoet.',
+                  ),
+                  onTap: () => _showParticipants(context),
                 ),
               ),
               const SizedBox(height: 12),
               OutlinedButton.icon(
                 onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Demo-deellink gekopieerd.')),
+                  const SnackBar(content: Text('Deellink gekopieerd.')),
                 ),
                 icon: const Icon(Icons.ios_share),
                 label: const Text('Deel met vrienden'),
@@ -251,7 +311,7 @@ class GameDetailScreen extends StatelessWidget {
                 onPressed: joined
                     ? null
                     : () async {
-                        final joinedNow = await state.joinAsync(game.id);
+                        final joinedNow = await widget.state.joinAsync(game.id);
                         if (!context.mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
@@ -267,17 +327,39 @@ class GameDetailScreen extends StatelessWidget {
                 icon: Icon(joined ? Icons.check : Icons.sports_kabaddi),
                 label: Text(joined ? 'Je doet al mee' : 'Doe mee'),
               ),
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 12),
-                child: Text(
-                  'Verstobbertje V1 werkt uitsluitend met punten.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 12),
-                ),
-              ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  void _showParticipants(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Wie doen er mee?'),
+        content: SizedBox(
+          width: 360,
+          child: participantNames.isEmpty
+              ? const Text('Deelnemers zijn nog niet beschikbaar.')
+              : ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: participantNames.length,
+                  separatorBuilder: (_, __) => const Divider(height: 1),
+                  itemBuilder: (_, index) => ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: CircleAvatar(child: Text('${index + 1}')),
+                    title: Text(participantNames[index]),
+                  ),
+                ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Sluiten'),
+          ),
+        ],
       ),
     );
   }

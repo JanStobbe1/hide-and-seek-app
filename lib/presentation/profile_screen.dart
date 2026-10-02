@@ -149,7 +149,7 @@ class ProfileScreen extends StatelessWidget {
                 Padding(
                   padding: EdgeInsets.all(12),
                   child: Text(
-                    'Verstobbertje V1 gebruikt uitsluitend punten.',
+                    'Je profielgegevens en voorkeuren.',
                     style: TextStyle(fontSize: 12),
                   ),
                 ),

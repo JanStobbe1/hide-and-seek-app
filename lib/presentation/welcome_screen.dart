@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../app_state.dart';
+import 'avatar_picker.dart';
 import 'stobbe_guide.dart';
 
 String greetingForHour(int hour) {
@@ -12,6 +14,7 @@ String greetingForHour(int hour) {
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({
     required this.playerName,
+    this.state,
     required this.backendConnected,
     required this.backendError,
     required this.onRetry,
@@ -21,6 +24,7 @@ class WelcomeScreen extends StatelessWidget {
   });
 
   final String playerName;
+  final AppState? state;
   final bool backendConnected;
   final String? backendError;
   final Future<void> Function() onRetry;
@@ -46,6 +50,18 @@ class WelcomeScreen extends StatelessWidget {
                     explanation:
                         'Ik leg je stap voor stap uit hoe Verstobbertje werkt.',
                   ),
+                  if (state != null) ...[
+                    TappablePlayerAvatar(
+                      key: const Key('welcome-avatar'),
+                      state: state!,
+                      radius: 42,
+                    ),
+                    const SizedBox(height: 16),
+                    TextButton(
+                      onPressed: () => showAvatarPicker(context, state!),
+                      child: const Text('Kies je profielfoto'),
+                    ),
+                  ],
                   const SizedBox(height: 28),
                   Text(
                     '$greeting, $playerName!',

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../app_state.dart';
 import '../config/app_theme.dart';
 import '../domain/profile_models.dart';
-import 'player_avatar.dart';
+import 'avatar_picker.dart';
 import 'widgets.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -17,7 +17,11 @@ class ProfileScreen extends StatelessWidget {
         children: [
           Row(
             children: [
-              PlayerAvatar(avatarId: state.profileAvatar, radius: 38),
+              TappablePlayerAvatar(
+                key: const Key('profile-avatar'),
+                state: state,
+                radius: 38,
+              ),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
@@ -39,11 +43,6 @@ class ProfileScreen extends StatelessWidget {
                           onPressed: () => _editName(context),
                           icon: const Icon(Icons.edit),
                           label: const Text('Wijzig naam'),
-                        ),
-                        TextButton.icon(
-                          onPressed: () => _choosePhoto(context),
-                          icon: const Icon(Icons.add_a_photo_outlined),
-                          label: const Text('Kies foto'),
                         ),
                       ],
                     ),
@@ -228,44 +227,6 @@ class ProfileScreen extends StatelessWidget {
         ],
       ),
     ).whenComplete(controller.dispose);
-  }
-
-  void _choosePhoto(BuildContext context) {
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Kies een profielfoto'),
-        content: SizedBox(
-          width: 420,
-          child: GridView.builder(
-            shrinkWrap: true,
-            itemCount: playerAvatarIds.length,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 4,
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
-            ),
-            itemBuilder: (_, index) {
-              final avatarId = playerAvatarIds[index];
-              return InkWell(
-                onTap: () {
-                  state.setProfileAvatar(avatarId);
-                  Navigator.pop(dialogContext);
-                },
-                borderRadius: BorderRadius.circular(40),
-                child: PlayerAvatar(
-                  avatarId: avatarId,
-                  radius: 34,
-                  borderColor: avatarId == state.profileAvatar
-                      ? Theme.of(context).colorScheme.secondary
-                      : null,
-                ),
-              );
-            },
-          ),
-        ),
-      ),
-    );
   }
 
   void _confirmDeleteAccount(BuildContext context) {

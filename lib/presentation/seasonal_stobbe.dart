@@ -43,7 +43,17 @@ class _SeasonalStobbeState extends State<SeasonalStobbe>
       vsync: this,
       duration: const Duration(seconds: 3),
     );
-    if (season == StobbeSeason.winter) _snowController.repeat();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (season != StobbeSeason.winter) return;
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _snowController.stop();
+    } else if (!_snowController.isAnimating) {
+      _snowController.repeat();
+    }
   }
 
   @override
@@ -58,7 +68,7 @@ class _SeasonalStobbeState extends State<SeasonalStobbe>
     final width = widget.width ?? height;
     return SizedBox(
       height: widget.height,
-      width: widget.width,
+      width: width,
       child: Stack(
         clipBehavior: Clip.none,
         alignment: Alignment.center,

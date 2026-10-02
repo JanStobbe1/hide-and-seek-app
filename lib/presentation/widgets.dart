@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../config/app_config.dart';
 import '../domain/profile_models.dart';
+import 'seasonal_stobbe.dart';
 
 class SectionTitle extends StatelessWidget {
   const SectionTitle(this.title, {this.action, super.key});
@@ -246,8 +247,8 @@ class StobbeDetectiveButton extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Image.asset(
-                    'assets/images/stobbekarakter.png',
+                  const SeasonalStobbe(
+                    assetPath: 'assets/images/stobbekarakter.png',
                     height: 200,
                     fit: BoxFit.contain,
                   ),

@@ -171,6 +171,7 @@ class GameDetailScreen extends StatefulWidget {
 class _GameDetailScreenState extends State<GameDetailScreen> {
   List<String> participantNames = const [];
   bool loadingParticipants = true;
+  bool participantsFailed = false;
 
   @override
   void initState() {
@@ -179,21 +180,29 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
   }
 
   Future<void> _loadParticipants() async {
-    final game = widget.game;
-    final names = widget.state.backendClient == null
-        ? [
-            game.organizer,
-            ...List<String>.filled(
-              (game.participants - 1).clamp(0, game.maxParticipants),
-              'Deelnemer',
-            ),
-          ]
-        : await widget.state.backendClient!.fetchGameParticipants(game.id);
-    if (!mounted) return;
-    setState(() {
-      participantNames = names;
-      loadingParticipants = false;
-    });
+    try {
+      final game = widget.game;
+      final names = widget.state.backendClient == null
+          ? [
+              game.organizer,
+              ...List<String>.filled(
+                (game.participants - 1).clamp(0, game.maxParticipants),
+                'Deelnemer',
+              ),
+            ]
+          : await widget.state.backendClient!.fetchGameParticipants(game.id);
+      if (!mounted) return;
+      setState(() {
+        participantNames = names;
+        loadingParticipants = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        participantsFailed = true;
+        loadingParticipants = false;
+      });
+    }
   }
 
   @override
@@ -282,7 +291,9 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
                   subtitle: Text(
                     loadingParticipants
                         ? 'Deelnemers worden geladen…'
-                        : 'Tik op Bekijk om te zien wie meedoet.',
+                        : participantsFailed
+                            ? 'Deelnemers konden niet worden geladen.'
+                            : 'Tik op Bekijk om te zien wie meedoet.',
                   ),
                   onTap: () => _showParticipants(context),
                 ),

@@ -997,3 +997,338 @@ class _PowerToken extends StatelessWidget {
                   ),
                   Positioned(
                     right: -8,
+                    top: -8,
+                    child: CircleAvatar(
+                      radius: 15,
+                      backgroundColor: const Color(0xff2d2118),
+                      child: Text(
+                        '×$count',
+                        style: const TextStyle(
+                            color: Colors.white, fontWeight: FontWeight.w900),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(name,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontWeight: FontWeight.w800)),
+              if (showCooldownTimer && cooldownRemaining > Duration.zero) ...[
+                const SizedBox(height: 2),
+                Text(
+                  'Opnieuw inzetbaar over '
+                  '${_formatPowerDuration(cooldownRemaining)}',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 10, color: Colors.black54),
+                ),
+              ],
+              const SizedBox(height: 6),
+              FilledButton.tonal(
+                onPressed: enabled ? onActivate : null,
+                style: const ButtonStyle(
+                  visualDensity: VisualDensity.compact,
+                  padding: WidgetStatePropertyAll(
+                    EdgeInsets.symmetric(horizontal: 10),
+                  ),
+                ),
+                child: const Text('INZETTEN'),
+              ),
+            ],
+          ),
+        ),
+      );
+
+  void _showPower(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (_) => _PowerDetailsSheet(
+        icon: icon,
+        name: name,
+        description: description,
+        color: color,
+        cooldownUntil: cooldownUntil,
+        showCooldownTimer: showCooldownTimer,
+        onActivate: onActivate,
+      ),
+    );
+  }
+}
+
+class _PowerDetailsSheet extends StatefulWidget {
+  const _PowerDetailsSheet({
+    required this.icon,
+    required this.name,
+    required this.description,
+    required this.color,
+    required this.cooldownUntil,
+    required this.showCooldownTimer,
+    required this.onActivate,
+  });
+
+  final IconData icon;
+  final String name;
+  final String description;
+  final Color color;
+  final DateTime? cooldownUntil;
+  final bool showCooldownTimer;
+  final VoidCallback onActivate;
+
+  @override
+  State<_PowerDetailsSheet> createState() => _PowerDetailsSheetState();
+}
+
+class _PowerDetailsSheetState extends State<_PowerDetailsSheet> {
+  late final Timer _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
+  Duration get _cooldownRemaining {
+    final until = widget.cooldownUntil;
+    if (until == null) return Duration.zero;
+    final remaining = until.difference(DateTime.now());
+    return remaining.isNegative ? Duration.zero : remaining;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final remaining = _cooldownRemaining;
+    final canActivate = widget.showCooldownTimer && remaining == Duration.zero;
+
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(widget.icon, color: widget.color, size: 52),
+          Text(
+            widget.name,
+            style: Theme.of(context)
+                .textTheme
+                .titleLarge
+                ?.copyWith(fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 8),
+          Text(widget.description, textAlign: TextAlign.center),
+          if (widget.showCooldownTimer && remaining > Duration.zero)
+            Text(
+              'Opnieuw inzetbaar over '
+              '${_formatPowerDuration(remaining)}',
+            ),
+          if (!widget.showCooldownTimer)
+            const Text('Deze kracht is opgebruikt.'),
+          const SizedBox(height: 14),
+          FilledButton(
+            onPressed: canActivate
+                ? () {
+                    Navigator.pop(context);
+                    widget.onActivate();
+                  }
+                : null,
+            child: const Text('Zet Stobbekracht in'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+String _formatPowerDuration(Duration duration) {
+  final seconds = duration.inSeconds.clamp(0, 5999);
+  final minutes = seconds ~/ 60;
+  final rest = seconds % 60;
+  return '$minutes:${rest.toString().padLeft(2, '0')}';
+}
+
+({IconData icon, String description, Color color}) _powerDetails(
+  StobbePowerKind kind,
+) =>
+    switch (kind) {
+      StobbePowerKind.digitalDrone => (
+          icon: Icons.flight,
+          description:
+              'Geeft je tijdelijk een ruimer zicht op het speelveld en laat meer van de omgeving zien.',
+          color: const Color(0xff3f6f91),
+        ),
+      StobbePowerKind.stobbeArm => (
+          icon: Icons.precision_manufacturing,
+          description:
+              'Verkleint tijdelijk jouw zichtbaarheid en maakt het voor zoekers moeilijker om je te vinden.',
+          color: const Color(0xff477653),
+        ),
+      StobbePowerKind.invisibilityPotion => (
+          icon: Icons.visibility_off,
+          description:
+              'Verbergt jouw digitale positie gedurende een korte periode op de kaart van andere spelers.',
+          color: const Color(0xff74558c),
+        ),
+      _ => (
+          icon: Icons.auto_awesome,
+          description: 'Een tijdelijke Stobbekracht voor dit spel.',
+          color: const Color(0xff6650a4),
+        ),
+    };
+
+class _StatusRow extends StatelessWidget {
+  const _StatusRow({required this.finished});
+
+  final bool finished;
+
+  @override
+  Widget build(BuildContext context) => Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Chip(
+              avatar: Icon(Icons.person_search), label: Text('ROL: ZOEKER')),
+          Chip(
+            avatar: const Icon(Icons.circle, size: 12),
+            label: Text(finished ? 'AFGEROND' : 'SPEL ACTIEF'),
+          ),
+        ],
+      );
+}
+
+class _CountdownCard extends StatelessWidget {
+  const _CountdownCard({required this.state});
+
+  final AppState state;
+
+  @override
+  Widget build(BuildContext context) {
+    final remaining = state.activeGame.countdown.remaining;
+    final hours = remaining.inHours;
+    final minutes = remaining.inMinutes.remainder(60);
+    final seconds = remaining.inSeconds.remainder(60);
+    final value = state.playerValue(PlayerRole.seeker);
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primary,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Column(
+        children: [
+          const Text(
+            'RESTERENDE TIJD',
+            style: TextStyle(
+              color: Colors.white70,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            '${hours.toString().padLeft(2, '0')}:'
+            '${minutes.toString().padLeft(2, '0')}:'
+            '${seconds.toString().padLeft(2, '0')}',
+            semanticsLabel: '$hours uur, $minutes minuten en $seconds seconden',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 34,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const Divider(color: Colors.white24, height: 28),
+          Text(
+            '${state.activeGame.playersFound} van de '
+            '${state.activeGame.totalPlayers} gevonden',
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w900,
+              fontSize: 20,
+            ),
+          ),
+          const SizedBox(height: 8),
+          LinearProgressIndicator(
+            value:
+                state.activeGame.playersFound / state.activeGame.totalPlayers,
+            minHeight: 9,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          const SizedBox(height: 14),
+          Text(
+            '${state.personallyFound} van ${state.activeGame.playersFound} '
+            'door mij gevonden',
+            style: const TextStyle(color: Colors.white),
+          ),
+          Text(
+            state.inActiveZone ? 'Binnen speelgebied' : 'Buiten speelgebied',
+            style: const TextStyle(color: Colors.white),
+          ),
+          Text(
+            'Omdat je ${state.activeGame.playersFound} spelers hebt gevonden '
+            'is je actuele spelwaarde ${value.toStringAsFixed(0)} punten.',
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.white),
+          ),
+          const Text(
+            'Actuele puntenwaarde',
+            style: TextStyle(color: Colors.white60, fontSize: 11),
+          ),
+          const Divider(color: Colors.white24, height: 28),
+          Row(
+            children: [
+              Expanded(
+                child: _ScoreStat(
+                  value: '${state.questionPoints + value.round()}',
+                  label: 'spelpunten verzameld',
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: _ScoreStat(
+                  value: '3e',
+                  label: 'van 20 spelers',
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ScoreStat extends StatelessWidget {
+  const _ScoreStat({required this.value, required this.label});
+
+  final String value;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        decoration: BoxDecoration(
+          color: const Color(0x1fffffff),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Column(
+          children: [
+            Text(
+              value,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 22,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.white70, fontSize: 12),
+            ),
+          ],
+        ),
+      );
+}

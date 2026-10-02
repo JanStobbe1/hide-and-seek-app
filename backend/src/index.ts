@@ -227,7 +227,7 @@ const route = async (request: Request, env: Env): Promise<Response> => {
            participant_threshold, is_public, hints_enabled, questions_enabled,
            question_count, game_type, allow_rejoin_after_found,
            seekers_count, hiders_count, role_switch_enabled, stobbe_powers_enabled)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       ).bind(
         game.id, game.name, game.description, game.status, game.starts_at,
         game.ends_at, game.created_by, game.country, game.province, game.city,
@@ -258,7 +258,7 @@ const route = async (request: Request, env: Env): Promise<Response> => {
         g.neighbourhood, g.specific_area, g.duration_minutes,
         g.max_participants, g.distance_km, g.start_condition,
         g.participant_threshold, g.is_public, g.hints_enabled,
-        g.questions_enabled, g.game_type, g.allow_rejoin_after_found,
+        g.questions_enabled, g.question_count, g.game_type, g.allow_rejoin_after_found,
         g.seekers_count, g.hiders_count, g.role_switch_enabled, g.stobbe_powers_enabled,
         COUNT(gp.player_id) AS participant_count
        FROM games g

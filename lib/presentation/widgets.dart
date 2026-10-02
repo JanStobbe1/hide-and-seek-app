@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart' as latlong;
 
 import '../config/app_config.dart';
+import '../domain/models.dart';
 import '../domain/profile_models.dart';
 import 'seasonal_stobbe.dart';
 
@@ -185,6 +188,165 @@ class MapPlaceholder extends StatelessWidget {
       );
 }
 
+class SearchAreaMap extends StatefulWidget {
+  const SearchAreaMap({required this.area, this.height = 240, super.key});
+
+  final SearchArea area;
+  final double height;
+
+  @override
+  State<SearchAreaMap> createState() => _SearchAreaMapState();
+}
+
+class _SearchAreaMapState extends State<SearchAreaMap> {
+  final MapController controller = MapController();
+
+  @override
+  Widget build(BuildContext context) {
+    final center = _centerFor(widget.area);
+    final zoom = _zoomFor(widget.area);
+    return Semantics(
+      label: 'Interactieve kaart van het gekozen speelgebied',
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: SizedBox(
+          height: widget.height,
+          child: Stack(
+            children: [
+              FlutterMap(
+                key: ValueKey(widget.area.label + widget.area.specificArea),
+                mapController: controller,
+                options: MapOptions(
+                  initialCenter: center,
+                  initialZoom: zoom,
+                  interactionOptions: const InteractionOptions(
+                    flags: InteractiveFlag.all,
+                  ),
+                ),
+                children: [
+                  TileLayer(
+                    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    userAgentPackageName: 'nl.janstobbe.verstobbertje',
+                  ),
+                  PolygonLayer(
+                    polygons: [
+                      Polygon(
+                        points: _areaPolygon(center, zoom),
+                        color: const Color(0x33315c46),
+                        borderColor: const Color(0xff315c46),
+                        borderStrokeWidth: 2,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              Positioned(
+                right: 10,
+                top: 10,
+                child: Column(
+                  children: [
+                    _MapButton(
+                      icon: Icons.add,
+                      tooltip: 'Gebied vergroten',
+                      onPressed: () => controller.move(
+                        controller.camera.center,
+                        controller.camera.zoom - 1,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    _MapButton(
+                      icon: Icons.remove,
+                      tooltip: 'Gebied inperken',
+                      onPressed: () => controller.move(
+                        controller.camera.center,
+                        controller.camera.zoom + 1,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Positioned(
+                left: 10,
+                right: 10,
+                bottom: 10,
+                child: Card(
+                  margin: EdgeInsets.zero,
+                  color: Colors.white.withValues(alpha: .92),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                    child: Text(
+                      'Versleep en zoom om het speelgebied te bekijken',
+                      style: Theme.of(context).textTheme.bodySmall,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  latlong.LatLng _centerFor(SearchArea area) {
+    final source = '${area.city} ${area.province}'.toLowerCase();
+    const known = <String, latlong.LatLng>{
+      'almere': latlong.LatLng(52.3508, 5.2647),
+      'amsterdam': latlong.LatLng(52.3676, 4.9041),
+      'dronten': latlong.LatLng(52.525, 5.718),
+      'antwerpen': latlong.LatLng(51.2194, 4.4025),
+      'utrecht': latlong.LatLng(52.0907, 5.1214),
+      'rotterdam': latlong.LatLng(51.9244, 4.4777),
+      'den haag': latlong.LatLng(52.0705, 4.3007),
+      'eindhoven': latlong.LatLng(51.4416, 5.4697),
+      'groningen': latlong.LatLng(53.2194, 6.5665),
+      'flevoland': latlong.LatLng(52.527, 5.595),
+    };
+    for (final entry in known.entries) {
+      if (source.contains(entry.key)) return entry.value;
+    }
+    return const latlong.LatLng(52.1326, 5.2913);
+  }
+
+  double _zoomFor(SearchArea area) {
+    if (area.neighbourhood != 'Alle') return 14;
+    if (area.city != 'Alle') return 12;
+    if (area.province != 'Alle') return 9;
+    return 7;
+  }
+
+  List<latlong.LatLng> _areaPolygon(latlong.LatLng center, double zoom) {
+    final span = 0.28 / (zoom / 7);
+    return [
+      latlong.LatLng(center.latitude - span, center.longitude - span),
+      latlong.LatLng(center.latitude - span * .7, center.longitude + span),
+      latlong.LatLng(center.latitude + span, center.longitude + span * .8),
+      latlong.LatLng(center.latitude + span * .65, center.longitude - span),
+    ];
+  }
+}
+
+class _MapButton extends StatelessWidget {
+  const _MapButton({required this.icon, required this.tooltip, required this.onPressed});
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) => Material(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        elevation: 2,
+        child: IconButton(
+          onPressed: onPressed,
+          tooltip: tooltip,
+          icon: Icon(icon),
+          visualDensity: VisualDensity.compact,
+        ),
+      );
+}
 IconData markerIcon(PlayerMarker marker) => switch (marker) {
       PlayerMarker.ghost => Icons.cruelty_free,
       PlayerMarker.wolf => Icons.pets,

@@ -350,6 +350,7 @@ class _MapButton extends StatelessWidget {
         ),
       );
 }
+
 IconData markerIcon(PlayerMarker marker) => switch (marker) {
       PlayerMarker.ghost => Icons.cruelty_free,
       PlayerMarker.wolf => Icons.pets,

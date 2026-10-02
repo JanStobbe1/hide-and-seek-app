@@ -11,6 +11,7 @@ import '../app_state.dart';
 import '../domain/models.dart';
 import '../domain/stobbe_powers.dart';
 import 'player_avatar.dart';
+import 'seasonal_stobbe.dart';
 import 'widgets.dart';
 
 class _PlayerLocation {
@@ -284,8 +285,8 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Image.asset(
-                'assets/images/stobbekarakter.png',
+              const SeasonalStobbe(
+                assetPath: 'assets/images/stobbekarakter.png',
                 height: 150,
                 fit: BoxFit.contain,
               ),

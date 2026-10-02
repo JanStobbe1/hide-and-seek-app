@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../app_state.dart';
 import '../domain/profile_models.dart';
+import 'seasonal_stobbe.dart';
 import 'stobbe_guide.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -93,8 +94,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               'Welkom in mijn app! Ik ben Mr. Stobbe, zoals je kan zien ben ik een gewortelde detective maar ik deel mijn kwaliteiten graag met een groentje zoals jij. Kan je me vertellen hoe jij heet?',
                           child: Column(
                             children: [
-                              Image.asset(
-                                'assets/images/stobbekarakter.png',
+                              const SeasonalStobbe(
+                                assetPath: 'assets/images/stobbekarakter.png',
                                 height: 200,
                                 fit: BoxFit.contain,
                               ),

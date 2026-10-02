@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import 'seasonal_stobbe.dart';
+
 class StobbeGuide extends StatelessWidget {
   const StobbeGuide({
     required this.explanation,
@@ -14,8 +16,8 @@ class StobbeGuide extends StatelessWidget {
   Widget build(BuildContext context) => Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Image.asset(
-            'assets/images/stobbekarakter.png',
+          const SeasonalStobbe(
+            assetPath: 'assets/images/stobbekarakter.png',
             height: 104,
             width: 104,
             fit: BoxFit.contain,

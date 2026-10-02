@@ -26,9 +26,8 @@ class _AvailableGamesScreenState extends State<AvailableGamesScreen> {
   @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
-    final joinedIds = widget.state.repository.joinedGames
-        .map((game) => game.id)
-        .toSet();
+    final joinedIds =
+        widget.state.repository.joinedGames.map((game) => game.id).toSet();
     final games = widget.state.repository.availableGames
         .where(
           (game) =>
@@ -245,7 +244,9 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
                     label: Text(game.isPublic ? 'Openbaar spel' : 'Privéspel'),
                     avatar: const Icon(Icons.public, size: 18),
                   ),
-                  Chip(label: Text('${game.participants}/${game.maxParticipants} spelers')),
+                  Chip(
+                      label: Text(
+                          '${game.participants}/${game.maxParticipants} spelers')),
                 ],
               ),
               Text(
@@ -299,8 +300,7 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
                 onPressed: joined
                     ? null
                     : () async {
-                        final joinedNow =
-                            await widget.state.joinAsync(game.id);
+                        final joinedNow = await widget.state.joinAsync(game.id);
                         if (!context.mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(

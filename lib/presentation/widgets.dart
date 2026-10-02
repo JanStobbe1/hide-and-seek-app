@@ -248,7 +248,7 @@ class _SearchAreaMapState extends State<SearchAreaMap> {
                   children: [
                     _MapButton(
                       icon: Icons.add,
-                      tooltip: 'Gebied vergroten',
+                      tooltip: 'Uitzoomen',
                       onPressed: () => controller.move(
                         controller.camera.center,
                         controller.camera.zoom - 1,
@@ -257,7 +257,7 @@ class _SearchAreaMapState extends State<SearchAreaMap> {
                     const SizedBox(height: 6),
                     _MapButton(
                       icon: Icons.remove,
-                      tooltip: 'Gebied inperken',
+                      tooltip: 'Inzoomen',
                       onPressed: () => controller.move(
                         controller.camera.center,
                         controller.camera.zoom + 1,
@@ -277,7 +277,8 @@ class _SearchAreaMapState extends State<SearchAreaMap> {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
                     child: Text(
-                      'Versleep en zoom om het speelgebied te bekijken',
+                      'Versleep en zoom om de kaart te bekijken\n'
+                      '© OpenStreetMap contributors',
                       style: Theme.of(context).textTheme.bodySmall,
                       textAlign: TextAlign.center,
                     ),

@@ -37,6 +37,7 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
   bool isPublic = true;
   bool hints = true;
   bool questions = true;
+  int questionCount = 3;
   bool allowRejoinAfterFound = false;
   GameType gameType = GameType.classic;
   int seekers = 1;
@@ -162,6 +163,7 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
                     players: players,
                     hints: hints,
                     questions: questions,
+                    questionCount: questionCount,
                     gameType: gameType,
                     seekers: seekers,
                     hiders: players - seekers,
@@ -267,7 +269,9 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
             Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                'Daarmee zijn er ${players - seekers} verstoppers.',
+                players - seekers == 1
+                    ? 'Dan is er 1 verstopper.'
+                    : 'Dan zijn er ${players - seekers} verstoppers.',
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ),
@@ -355,6 +359,17 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
             value: questions,
             onChanged: (value) => setState(() => questions = value),
           ),
+          if (questions)
+            _SettingSlider(
+              label: 'Aantal vragen',
+              value: questionCount.toDouble(),
+              min: 3,
+              max: 5,
+              divisions: 2,
+              suffix: ' ja/nee-vragen',
+              onChanged: (value) =>
+                  setState(() => questionCount = value.round()),
+            ),
         ],
       );
 
@@ -435,7 +450,7 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
           ),
           _AreaField(label: 'Specifiek gebied', controller: specificArea),
           const SizedBox(height: 4),
-          const MapPlaceholder(height: 190),
+          SearchAreaMap(area: selectedArea, height: 240),
           const Padding(
             padding: EdgeInsets.all(8),
             child: Text(
@@ -563,7 +578,24 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
       initialTime: scheduledTime,
       helpText: 'Kies de starttijd',
     );
-    if (selected != null && mounted) setState(() => scheduledTime = selected);
+    if (selected != null && mounted) {
+      final candidate = DateTime(
+        scheduledDate.year,
+        scheduledDate.month,
+        scheduledDate.day,
+        selected.hour,
+        selected.minute,
+      );
+      if (!GameSchedulingRules(widget.clock.now()).isAllowedStart(candidate)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Kies een tijdstip dat nog in de toekomst ligt.'),
+          ),
+        );
+        return;
+      }
+      setState(() => scheduledTime = selected);
+    }
   }
 
   Future<void> _publish() async {
@@ -604,6 +636,7 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
       rules: GameRules(
         hintsEnabled: hints,
         questionsEnabled: questions,
+        questionCount: questionCount,
         gameType: gameType,
         seekersCount: gameType == GameType.everyoneHunts ? players : seekers,
         hidersCount:
@@ -891,6 +924,7 @@ class _Review extends StatelessWidget {
     required this.players,
     required this.hints,
     required this.questions,
+    required this.questionCount,
     required this.gameType,
     required this.seekers,
     required this.hiders,
@@ -909,6 +943,7 @@ class _Review extends StatelessWidget {
   final bool isPublic;
   final bool hints;
   final bool questions;
+  final int questionCount;
   final GameType gameType;
   final int seekers;
   final int hiders;
@@ -970,14 +1005,10 @@ class _Review extends StatelessWidget {
         ),
         _ReviewRow(
           label: 'Mechanieken',
-          value: [if (hints) 'Hints', if (questions) 'Vragen'].join(' • '),
-        ),
-        const SizedBox(height: 10),
-        const Card(
-          child: Padding(
-            padding: EdgeInsets.all(16),
-            child: Text('V1 gebruikt uitsluitend punten.'),
-          ),
+          value: [
+            if (hints) 'Hints',
+            if (questions) '$questionCount ja/nee-vragen',
+          ].join(' • '),
         ),
         if (intro.isNotEmpty) ...[const SizedBox(height: 12), Text(intro)],
       ],

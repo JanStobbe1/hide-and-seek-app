@@ -34,9 +34,8 @@ Future<void> showAvatarPicker(BuildContext context, AppState state) {
                 child: PlayerAvatar(
                   avatarId: avatarId,
                   radius: 34,
-                  borderColor: selected
-                      ? Theme.of(context).colorScheme.secondary
-                      : null,
+                  borderColor:
+                      selected ? Theme.of(context).colorScheme.secondary : null,
                 ),
               ),
             );

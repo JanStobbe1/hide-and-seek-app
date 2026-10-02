@@ -225,7 +225,8 @@ class _SearchAreaMapState extends State<SearchAreaMap> {
                 ),
                 children: [
                   TileLayer(
-                    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    urlTemplate:
+                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                     userAgentPackageName: 'nl.janstobbe.verstobbertje',
                   ),
                   PolygonLayer(
@@ -273,7 +274,8 @@ class _SearchAreaMapState extends State<SearchAreaMap> {
                   margin: EdgeInsets.zero,
                   color: Colors.white.withValues(alpha: .92),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
                     child: Text(
                       'Versleep en zoom om het speelgebied te bekijken',
                       style: Theme.of(context).textTheme.bodySmall,
@@ -328,7 +330,8 @@ class _SearchAreaMapState extends State<SearchAreaMap> {
 }
 
 class _MapButton extends StatelessWidget {
-  const _MapButton({required this.icon, required this.tooltip, required this.onPressed});
+  const _MapButton(
+      {required this.icon, required this.tooltip, required this.onPressed});
 
   final IconData icon;
   final String tooltip;

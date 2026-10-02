@@ -81,8 +81,10 @@ class _SeasonalStobbeState extends State<SeasonalStobbe>
       case StobbeSeason.spring:
         return Stack(
           children: [
-            _flower(const Color(0xfff1b6c8), top: height * .15, left: width * .1),
-            _flower(const Color(0xfff5d18a), top: height * .28, right: width * .08),
+            _flower(const Color(0xfff1b6c8),
+                top: height * .15, left: width * .1),
+            _flower(const Color(0xfff5d18a),
+                top: height * .28, right: width * .08),
           ],
         );
       case StobbeSeason.summer:
@@ -102,9 +104,12 @@ class _SeasonalStobbeState extends State<SeasonalStobbe>
       case StobbeSeason.autumn:
         return Stack(
           children: [
-            _leaf(const Color(0xffc65d38), bottom: height * .04, left: width * .08, angle: -.3),
-            _leaf(const Color(0xffe19b3e), bottom: height * .02, right: width * .1, angle: .25),
-            _leaf(const Color(0xffd2b44c), bottom: height * .12, left: width * .7, angle: .5),
+            _leaf(const Color(0xffc65d38),
+                bottom: height * .04, left: width * .08, angle: -.3),
+            _leaf(const Color(0xffe19b3e),
+                bottom: height * .02, right: width * .1, angle: .25),
+            _leaf(const Color(0xffd2b44c),
+                bottom: height * .12, left: width * .7, angle: .5),
             Positioned(
               right: width * .03,
               top: height * .35,
@@ -177,7 +182,8 @@ class _SeasonalStobbeState extends State<SeasonalStobbe>
     required double angle,
     double? left,
     double? right,
-  }) => Positioned(
+  }) =>
+      Positioned(
         bottom: bottom,
         left: left,
         right: right,

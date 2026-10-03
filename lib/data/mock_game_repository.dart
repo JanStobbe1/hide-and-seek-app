@@ -27,6 +27,12 @@ class MockGameRepository implements GameRepository {
     _available = List<Game>.from(games);
   }
 
+  void replaceJoinedGames(List<Game> games) {
+    _joined
+      ..clear()
+      ..addAll(games);
+  }
+
   @override
   void reset() {
     _joined.clear();

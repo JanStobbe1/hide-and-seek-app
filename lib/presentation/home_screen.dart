@@ -20,6 +20,10 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) => LayoutBuilder(
         builder: (context, constraints) {
           final isWide = constraints.maxWidth >= 680;
+          final activeGames = state.repository.joinedGames
+              .where((game) => game.status == GameStatus.active)
+              .toList(growable: false);
+          final currentGame = activeGames.isEmpty ? null : activeGames.first;
           final chapters = [
             _ContentsChapter(
               number: '01',
@@ -33,7 +37,7 @@ class HomeScreen extends StatelessWidget {
               icon: Icons.sports_kabaddi_outlined,
               title: 'Mijn spellen',
               description: 'Bekijk de spellen waaraan je al meedoet.',
-              count: state.repository.joinedGames.length + 1,
+              count: state.repository.joinedGames.length,
               onTap: () => onNavigate(1),
             ),
             _ContentsChapter(
@@ -71,8 +75,10 @@ class HomeScreen extends StatelessWidget {
             children: [
               const _ContentsHeading(),
               const SizedBox(height: 22),
-              _ContinuePlayingCard(state: state),
-              const SizedBox(height: 28),
+              if (currentGame != null) ...[
+                _ContinuePlayingCard(state: state, game: currentGame),
+                const SizedBox(height: 28),
+              ],
               Text(
                 'Kies je volgende hoofdstuk',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -151,25 +157,23 @@ class _ContentsHeading extends StatelessWidget {
 }
 
 class _ContinuePlayingCard extends StatelessWidget {
-  const _ContinuePlayingCard({required this.state});
+  const _ContinuePlayingCard({required this.state, required this.game});
 
   final AppState state;
+  final Game game;
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    final playerValue = state
-        .playerValue(PlayerRole.seeker)
-        .toStringAsFixed(2)
-        .replaceAll('.', ',');
-
     return Card(
       margin: EdgeInsets.zero,
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () => Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => ActiveGameScreen(state: state)),
+          MaterialPageRoute(
+            builder: (_) => ActiveGameScreen(state: state, game: game),
+          ),
         ),
         child: Ink(
           decoration: BoxDecoration(
@@ -195,11 +199,11 @@ class _ContinuePlayingCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 16),
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      const Text(
                         'VERDER SPELEN',
                         style: TextStyle(
                           color: Color(0xffffd267),
@@ -207,49 +211,25 @@ class _ContinuePlayingCard extends StatelessWidget {
                           letterSpacing: 0.8,
                         ),
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       Text(
-                        'Game X',
-                        style: TextStyle(
+                        game.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 23,
                           fontWeight: FontWeight.w900,
                         ),
                       ),
                       Text(
-                        'Jij bent zoeker',
-                        style: TextStyle(color: Colors.white70),
+                        game.area.city.isEmpty
+                            ? game.area.province
+                            : game.area.city,
+                        style: const TextStyle(color: Colors.white70),
                       ),
                     ],
                   ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      '${state.activeGame.playersFound}/20',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    const Text(
-                      'gevonden',
-                      style: TextStyle(color: Colors.white70, fontSize: 12),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      playerValue,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    const Text(
-                      'puntenwaarde',
-                      style: TextStyle(color: Colors.white70, fontSize: 12),
-                    ),
-                  ],
                 ),
                 const SizedBox(width: 4),
                 const Icon(Icons.chevron_right, color: Colors.white),

@@ -209,11 +209,6 @@ class _PlayAreaEditorState extends State<PlayAreaEditor> {
                 child: FlutterMap(
                   mapController: _controller,
                   options: MapOptions(
-                    initialCenter: const LatLng(52.1, 5.3),
-                    initialZoom: 7,
-                    onMapReady: () {
-                      if (_points.isEmpty) _find();
-                    },
                     interactionOptions: InteractionOptions(
                       flags: _drawing
                           ? InteractiveFlag.all & ~InteractiveFlag.doubleTapZoom
@@ -224,7 +219,17 @@ class _PlayAreaEditorState extends State<PlayAreaEditor> {
                             bounds: LatLngBounds.fromPoints(mapPoints(_points)),
                             padding: const EdgeInsets.all(40),
                           )
-                        : null,
+                        : CameraFit.bounds(
+                            // Start with mainland Belgium, Netherlands and
+                            // Germany, without a country lookup that may include
+                            // overseas territories. This is a viewport, not a
+                            // selected play boundary.
+                            bounds: LatLngBounds(
+                              const LatLng(47.2, 2.5),
+                              const LatLng(55.1, 15.1),
+                            ),
+                            padding: const EdgeInsets.all(24),
+                          ),
                   ),
                   children: [
                     const _Tiles(),

@@ -223,7 +223,9 @@ class _ContinuePlayingCard extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        game.area.city.isEmpty ? game.area.province : game.area.city,
+                        game.area.city.isEmpty
+                            ? game.area.province
+                            : game.area.city,
                         style: const TextStyle(color: Colors.white70),
                       ),
                     ],

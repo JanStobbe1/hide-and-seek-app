@@ -38,6 +38,33 @@ void main() {
     expect(client.requests[1].headers['idempotency-key'], 'event-1');
   });
 
+  test('fetches the authenticated player games list', () async {
+    final client = QueueClient([
+      http.Response(
+        '{"player":{"id":"p1","profileName":"Noor"},"token":"token-1"}',
+        201,
+      ),
+      http.Response(
+        '{"games":[{"id":"game-1","name":"Weekendspel","status":"active",'
+        '"city":"Dronten","participant_count":1,"max_participants":10}]}',
+        200,
+      ),
+    ]);
+    final api = BackendApiClient(
+      baseUri: Uri.parse('https://api.example.test'),
+      client: client,
+    );
+
+    await api.registerPlayer('Noor');
+    final games = await api.fetchMyGames();
+
+    expect(games, hasLength(1));
+    expect(games.single.id, 'game-1');
+    expect(games.single.name, 'Weekendspel');
+    expect(client.requests[1].url.path, '/api/v1/player/games');
+    expect(client.requests[1].headers['authorization'], 'Bearer token-1');
+  });
+
   test('does not send events before a player session exists', () async {
     final api = BackendApiClient(
       baseUri: Uri.parse('https://api.example.test'),

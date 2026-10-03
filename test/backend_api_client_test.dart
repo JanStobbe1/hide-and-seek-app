@@ -46,7 +46,8 @@ void main() {
       ),
       http.Response(
         '{"games":[{"id":"game-1","name":"Weekendspel","status":"active",'
-        '"city":"Dronten","participant_count":1,"max_participants":10}]}',
+        '"city":"Dronten","starts_at":"2026-10-04T12:00:00Z",'
+        '"participant_count":1,"max_participants":10}]}',
         200,
       ),
     ]);

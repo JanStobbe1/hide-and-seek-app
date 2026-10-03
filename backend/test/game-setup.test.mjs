@@ -103,5 +103,41 @@ test('register, create, list and reopen preserve questions and polygon in migrat
     const old = (await (await call('/api/v1/games/legacy')).json()).game;
     assert.equal(old.play_boundary, '[]');
     assert.equal(old.custom_questions, '[]');
+
+    const waiting = await call('/api/v1/games', {
+      ...body,
+      id: 'threshold-game',
+      startsAt: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+      startCondition: 'participantCount',
+      participantThreshold: 3,
+    });
+    assert.equal(waiting.status, 201, await waiting.clone().text());
+    const waitingData = (await waiting.json()).game;
+    assert.equal(waitingData.status, 'scheduled');
+    assert.equal(waitingData.ends_at, null);
+
+    let waitingDetails = (await (await call('/api/v1/games/threshold-game')).json()).game;
+    assert.equal(waitingDetails.status, 'scheduled');
+    assert.equal(waitingDetails.participant_count, 1);
+    const waitingList = (await (await call('/api/v1/games')).json()).games;
+    assert.ok(waitingList.some(game => game.id === 'threshold-game'));
+
+    const ownerToken = token;
+    const secondRegistration = await call('/api/v1/auth/player', {profileName: 'Speler twee'});
+    token = (await secondRegistration.json()).token;
+    assert.equal((await call('/api/v1/games/threshold-game/join', {})).status, 200);
+    waitingDetails = (await (await call('/api/v1/games/threshold-game')).json()).game;
+    assert.equal(waitingDetails.status, 'scheduled');
+    assert.equal(waitingDetails.participant_count, 2);
+    assert.equal(waitingDetails.ends_at, null);
+
+    const thirdRegistration = await call('/api/v1/auth/player', {profileName: 'Speler drie'});
+    token = (await thirdRegistration.json()).token;
+    assert.equal((await call('/api/v1/games/threshold-game/join', {})).status, 200);
+    token = ownerToken;
+    waitingDetails = (await (await call('/api/v1/games/threshold-game')).json()).game;
+    assert.equal(waitingDetails.status, 'active');
+    assert.equal(waitingDetails.participant_count, 3);
+    assert.ok(Date.parse(waitingDetails.ends_at) > Date.now());
   } finally { db.close(); }
 });

@@ -24,6 +24,17 @@ class HomeScreen extends StatelessWidget {
               .where((game) => game.status == GameStatus.active)
               .toList(growable: false);
           final currentGame = activeGames.isEmpty ? null : activeGames.first;
+          final joinedIds =
+              state.repository.joinedGames.map((game) => game.id).toSet();
+          final now = DateTime.now();
+          final discoverableGameCount = state.repository.availableGames
+              .where(
+                (game) =>
+                    !joinedIds.contains(game.id) &&
+                    (game.scheduledEnd == null ||
+                        game.scheduledEnd!.isAfter(now)),
+              )
+              .length;
           final chapters = [
             _ContentsChapter(
               number: '01',
@@ -45,7 +56,7 @@ class HomeScreen extends StatelessWidget {
               icon: Icons.travel_explore,
               title: 'Spellen ontdekken',
               description: 'Vind een nieuw avontuur bij jou in de buurt.',
-              count: state.repository.availableGames.length,
+              count: discoverableGameCount,
               onTap: () => onNavigate(2),
             ),
             _ContentsChapter(

@@ -66,6 +66,33 @@ void main() {
     expect(client.requests[1].headers['authorization'], 'Bearer token-1');
   });
 
+  test('participant-count games have no placeholder schedule date', () async {
+    final client = QueueClient([
+      http.Response(
+        '{"player":{"id":"p1","profileName":"Noor"},"token":"token-1"}',
+        201,
+      ),
+      http.Response(
+        '{"games":[{"id":"game-1","name":"Wachtspel","status":"scheduled",'
+        '"start_condition":"participantCount",'
+        '"starts_at":"2026-10-03T21:00:00Z",'
+        '"participant_threshold":10,"duration_minutes":120}]}',
+        200,
+      ),
+    ]);
+    final api = BackendApiClient(
+      baseUri: Uri.parse('https://api.example.test'),
+      client: client,
+    );
+
+    await api.registerPlayer('Noor');
+    final games = await api.fetchMyGames();
+
+    expect(games.single.startCondition, StartCondition.participantCount);
+    expect(games.single.scheduledStart, isNull);
+    expect(games.single.scheduledEnd, isNull);
+  });
+
   test('does not send events before a player session exists', () async {
     final api = BackendApiClient(
       baseUri: Uri.parse('https://api.example.test'),

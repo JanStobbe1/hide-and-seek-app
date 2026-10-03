@@ -152,6 +152,39 @@ const route = async (request: Request, env: Env): Promise<Response> => {
     return json({ player: { id: playerId, profileName }, token }, 201, origin);
   }
 
+  if (request.method === "GET" && path === "/api/v1/player/games") {
+    const authenticatedPlayer = await playerFromToken(request, env);
+    if (!authenticatedPlayer) return json({ error: "unauthorized" }, 401, origin);
+    await touchPlayer(env, authenticatedPlayer);
+    const games = await env.DB.prepare(
+      `SELECT g.id, g.name, g.description,
+        CASE WHEN g.status = 'scheduled'
+          AND datetime(g.starts_at) <= CURRENT_TIMESTAMP
+          AND datetime(g.ends_at) > CURRENT_TIMESTAMP
+          THEN 'active' ELSE g.status END AS status,
+        g.starts_at, g.ends_at, g.created_at, g.created_by,
+        g.country, g.province, g.city, g.neighbourhood, g.specific_area,
+        g.duration_minutes, g.max_participants, g.distance_km,
+        g.start_condition, g.participant_threshold, g.is_public,
+        g.hints_enabled, g.questions_enabled, g.question_count,
+        g.custom_questions, g.play_boundary, g.game_type,
+        g.allow_rejoin_after_found, g.seekers_count, g.hiders_count,
+        g.role_switch_enabled, g.stobbe_powers_enabled,
+        COUNT(all_players.player_id) AS participant_count
+       FROM game_players mine
+       JOIN games g ON g.id = mine.game_id
+       LEFT JOIN game_players all_players
+         ON all_players.game_id = g.id AND all_players.left_at IS NULL
+       WHERE mine.player_id = ? AND mine.left_at IS NULL
+         AND g.status IN ('scheduled', 'active')
+         AND (g.ends_at IS NULL OR datetime(g.ends_at) > CURRENT_TIMESTAMP)
+       GROUP BY g.id
+       ORDER BY g.starts_at ASC
+       LIMIT 100`,
+    ).bind(authenticatedPlayer).all();
+    return json({ games: games.results }, 200, origin);
+  }
+
   if (request.method === "GET" && path === "/api/v1/games") {
     const games = await env.DB.prepare(
       `SELECT g.id, g.name, g.description,\n        CASE WHEN g.status = 'scheduled'\n          AND datetime(g.starts_at) <= CURRENT_TIMESTAMP\n          AND datetime(g.ends_at) > CURRENT_TIMESTAMP\n          THEN 'active' ELSE g.status END AS status,\n        g.starts_at, g.ends_at,

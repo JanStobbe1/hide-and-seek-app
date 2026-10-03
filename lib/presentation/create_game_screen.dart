@@ -412,7 +412,7 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
             options: locations.countries,
             onSelected: (value) {
               _sourceChanged();
-              playBoundary = [];
+              _resetBoundarySelection();
               setState(() => location = location.selectCountry(value));
             },
           ),
@@ -425,7 +425,7 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
             enabled: location.country != null,
             onSelected: (value) {
               _sourceChanged();
-              playBoundary = [];
+              _resetBoundarySelection();
               setState(() => location = location.selectProvince(value));
             },
           ),
@@ -438,7 +438,7 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
             enabled: location.province != null && location.province != 'Alle',
             onChanged: (values) {
               _sourceChanged();
-              playBoundary = [];
+              _resetBoundarySelection();
               setState(() => location = location.selectCities(values));
             },
           ),
@@ -458,7 +458,7 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
                 location.cities.isNotEmpty && !location.cities.contains('Alle'),
             onChanged: (values) {
               _sourceChanged();
-              playBoundary = [];
+              _resetBoundarySelection();
               setState(() => location = location.selectDistricts(values));
             },
           ),
@@ -478,7 +478,7 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
                 !location.districts.contains('Alle'),
             onChanged: (values) {
               _sourceChanged();
-              playBoundary = [];
+              _resetBoundarySelection();
               setState(() => location = location.selectNeighbourhoods(values));
             },
           ),
@@ -596,6 +596,13 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
     introductionVariant++;
   }
 
+  void _resetBoundarySelection() {
+    playBoundary = [];
+    if (specificArea.text == 'Zie kaart') {
+      specificArea.text = 'Niet van toepassing';
+    }
+  }
+
   void _sourceChanged() {
     if (introductionWasGenerated && intro.text.isNotEmpty) {
       intro.clear();
@@ -673,7 +680,12 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
     final boundary = await Navigator.of(context).push<List<AreaPoint>>(
       MaterialPageRoute(builder: (_) => PlayAreaEditor(area: selectedArea)),
     );
-    if (boundary != null && mounted) setState(() => playBoundary = boundary);
+    if (boundary != null && mounted) {
+      setState(() {
+        playBoundary = boundary;
+        specificArea.text = 'Zie kaart';
+      });
+    }
   }
 
   Future<void> _publish() async {

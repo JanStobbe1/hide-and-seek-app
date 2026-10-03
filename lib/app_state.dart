@@ -274,8 +274,12 @@ class AppState extends ChangeNotifier {
     final client = backendClient;
     if (client == null || !backendConnected) return;
     try {
-      final games = await client.fetchAvailableGames();
-      repository.replaceAvailableGames(games);
+      final results = await Future.wait([
+        client.fetchAvailableGames(),
+        client.fetchMyGames(),
+      ]);
+      repository.replaceAvailableGames(results[0]);
+      repository.replaceJoinedGames(results[1]);
       backendError = null;
       notifyListeners();
     } on BackendApiException catch (error) {

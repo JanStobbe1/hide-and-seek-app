@@ -275,7 +275,7 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
               min: 1,
               max: (players - 1).toDouble(),
               divisions: players - 2,
-              suffix: ' zoekers',
+              suffix: seekers == 1 ? ' zoeker' : ' zoekers',
               onChanged: (value) => setState(() => seekers = value.round()),
             ),
             Align(
@@ -1058,7 +1058,8 @@ class _Review extends StatelessWidget {
           label: 'Rolverdeling',
           value: gameType == GameType.everyoneHunts
               ? 'Iedereen zoeker én verstopper'
-              : '$seekers zoekers • $hiders verstoppers',
+              : '$seekers ${seekers == 1 ? 'zoeker' : 'zoekers'} • '
+                  '$hiders ${hiders == 1 ? 'verstopper' : 'verstoppers'}',
         ),
         _ReviewRow(
           label: 'Rollenruil',

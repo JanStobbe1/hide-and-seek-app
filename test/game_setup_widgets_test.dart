@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:verstobbertje/app_state.dart';
 import 'package:verstobbertje/domain/game_setup.dart';
 import 'package:verstobbertje/domain/models.dart';
@@ -8,6 +9,36 @@ import 'package:verstobbertje/presentation/create_game_screen.dart';
 import 'package:verstobbertje/presentation/play_area_editor.dart';
 
 void main() {
+  testWidgets('empty play area opens on mainland Belgium Netherlands Germany',
+      (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    const area = SearchArea(
+      country: 'Nederland',
+      province: 'Alle',
+      city: 'Alle',
+      neighbourhood: 'Alle',
+      specificArea: '',
+    );
+    await tester
+        .pumpWidget(const MaterialApp(home: PlayAreaEditor(area: area)));
+    await tester.pump();
+    final camera = tester
+        .widget<FlutterMap>(find.byType(FlutterMap))
+        .mapController!
+        .camera;
+    expect(camera.visibleBounds.contains(const LatLng(47.2, 2.5)), isTrue);
+    expect(camera.visibleBounds.contains(const LatLng(55.1, 15.1)), isTrue);
+    expect(camera.center.longitude, inInclusiveRange(2.5, 15.1));
+    expect(tester.widget<PolygonLayer>(find.byType(PolygonLayer)).polygons,
+        isEmpty);
+    expect(find.byType(LinearProgressIndicator), findsNothing);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox());
+  });
+
   testWidgets(
       'question choice preserves draft when switching between three and five',
       (tester) async {

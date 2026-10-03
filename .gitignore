@@ -9,3 +9,6 @@ android/local.properties
 ios/Flutter/ephemeral/
 .idea/
 *.iml
+
+backend/node_modules/
+backend/.test-build/

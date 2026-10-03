@@ -9,6 +9,8 @@ import 'package:latlong2/latlong.dart' as latlong;
 
 import '../app_state.dart';
 import '../domain/models.dart';
+import '../domain/game_setup.dart';
+import 'play_area_editor.dart';
 import '../domain/stobbe_powers.dart';
 import 'player_avatar.dart';
 import 'seasonal_stobbe.dart';
@@ -29,12 +31,14 @@ class _PlayerLocation {
 class _RealLocationMap extends StatelessWidget {
   const _RealLocationMap({
     required this.location,
+    this.boundary = const [],
     required this.playerIcon,
     required this.avatarId,
     required this.controller,
   });
 
   final _PlayerLocation location;
+  final List<AreaPoint> boundary;
   final IconData playerIcon;
   final String avatarId;
   final MapController controller;
@@ -59,6 +63,7 @@ class _RealLocationMap extends StatelessWidget {
               urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
               userAgentPackageName: 'nl.janstobbe.verstobbertje',
             ),
+            playBoundaryLayer(boundary),
             MarkerLayer(
               markers: [
                 Marker(
@@ -113,7 +118,9 @@ class _RealLocationMap extends StatelessWidget {
 }
 
 class ActiveGameScreen extends StatefulWidget {
-  const ActiveGameScreen({required this.state, super.key});
+  const ActiveGameScreen({required this.state, this.game, super.key});
+
+  final Game? game;
 
   final AppState state;
 
@@ -131,6 +138,14 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
   int _powerEffectId = 0;
 
   AppState get state => widget.state;
+
+  Game? get selectedGame {
+    if (widget.game != null) return widget.game;
+    for (final game in state.repository.joinedGames) {
+      if (game.status == GameStatus.active) return game;
+    }
+    return null;
+  }
 
   @override
   void initState() {
@@ -157,17 +172,14 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
         listenable: state,
         builder: (context, _) => Scaffold(
           appBar: AppBar(
-            title: const Text('Game X'),
+            title: Text(selectedGame?.name ?? 'Actief spel'),
             actions: [
               IconButton(
                 tooltip: 'Vraag het de Stobbedetective',
                 onPressed: _showDetectiveHelp,
                 icon: const Icon(Icons.support_agent),
               ),
-              const Padding(
-                padding: EdgeInsets.all(12),
-                child: DemoBadge(),
-              ),
+              const Padding(padding: EdgeInsets.all(12), child: DemoBadge()),
             ],
           ),
           body: IndexedStack(
@@ -188,16 +200,14 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
               ),
               _ActiveMapPage(
                 state: state,
+                boundary: selectedGame?.area.boundary ?? const [],
                 onCatch: () => _showProximity(context),
                 activePowerEffect: _activePowerEffect,
                 activePowerDuration: _powerEffectDuration,
                 activePowerRemaining: _powerEffectRemaining,
                 powerEffectId: _powerEffectId,
               ),
-              _StobbePowersPage(
-                state: state,
-                onActivate: _activatePower,
-              ),
+              _StobbePowersPage(state: state, onActivate: _activatePower),
             ],
           ),
           bottomNavigationBar: NavigationBar(
@@ -379,7 +389,9 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
 }
 
 class _ActiveMapPage extends StatefulWidget {
+  final List<AreaPoint> boundary;
   const _ActiveMapPage({
+    this.boundary = const [],
     required this.state,
     required this.onCatch,
     required this.activePowerEffect,
@@ -489,11 +501,17 @@ class _ActiveMapPageState extends State<_ActiveMapPage>
   void dispose() {
     locationSubscription?.cancel();
     controller.dispose();
+    mapController.dispose();
     powerAnimation.dispose();
     super.dispose();
   }
 
   void zoom(double factor) {
+    if (currentLocation != null || widget.boundary.isNotEmpty) {
+      mapController.move(mapController.camera.center,
+          mapController.camera.zoom + (factor > 1 ? 1 : -1));
+      return;
+    }
     if (viewportSize.isEmpty) return;
     final currentScale = controller.value.getMaxScaleOnAxis();
     final nextScale = (currentScale * factor).clamp(.55, 3.0);
@@ -513,6 +531,13 @@ class _ActiveMapPageState extends State<_ActiveMapPage>
         latlong.LatLng(location.latitude, location.longitude),
         16,
       );
+      return;
+    }
+    if (widget.boundary.isNotEmpty) {
+      mapController.fitCamera(CameraFit.bounds(
+        bounds: LatLngBounds.fromPoints(mapPoints(widget.boundary)),
+        padding: const EdgeInsets.all(32),
+      ));
       return;
     }
     if (viewportSize.isEmpty) return;
@@ -540,68 +565,90 @@ class _ActiveMapPageState extends State<_ActiveMapPage>
             children: [
               Positioned.fill(
                 child: ClipRect(
-                  child: InteractiveViewer(
-                    transformationController: controller,
-                    constrained: false,
-                    alignment: Alignment.center,
-                    minScale: .55,
-                    maxScale: 3,
-                    boundaryMargin: const EdgeInsets.all(300),
-                    child: currentLocation == null
-                        ? SizedBox(
-                            width: 1100,
-                            height: 820,
-                            child: DecoratedBox(
-                              decoration: const BoxDecoration(
-                                color: Color(0xffe8f0e5),
-                              ),
-                              child: Center(
+                  child: currentLocation != null
+                      ? _RealLocationMap(
+                          location: currentLocation!,
+                          boundary: widget.boundary,
+                          playerIcon: markerIcon(widget.state.playerMarker),
+                          avatarId: widget.state.profileAvatar,
+                          controller: mapController,
+                        )
+                      : widget.boundary.isNotEmpty
+                          ? Stack(children: [
+                              PlayAreaMap(
+                                  boundary: widget.boundary,
+                                  height: constraints.maxHeight,
+                                  controller: mapController),
+                              Positioned(
+                                left: 12,
+                                right: 12,
+                                bottom: 100,
                                 child: Card(
-                                  margin: const EdgeInsets.all(24),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(24),
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Icon(
-                                          Icons.location_off,
-                                          size: 48,
+                                    child: ListTile(
+                                  title: Text(locationError ??
+                                      'Je locatie wordt opgehaald…'),
+                                  subtitle: const Text(
+                                      'Het speelgebied is al zichtbaar. Voor jouw positie is locatietoestemming nodig.'),
+                                  trailing: IconButton(
+                                      tooltip: 'Locatie opnieuw ophalen',
+                                      icon: const Icon(Icons.refresh),
+                                      onPressed: _startRealLocation),
+                                )),
+                              ),
+                            ])
+                          : InteractiveViewer(
+                              transformationController: controller,
+                              constrained: false,
+                              alignment: Alignment.center,
+                              minScale: .55,
+                              maxScale: 3,
+                              boundaryMargin: const EdgeInsets.all(300),
+                              child: SizedBox(
+                                width: 1100,
+                                height: 820,
+                                child: DecoratedBox(
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xffe8f0e5),
+                                  ),
+                                  child: Center(
+                                    child: Card(
+                                      margin: const EdgeInsets.all(24),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(24),
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Icon(Icons.location_off,
+                                                size: 48),
+                                            const SizedBox(height: 12),
+                                            Text(
+                                              locationError ??
+                                                  'Je echte locatie wordt opgehaald…',
+                                              textAlign: TextAlign.center,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 8),
+                                            const Text(
+                                              'Geef in je browser locatietoestemming '
+                                              'en probeer het daarna opnieuw.',
+                                              textAlign: TextAlign.center,
+                                            ),
+                                            const SizedBox(height: 16),
+                                            FilledButton.icon(
+                                              onPressed: _startRealLocation,
+                                              icon: const Icon(Icons.refresh),
+                                              label: const Text(
+                                                  'Opnieuw proberen'),
+                                            ),
+                                          ],
                                         ),
-                                        const SizedBox(height: 12),
-                                        Text(
-                                          locationError ??
-                                              'Je echte locatie wordt opgehaald…',
-                                          textAlign: TextAlign.center,
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.w700,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        const Text(
-                                          'Geef in je browser locatietoestemming '
-                                          'en probeer het daarna opnieuw.',
-                                          textAlign: TextAlign.center,
-                                        ),
-                                        const SizedBox(height: 16),
-                                        FilledButton.icon(
-                                          onPressed: _startRealLocation,
-                                          icon: const Icon(Icons.refresh),
-                                          label: const Text('Opnieuw proberen'),
-                                        ),
-                                      ],
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                            ),
-                          )
-                        : _RealLocationMap(
-                            location: currentLocation!,
-                            playerIcon: markerIcon(widget.state.playerMarker),
-                            avatarId: widget.state.profileAvatar,
-                            controller: mapController,
-                          ),
-                  ),
+                              )),
                 ),
               ),
               Positioned(
@@ -609,8 +656,10 @@ class _ActiveMapPageState extends State<_ActiveMapPage>
                 left: 16,
                 child: Card(
                   child: Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     child: Text(
                       'Speelveld • '
                       '${widget.state.findDistanceMeters.toStringAsFixed(0)} m '
@@ -767,19 +816,23 @@ class _PowerMapEffect extends StatelessWidget {
                             children: [
                               Icon(icon, color: Colors.white, size: 18),
                               const SizedBox(width: 6),
-                              Text(label,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w800,
-                                  )),
+                              Text(
+                                label,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
                             ],
                           ),
                           const SizedBox(height: 4),
-                          Text(timeLabel,
-                              style: const TextStyle(
-                                color: Colors.white70,
-                                fontSize: 12,
-                              )),
+                          Text(
+                            timeLabel,
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 12,
+                            ),
+                          ),
                           const SizedBox(height: 4),
                           SizedBox(
                             width: 150,
@@ -803,8 +856,11 @@ class _PowerMapEffect extends StatelessWidget {
 }
 
 class _MapButton extends StatelessWidget {
-  const _MapButton(
-      {required this.tooltip, required this.icon, required this.onPressed});
+  const _MapButton({
+    required this.tooltip,
+    required this.icon,
+    required this.onPressed,
+  });
   final String tooltip;
   final IconData icon;
   final VoidCallback onPressed;
@@ -871,7 +927,8 @@ class _StobbePowersPage extends StatelessWidget {
                   ?.copyWith(fontWeight: FontWeight.w900),
             ),
             const Text(
-                'Verzameld in dit spel • ongebruikte fiches vervallen na afloop'),
+              'Verzameld in dit spel • ongebruikte fiches vervallen na afloop',
+            ),
             const SizedBox(height: 18),
             Center(
               child: Container(
@@ -887,9 +944,10 @@ class _StobbePowersPage extends StatelessWidget {
                   border: Border.all(color: const Color(0xff4f2d16), width: 4),
                   boxShadow: const [
                     BoxShadow(
-                        color: Colors.black26,
-                        blurRadius: 14,
-                        offset: Offset(0, 8))
+                      color: Colors.black26,
+                      blurRadius: 14,
+                      offset: Offset(0, 8),
+                    ),
                   ],
                 ),
                 child: Column(
@@ -990,7 +1048,7 @@ class _PowerToken extends StatelessWidget {
                       shape: BoxShape.circle,
                       border: Border.all(color: Colors.white, width: 4),
                       boxShadow: const [
-                        BoxShadow(color: Colors.black26, blurRadius: 6)
+                        BoxShadow(color: Colors.black26, blurRadius: 6),
                       ],
                     ),
                     child: Icon(icon, color: Colors.white, size: 34),
@@ -1004,16 +1062,20 @@ class _PowerToken extends StatelessWidget {
                       child: Text(
                         '×$count',
                         style: const TextStyle(
-                            color: Colors.white, fontWeight: FontWeight.w900),
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                        ),
                       ),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 6),
-              Text(name,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontWeight: FontWeight.w800)),
+              Text(
+                name,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontWeight: FontWeight.w800),
+              ),
               if (showCooldownTimer && cooldownRemaining > Duration.zero) ...[
                 const SizedBox(height: 2),
                 Text(
@@ -1287,10 +1349,7 @@ class _CountdownCard extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               const Expanded(
-                child: _ScoreStat(
-                  value: '3e',
-                  label: 'van 20 spelers',
-                ),
+                child: _ScoreStat(value: '3e', label: 'van 20 spelers'),
               ),
             ],
           ),

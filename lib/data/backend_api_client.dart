@@ -109,6 +109,26 @@ class BackendApiClient {
         .toList(growable: false);
   }
 
+  Future<List<Game>> fetchMyGames() async {
+    final token = _playerToken;
+    if (token == null) {
+      throw const BackendApiException(401, 'player_session_required');
+    }
+    final response = await _request(
+      client.get(
+        _endpoint('/api/v1/player/games'),
+        headers: {'authorization': 'Bearer $token'},
+      ),
+    );
+    final data = _decode(response);
+    final games = data['games'];
+    if (games is! List) return const [];
+    return games
+        .whereType<Map<String, dynamic>>()
+        .map(_gameFromJson)
+        .toList(growable: false);
+  }
+
   Future<Game> createGame(Game game) async {
     final token = _playerToken;
     if (token == null) {

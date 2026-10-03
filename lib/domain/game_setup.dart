@@ -63,6 +63,9 @@ String? validateCustomQuestions(int count, List<String> questions) {
       questions.any((q) => q.trim().isEmpty || q.trim().length > 160)) {
     return 'Vul alle $count ja/nee-vragen in (maximaal 160 tekens per vraag).';
   }
+  if (questions.any((q) => q.trim().split(RegExp(r'\s+')).length < 2)) {
+    return 'Elke vraag moet minimaal twee woorden bevatten.';
+  }
   if (questions.map((q) => q.trim().toLowerCase()).toSet().length != count) {
     return 'Stel verschillende vragen.';
   }

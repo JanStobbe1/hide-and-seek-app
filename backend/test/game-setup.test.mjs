@@ -71,7 +71,8 @@ test('register, create, list and reopen preserve questions and polygon in migrat
     assert.equal(db.prepare('SELECT count(*) AS n FROM games').get().n, 1);
     const invalid = [
       {questionCount: 4, customQuestions: [...questions, 'Extra?']},
-      {customQuestions: [' ', 'Twee?', 'Drie?']},
+      {customQuestions: [' ', 'Draag je een jas?', 'Heb je een hond?']},
+      {customQuestions: ['Fiets?', 'Draag je een jas?', 'Heb je een hond?']},
       {customQuestions: ['Vraag?', 'vraag?', 'Anders?']},
       {customQuestions: ['x'.repeat(161), 'Twee?', 'Drie?']},
       {playBoundary: [[52,5],[53,6],[52,6],[53,5]]},

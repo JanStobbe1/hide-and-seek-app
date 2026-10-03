@@ -6,7 +6,7 @@ export function validateGameSetup(body: Record<string, unknown>): string | null 
     if (body.questionsEnabled !== false) {
       if (body.questionCount !== 3 && body.questionCount !== 5) return "question_count_invalid";
       if (questions.length !== body.questionCount || questions.some(q =>
-        typeof q !== "string" || !q.trim() || q.trim().length > 160)) {
+        typeof q !== "string" || !q.trim() || q.trim().split(/\s+/u).length < 2 || q.trim().length > 160)) {
         return "custom_questions_invalid";
       }
       if (new Set(questions.map(q => q.trim().toLowerCase())).size !== questions.length) {

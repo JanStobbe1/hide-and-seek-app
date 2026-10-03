@@ -48,6 +48,7 @@ test('register, create, list and reopen preserve questions and polygon in migrat
     }), env);
   }
   try {
+    assert.equal((await call('/api/v1/player/games')).status, 401);
     const registration = await call('/api/v1/auth/player', {profileName: 'Testspeler'});
     assert.equal(registration.status, 201);
     token = (await registration.json()).token;
@@ -58,6 +59,12 @@ test('register, create, list and reopen preserve questions and polygon in migrat
     };
     const created = await call('/api/v1/games', body);
     assert.equal(created.status, 201, await created.clone().text());
+    const myGames = await call('/api/v1/player/games');
+    assert.equal(myGames.status, 200);
+    const ownedGames = (await myGames.json()).games;
+    assert.equal(ownedGames.length, 1);
+    assert.equal(ownedGames[0].id, 'setup-test');
+    assert.equal(ownedGames[0].created_by, (await created.json()).game.created_by);
     for (const path of ['/api/v1/games', '/api/v1/games/setup-test']) {
       const response = await call(path);
       assert.equal(response.status, 200);

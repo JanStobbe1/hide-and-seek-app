@@ -1,3 +1,5 @@
+import 'play_area_editor.dart';
+
 import 'package:flutter/material.dart';
 
 import '../app_state.dart';
@@ -254,8 +256,10 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
                     avatar: const Icon(Icons.public, size: 18),
                   ),
                   Chip(
-                      label: Text(
-                          '${game.participants}/${game.maxParticipants} spelers')),
+                    label: Text(
+                      '${game.participants}/${game.maxParticipants} spelers',
+                    ),
+                  ),
                 ],
               ),
               Text(
@@ -273,6 +277,18 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
               _Info(Icons.person, 'Organisator', game.organizer),
               _Info(Icons.schedule, 'Start & einde', _dateRange(game)),
               _Info(Icons.map, 'Zoekgebied', _areaDetails(game.area)),
+              if (game.area.boundary.isNotEmpty)
+                PlayAreaMap(boundary: game.area.boundary),
+              if (game.rules.questionsEnabled &&
+                  game.rules.customQuestions.isNotEmpty) ...[
+                const SectionTitle('Ja/nee-vragen'),
+                for (var i = 0; i < game.rules.customQuestions.length; i++)
+                  ListTile(
+                    leading: Text('${i + 1}.'),
+                    title: Text(game.rules.customQuestions[i]),
+                    subtitle: const Text('Ja / Nee'),
+                  ),
+              ],
               SectionTitle(
                 'Deelnemers',
                 action: TextButton.icon(
@@ -423,7 +439,7 @@ class MyGamesScreen extends StatelessWidget {
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => ActiveGameScreen(state: state),
+                builder: (_) => ActiveGameScreen(state: state, game: game),
               ),
             ),
           ),
@@ -597,7 +613,8 @@ class CompletedGamesScreen extends StatelessWidget {
               ?.copyWith(fontWeight: FontWeight.w900),
         ),
         const Text(
-            'Open een avontuur om je uitslag en medespelers te bekijken.'),
+          'Open een avontuur om je uitslag en medespelers te bekijken.',
+        ),
         const SizedBox(height: 16),
         if (visibleGames.isEmpty)
           const Padding(

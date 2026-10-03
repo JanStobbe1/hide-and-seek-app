@@ -4,6 +4,8 @@ import '../app_state.dart';
 import '../domain/clock.dart';
 import '../domain/game_scheduling.dart';
 import '../domain/models.dart';
+import '../domain/game_setup.dart';
+import 'play_area_editor.dart';
 import '../services/introduction_service.dart';
 import '../services/location_repository.dart';
 import 'widgets.dart';
@@ -38,6 +40,12 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
   bool hints = true;
   bool questions = true;
   int questionCount = 3;
+  final questionFields = List.generate(5, (_) => TextEditingController());
+  List<AreaPoint> playBoundary = [];
+  List<String> get customQuestions => questionFields
+      .take(questionCount)
+      .map((field) => field.text.trim())
+      .toList();
   bool allowRejoinAfterFound = false;
   GameType gameType = GameType.classic;
   int seekers = 1;
@@ -68,6 +76,9 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
     name.dispose();
     intro.dispose();
     specificArea.dispose();
+    for (final field in questionFields) {
+      field.dispose();
+    }
     super.dispose();
   }
 
@@ -81,6 +92,7 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
               : location.districts,
         ),
         specificArea: specificArea.text.trim(),
+        boundary: List.unmodifiable(playBoundary),
       );
 
   DateTime get selectedStart => DateTime(
@@ -133,8 +145,7 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
             child: Stepper(
               currentStep: step,
               onStepTapped: (value) => setState(() => step = value),
-              onStepContinue:
-                  step == 3 ? _publish : () => setState(() => step++),
+              onStepContinue: step == 3 ? _publish : _nextStep,
               onStepCancel: step == 0 ? null : () => setState(() => step--),
               controlsBuilder: _buildControls,
               steps: [
@@ -156,26 +167,29 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
                 Step(
                   title: const Text('Controleren'),
                   isActive: step >= 3,
-                  content: _withStepSpacing(_Review(
-                    name: name.text,
-                    isPublic: isPublic,
-                    duration: duration,
-                    players: players,
-                    hints: hints,
-                    questions: questions,
-                    questionCount: questionCount,
-                    gameType: gameType,
-                    seekers: seekers,
-                    hiders: players - seekers,
-                    roleSwitchEnabled: roleSwitchEnabled,
-                    stobbePowersEnabled: stobbePowersEnabled,
-                    allowRejoinAfterFound: allowRejoinAfterFound,
-                    intro: intro.text,
-                    area: selectedArea,
-                    startCondition: condition,
-                    scheduledStart: selectedScheduledStart,
-                    participantThreshold: selectedParticipantThreshold,
-                  )),
+                  content: _withStepSpacing(
+                    _Review(
+                      name: name.text,
+                      isPublic: isPublic,
+                      duration: duration,
+                      players: players,
+                      hints: hints,
+                      questions: questions,
+                      questionCount: questionCount,
+                      customQuestions: customQuestions,
+                      gameType: gameType,
+                      seekers: seekers,
+                      hiders: players - seekers,
+                      roleSwitchEnabled: roleSwitchEnabled,
+                      stobbePowersEnabled: stobbePowersEnabled,
+                      allowRejoinAfterFound: allowRejoinAfterFound,
+                      intro: intro.text,
+                      area: selectedArea,
+                      startCondition: condition,
+                      scheduledStart: selectedScheduledStart,
+                      participantThreshold: selectedParticipantThreshold,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -183,10 +197,8 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
         ),
       );
 
-  Widget _withStepSpacing(Widget child) => Padding(
-        padding: const EdgeInsets.only(top: 12),
-        child: child,
-      );
+  Widget _withStepSpacing(Widget child) =>
+      Padding(padding: const EdgeInsets.only(top: 12), child: child);
 
   Widget _buildControls(BuildContext context, ControlsDetails details) =>
       Padding(
@@ -196,11 +208,13 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
             Expanded(
               child: FilledButton(
                 onPressed: isPublishing ? null : details.onStepContinue,
-                child: Text(isPublishing
-                    ? 'Bezig met opslaan…'
-                    : step == 3
-                        ? 'Stel spel beschikbaar'
-                        : 'Volgende'),
+                child: Text(
+                  isPublishing
+                      ? 'Bezig met opslaan…'
+                      : step == 3
+                          ? 'Stel spel beschikbaar'
+                          : 'Volgende',
+                ),
               ),
             ),
             if (step > 0) ...[
@@ -235,10 +249,8 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
             ),
             items: GameType.values
                 .map(
-                  (type) => DropdownMenuItem(
-                    value: type,
-                    child: Text(type.label),
-                  ),
+                  (type) =>
+                      DropdownMenuItem(value: type, child: Text(type.label)),
                 )
                 .toList(growable: false),
             onChanged: (value) {
@@ -279,9 +291,7 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
             const Card(
               child: Padding(
                 padding: EdgeInsets.all(12),
-                child: Text(
-                  'Iedere speler is tegelijk zoeker en verstopper.',
-                ),
+                child: Text('Iedere speler is tegelijk zoeker en verstopper.'),
               ),
             ),
           SwitchListTile(
@@ -305,9 +315,7 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
             title: const Text('Opnieuw meedoen na gevonden worden'),
-            subtitle: const Text(
-              'De nieuwe poging begint met 0 spelpunten.',
-            ),
+            subtitle: const Text('De nieuwe poging begint met 0 spelpunten.'),
             value: allowRejoinAfterFound,
             onChanged: (value) => setState(() => allowRejoinAfterFound = value),
           ),
@@ -359,17 +367,37 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
             value: questions,
             onChanged: (value) => setState(() => questions = value),
           ),
-          if (questions)
-            _SettingSlider(
-              label: 'Aantal vragen',
-              value: questionCount.toDouble(),
-              min: 3,
-              max: 5,
-              divisions: 2,
-              suffix: ' ja/nee-vragen',
-              onChanged: (value) =>
-                  setState(() => questionCount = value.round()),
+          if (questions) ...[
+            const Text(
+              'Kies het aantal vragen en schrijf vragen waarop spelers ja of nee kunnen antwoorden.',
             ),
+            const SizedBox(height: 8),
+            SegmentedButton<int>(
+              segments: const [
+                ButtonSegment(value: 3, label: Text('3 vragen')),
+                ButtonSegment(value: 5, label: Text('5 vragen')),
+              ],
+              selected: {questionCount},
+              onSelectionChanged: (value) =>
+                  setState(() => questionCount = value.single),
+            ),
+            for (var i = 0; i < questionCount; i++)
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: TextField(
+                  key: ValueKey('custom-question-$i'),
+                  controller: questionFields[i],
+                  maxLength: 160,
+                  maxLines: 2,
+                  decoration: InputDecoration(
+                    labelText: 'Ja/nee-vraag ${i + 1}',
+                    hintText:
+                        'Bijvoorbeeld: ben je vandaag op de fiets gekomen?',
+                    helperText: 'Antwoordmogelijkheden: Ja / Nee',
+                  ),
+                ),
+              ),
+          ],
         ],
       );
 
@@ -381,6 +409,7 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
             options: locations.countries,
             onSelected: (value) {
               _sourceChanged();
+              playBoundary = [];
               setState(() => location = location.selectCountry(value));
             },
           ),
@@ -393,6 +422,7 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
             enabled: location.country != null,
             onSelected: (value) {
               _sourceChanged();
+              playBoundary = [];
               setState(() => location = location.selectProvince(value));
             },
           ),
@@ -405,6 +435,7 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
             enabled: location.province != null && location.province != 'Alle',
             onChanged: (values) {
               _sourceChanged();
+              playBoundary = [];
               setState(() => location = location.selectCities(values));
             },
           ),
@@ -424,6 +455,7 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
                 location.cities.isNotEmpty && !location.cities.contains('Alle'),
             onChanged: (values) {
               _sourceChanged();
+              playBoundary = [];
               setState(() => location = location.selectDistricts(values));
             },
           ),
@@ -443,19 +475,28 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
                 !location.districts.contains('Alle'),
             onChanged: (values) {
               _sourceChanged();
-              setState(
-                () => location = location.selectNeighbourhoods(values),
-              );
+              playBoundary = [];
+              setState(() => location = location.selectNeighbourhoods(values));
             },
           ),
           _AreaField(label: 'Specifiek gebied', controller: specificArea),
           const SizedBox(height: 4),
-          SearchAreaMap(area: selectedArea, height: 240),
+          PlayAreaMap(boundary: playBoundary),
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            icon: const Icon(Icons.edit_location_alt),
+            label: Text(
+              playBoundary.isEmpty
+                  ? 'Kies speelgebied op kaart'
+                  : 'Pas speelgebied aan',
+            ),
+            onPressed: _editArea,
+          ),
           const Padding(
             padding: EdgeInsets.all(8),
             child: Text(
               'Selecteer één of meerdere gemeenten, wijken en buurten. '
-              '‘Alle’ kiest het volledige bovenliggende gebied.',
+              'Kies daarna op de kaart de grens waarbinnen jullie spelen.',
               style: TextStyle(fontSize: 12),
               textAlign: TextAlign.center,
             ),
@@ -598,6 +639,40 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
     }
   }
 
+  void _showSetupError(String error, int targetStep) {
+    setState(() => step = targetStep);
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
+  }
+
+  bool _validateQuestions() {
+    final error = questions
+        ? validateCustomQuestions(questionCount, customQuestions)
+        : null;
+    if (error == null) return true;
+    _showSetupError(error, 0);
+    return false;
+  }
+
+  bool _validateArea() {
+    final error = validatePlayBoundary(playBoundary);
+    if (error == null) return true;
+    _showSetupError('Kies een geldig speelgebied op de kaart. $error', 1);
+    return false;
+  }
+
+  void _nextStep() {
+    if (step == 0 && !_validateQuestions()) return;
+    if (step == 1 && !_validateArea()) return;
+    setState(() => step++);
+  }
+
+  Future<void> _editArea() async {
+    final boundary = await Navigator.of(context).push<List<AreaPoint>>(
+      MaterialPageRoute(builder: (_) => PlayAreaEditor(area: selectedArea)),
+    );
+    if (boundary != null && mounted) setState(() => playBoundary = boundary);
+  }
+
   Future<void> _publish() async {
     final now = widget.clock.now();
     if (name.text.trim().isEmpty) {
@@ -607,6 +682,7 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
       return;
     }
     if (isPublishing) return;
+    if (!_validateQuestions() || !_validateArea()) return;
     setState(() => isPublishing = true);
     if (condition == StartCondition.scheduled &&
         !GameSchedulingRules(now).isAllowedStart(selectedStart)) {
@@ -637,6 +713,7 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
         hintsEnabled: hints,
         questionsEnabled: questions,
         questionCount: questionCount,
+        customQuestions: questions ? customQuestions : const [],
         gameType: gameType,
         seekersCount: gameType == GameType.everyoneHunts ? players : seekers,
         hidersCount:
@@ -925,6 +1002,7 @@ class _Review extends StatelessWidget {
     required this.hints,
     required this.questions,
     required this.questionCount,
+    required this.customQuestions,
     required this.gameType,
     required this.seekers,
     required this.hiders,
@@ -944,6 +1022,7 @@ class _Review extends StatelessWidget {
   final bool hints;
   final bool questions;
   final int questionCount;
+  final List<String> customQuestions;
   final GameType gameType;
   final int seekers;
   final int hiders;
@@ -1010,6 +1089,11 @@ class _Review extends StatelessWidget {
             if (questions) '$questionCount ja/nee-vragen',
           ].join(' • '),
         ),
+        if (questions) ...[
+          for (var i = 0; i < customQuestions.length; i++)
+            _ReviewRow(label: 'Vraag ${i + 1}', value: customQuestions[i]),
+        ],
+        PlayAreaMap(boundary: area.boundary),
         if (intro.isNotEmpty) ...[const SizedBox(height: 12), Text(intro)],
       ],
     );
@@ -1053,7 +1137,7 @@ class _ReviewRow extends StatelessWidget {
                       children: [
                         Text(label),
                         const SizedBox(height: 4),
-                        valueText,
+                        valueText
                       ],
                     ),
                   ),

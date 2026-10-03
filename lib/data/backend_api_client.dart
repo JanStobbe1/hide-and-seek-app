@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../domain/models.dart';
+import '../domain/game_setup.dart';
 
 class PlayerSession {
   const PlayerSession({
@@ -28,10 +29,8 @@ class BackendApiException implements Exception {
 }
 
 class BackendApiClient {
-  BackendApiClient({
-    required this.baseUri,
-    http.Client? client,
-  }) : client = client ?? http.Client();
+  BackendApiClient({required this.baseUri, http.Client? client})
+      : client = client ?? http.Client();
 
   final Uri baseUri;
   final http.Client client;
@@ -42,10 +41,8 @@ class BackendApiClient {
   Future<http.Response> _request(Future<http.Response> request) =>
       request.timeout(
         _requestTimeout,
-        onTimeout: () => throw const BackendApiException(
-          408,
-          'request_timeout',
-        ),
+        onTimeout: () =>
+            throw const BackendApiException(408, 'request_timeout'),
       );
 
   Uri _endpoint(String path) => baseUri.replace(
@@ -67,11 +64,13 @@ class BackendApiClient {
   }
 
   Future<PlayerSession> registerPlayer(String profileName) async {
-    final response = await _request(client.post(
-      _endpoint('/api/v1/auth/player'),
-      headers: const {'content-type': 'application/json'},
-      body: jsonEncode({'profileName': profileName}),
-    ));
+    final response = await _request(
+      client.post(
+        _endpoint('/api/v1/auth/player'),
+        headers: const {'content-type': 'application/json'},
+        body: jsonEncode({'profileName': profileName}),
+      ),
+    );
     final data = _decode(response);
     final player = data['player'];
     final token = data['token'];
@@ -117,39 +116,43 @@ class BackendApiClient {
     }
     final startsAt = game.scheduledStart?.toUtc().toIso8601String() ??
         DateTime.now().toUtc().toIso8601String();
-    final response = await _request(client.post(
-      _endpoint('/api/v1/games'),
-      headers: {
-        'content-type': 'application/json',
-        'authorization': 'Bearer $token',
-      },
-      body: jsonEncode({
-        'id': game.id,
-        'name': game.name,
-        'description': game.description,
-        'startsAt': startsAt,
-        'durationMinutes': game.duration.inMinutes,
-        'maxParticipants': game.maxParticipants,
-        'distanceKm': game.distanceKm,
-        'country': game.area.country,
-        'province': game.area.province,
-        'city': game.area.city,
-        'neighbourhood': game.area.neighbourhood,
-        'specificArea': game.area.specificArea,
-        'startCondition': game.startCondition.name,
-        'participantThreshold': game.participantThreshold,
-        'isPublic': game.isPublic,
-        'hintsEnabled': game.rules.hintsEnabled,
-        'questionsEnabled': game.rules.questionsEnabled,
-        'questionCount': game.rules.questionCount,
-        'gameType': game.rules.gameType.name,
-        'seekersCount': game.rules.seekersCount,
-        'hidersCount': game.rules.hidersCount,
-        'roleSwitchEnabled': game.rules.roleSwitchEnabled,
-        'stobbePowersEnabled': game.rules.stobbePowersEnabled,
-        'allowRejoinAfterFound': game.rules.allowRejoinAfterFound,
-      }),
-    ));
+    final response = await _request(
+      client.post(
+        _endpoint('/api/v1/games'),
+        headers: {
+          'content-type': 'application/json',
+          'authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'id': game.id,
+          'name': game.name,
+          'description': game.description,
+          'startsAt': startsAt,
+          'durationMinutes': game.duration.inMinutes,
+          'maxParticipants': game.maxParticipants,
+          'distanceKm': game.distanceKm,
+          'country': game.area.country,
+          'province': game.area.province,
+          'city': game.area.city,
+          'neighbourhood': game.area.neighbourhood,
+          'specificArea': game.area.specificArea,
+          'playBoundary': game.area.boundary.map((p) => p.toJson()).toList(),
+          'startCondition': game.startCondition.name,
+          'participantThreshold': game.participantThreshold,
+          'isPublic': game.isPublic,
+          'hintsEnabled': game.rules.hintsEnabled,
+          'questionsEnabled': game.rules.questionsEnabled,
+          'questionCount': game.rules.questionCount,
+          'customQuestions': game.rules.customQuestions,
+          'gameType': game.rules.gameType.name,
+          'seekersCount': game.rules.seekersCount,
+          'hidersCount': game.rules.hidersCount,
+          'roleSwitchEnabled': game.rules.roleSwitchEnabled,
+          'stobbePowersEnabled': game.rules.stobbePowersEnabled,
+          'allowRejoinAfterFound': game.rules.allowRejoinAfterFound,
+        }),
+      ),
+    );
     final data = _decode(response);
     final created = data['game'];
     if (created is! Map<String, dynamic>) {
@@ -177,12 +180,12 @@ class BackendApiClient {
     if (token == null) {
       throw const BackendApiException(401, 'player_session_required');
     }
-    final response = await _request(client.post(
-      _endpoint('/api/v1/games/$gameId/join'),
-      headers: {
-        'authorization': 'Bearer $token',
-      },
-    ));
+    final response = await _request(
+      client.post(
+        _endpoint('/api/v1/games/$gameId/join'),
+        headers: {'authorization': 'Bearer $token'},
+      ),
+    );
     _decode(response);
   }
 
@@ -191,10 +194,12 @@ class BackendApiClient {
     if (token == null) {
       throw const BackendApiException(401, 'player_session_required');
     }
-    final response = await _request(client.delete(
-      _endpoint('/api/v1/account'),
-      headers: {'authorization': 'Bearer $token'},
-    ));
+    final response = await _request(
+      client.delete(
+        _endpoint('/api/v1/account'),
+        headers: {'authorization': 'Bearer $token'},
+      ),
+    );
     _decode(response);
   }
 
@@ -203,10 +208,12 @@ class BackendApiClient {
     if (token == null) {
       throw const BackendApiException(401, 'player_session_required');
     }
-    final response = await _request(client.post(
-      _endpoint('/api/v1/games/$gameId/withdraw'),
-      headers: {'authorization': 'Bearer $token'},
-    ));
+    final response = await _request(
+      client.post(
+        _endpoint('/api/v1/games/$gameId/withdraw'),
+        headers: {'authorization': 'Bearer $token'},
+      ),
+    );
     _decode(response);
   }
 
@@ -216,6 +223,15 @@ class BackendApiClient {
     await preferences.remove('verstobbertje.playerId');
     await preferences.remove('verstobbertje.profileName');
     await preferences.remove('verstobbertje.playerToken');
+  }
+
+  List<dynamic> _jsonList(Object? value) {
+    if (value is List<dynamic>) return value;
+    if (value is String) {
+      final decoded = jsonDecode(value);
+      if (decoded is List<dynamic>) return decoded;
+    }
+    return const [];
   }
 
   Game _gameFromJson(Map<String, dynamic> value) {
@@ -252,6 +268,9 @@ class BackendApiClient {
         city: '${value['city'] ?? ''}',
         neighbourhood: '${value['neighbourhood'] ?? ''}',
         specificArea: '${value['specific_area'] ?? ''}',
+        boundary: _jsonList(value['play_boundary'])
+            .map((p) => AreaPoint.fromJson(p as List<dynamic>))
+            .toList(),
       ),
       status: status,
       duration: Duration(minutes: asInt(value['duration_minutes'], 120)),
@@ -270,6 +289,7 @@ class BackendApiClient {
         questionsEnabled: value['questions_enabled'] != 0 &&
             value['questions_enabled'] != false,
         questionCount: asInt(value['question_count'], 3).clamp(3, 5),
+        customQuestions: _jsonList(value['custom_questions']).cast<String>(),
         gameType: gameType,
         seekersCount: seekersCount,
         hidersCount: asInt(
@@ -298,20 +318,22 @@ class BackendApiClient {
     if (token == null) {
       throw const BackendApiException(401, 'player_session_required');
     }
-    final response = await _request(client.post(
-      _endpoint('/api/v1/games/$gameId/events'),
-      headers: {
-        'content-type': 'application/json',
-        'authorization': 'Bearer $token',
-        'idempotency-key': idempotencyKey,
-      },
-      body: jsonEncode({
-        'eventType': eventType,
-        'occurredAt': occurredAt,
-        if (playerId != null) 'playerId': playerId,
-        'payload': payload,
-      }),
-    ));
+    final response = await _request(
+      client.post(
+        _endpoint('/api/v1/games/$gameId/events'),
+        headers: {
+          'content-type': 'application/json',
+          'authorization': 'Bearer $token',
+          'idempotency-key': idempotencyKey,
+        },
+        body: jsonEncode({
+          'eventType': eventType,
+          'occurredAt': occurredAt,
+          if (playerId != null) 'playerId': playerId,
+          'payload': payload,
+        }),
+      ),
+    );
     _decode(response);
   }
 

@@ -1,3 +1,5 @@
+import { validateGameSetup } from "./game-setup.js";
+
 export interface Env {
   DB: D1Database;
   ADMIN_API_TOKEN: string;
@@ -157,7 +159,7 @@ const route = async (request: Request, env: Env): Promise<Response> => {
         g.neighbourhood, g.specific_area, g.duration_minutes,
         g.max_participants, g.distance_km, g.start_condition,
         g.participant_threshold, g.is_public, g.hints_enabled,
-        g.questions_enabled, g.question_count, g.game_type, g.allow_rejoin_after_found,
+        g.questions_enabled, g.question_count, g.custom_questions, g.play_boundary, g.game_type, g.allow_rejoin_after_found,
         g.seekers_count, g.hiders_count, g.role_switch_enabled, g.stobbe_powers_enabled,
         COUNT(gp.player_id) AS participant_count
        FROM games g
@@ -176,6 +178,8 @@ const route = async (request: Request, env: Env): Promise<Response> => {
     const authenticatedPlayer = await playerFromToken(request, env);
     if (!authenticatedPlayer) return json({ error: "unauthorized" }, 401, origin);
     const body = await parseBody(request);
+    const setupError = validateGameSetup(body);
+    if (setupError) return json({ error: setupError }, 400, origin);
     const name = typeof body.name === "string" ? body.name.trim() : "";
     const startsAt = typeof body.startsAt === "string" ? body.startsAt : "";
     const maxParticipants = Number(body.maxParticipants);
@@ -210,6 +214,9 @@ const route = async (request: Request, env: Env): Promise<Response> => {
       is_public: body.isPublic === false ? 0 : 1,
       hints_enabled: body.hintsEnabled === false ? 0 : 1,
       questions_enabled: body.questionsEnabled === false ? 0 : 1,
+      play_boundary: JSON.stringify(body.playBoundary ?? []),
+      custom_questions: JSON.stringify(Array.isArray(body.customQuestions)
+        ? body.customQuestions.map(q => (q as string).trim()) : []),
       question_count: Math.min(5, Math.max(3, Number(body.questionCount) || 3)),
       game_type: typeof body.gameType === "string" ? body.gameType : "classic",
       allow_rejoin_after_found: body.allowRejoinAfterFound === true ? 1 : 0,
@@ -225,16 +232,16 @@ const route = async (request: Request, env: Env): Promise<Response> => {
            country, province, city, neighbourhood, specific_area,
            duration_minutes, max_participants, distance_km, start_condition,
            participant_threshold, is_public, hints_enabled, questions_enabled,
-           question_count, game_type, allow_rejoin_after_found,
+           question_count, play_boundary, custom_questions, game_type, allow_rejoin_after_found,
            seekers_count, hiders_count, role_switch_enabled, stobbe_powers_enabled)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       ).bind(
         game.id, game.name, game.description, game.status, game.starts_at,
         game.ends_at, game.created_by, game.country, game.province, game.city,
         game.neighbourhood, game.specific_area, game.duration_minutes,
         game.max_participants, game.distance_km, game.start_condition,
         game.participant_threshold, game.is_public, game.hints_enabled,
-        game.questions_enabled, game.question_count, game.game_type, game.allow_rejoin_after_found,
+        game.questions_enabled, game.question_count, game.play_boundary, game.custom_questions, game.game_type, game.allow_rejoin_after_found,
         game.seekers_count, game.hiders_count, game.role_switch_enabled,
         game.stobbe_powers_enabled,
       ),
@@ -258,7 +265,7 @@ const route = async (request: Request, env: Env): Promise<Response> => {
         g.neighbourhood, g.specific_area, g.duration_minutes,
         g.max_participants, g.distance_km, g.start_condition,
         g.participant_threshold, g.is_public, g.hints_enabled,
-        g.questions_enabled, g.question_count, g.game_type, g.allow_rejoin_after_found,
+        g.questions_enabled, g.question_count, g.custom_questions, g.play_boundary, g.game_type, g.allow_rejoin_after_found,
         g.seekers_count, g.hiders_count, g.role_switch_enabled, g.stobbe_powers_enabled,
         COUNT(gp.player_id) AS participant_count
        FROM games g

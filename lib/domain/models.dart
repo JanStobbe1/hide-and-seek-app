@@ -1,13 +1,12 @@
+import 'game_setup.dart';
+
 enum PlayerRole { seeker, hider }
 
 enum GameStatus { available, waiting, active, completed, abandoned }
 
 enum StartCondition { participantCount, scheduled }
 
-enum GameType {
-  classic,
-  everyoneHunts,
-}
+enum GameType { classic, everyoneHunts }
 
 extension GameTypePresentation on GameType {
   String get label => switch (this) {
@@ -45,6 +44,7 @@ class SearchArea {
     required this.city,
     required this.neighbourhood,
     required this.specificArea,
+    this.boundary = const [],
   });
 
   final String country;
@@ -52,6 +52,7 @@ class SearchArea {
   final String city;
   final String neighbourhood;
   final String specificArea;
+  final List<AreaPoint> boundary;
 
   String get label => '$city, $province';
 }
@@ -61,6 +62,7 @@ class GameRules {
     this.hintsEnabled = true,
     this.questionsEnabled = true,
     this.questionCount = 3,
+    this.customQuestions = const [],
     this.hidersCanWin = true,
     this.topSeekerCanWin = true,
     this.playersPerSeeker = 6,
@@ -75,6 +77,7 @@ class GameRules {
   final bool hintsEnabled;
   final bool questionsEnabled;
   final int questionCount;
+  final List<String> customQuestions;
   final bool hidersCanWin;
   final bool topSeekerCanWin;
   final int playersPerSeeker;

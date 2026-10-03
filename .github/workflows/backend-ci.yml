@@ -32,3 +32,5 @@ jobs:
         run: npm install
       - name: Typecheck backend
         run: npm run typecheck
+      - name: Test game creation and persistence
+        run: npm test

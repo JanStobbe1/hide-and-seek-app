@@ -5,13 +5,18 @@ import 'package:latlong2/latlong.dart';
 import '../domain/game_setup.dart';
 import '../domain/models.dart';
 import '../services/area_lookup.dart';
+import 'widgets.dart';
 
 List<LatLng> mapPoints(List<AreaPoint> points) =>
     points.map((p) => LatLng(p.latitude, p.longitude)).toList();
 
 class PlayAreaMap extends StatelessWidget {
-  const PlayAreaMap(
-      {required this.boundary, this.height = 240, this.controller, super.key});
+  const PlayAreaMap({
+    required this.boundary,
+    this.height = 240,
+    this.controller,
+    super.key,
+  });
   final List<AreaPoint> boundary;
   final double height;
   final MapController? controller;
@@ -46,9 +51,9 @@ PolygonLayer playBoundaryLayer(List<AreaPoint> points) => PolygonLayer(
           : [
               Polygon(
                 points: mapPoints(points),
-                color: const Color(0x33315c46),
+                color: const Color(0x14315c46),
                 borderColor: const Color(0xff315c46),
-                borderStrokeWidth: 3,
+                borderStrokeWidth: 2,
               ),
             ],
     );
@@ -185,7 +190,16 @@ class _PlayAreaEditorState extends State<PlayAreaEditor> {
   Widget build(BuildContext context) {
     final error = validatePlayBoundary(_points);
     return Scaffold(
-      appBar: AppBar(title: const Text('Kies je speelgrens')),
+      appBar: AppBar(
+        title: const Text('Kies je speelgrens'),
+        actions: const [
+          StobbeDetectiveButton(
+            pageTitle: 'Je speelgrens kiezen',
+            explanation:
+                'Ik help je het gebied op de kaart af te bakenen. Zoek een gekozen locatie of teken zelf de grens. Zoom en sleep om de kaart goed te bekijken. Tik op “Gebruik dit speelgebied” als je klaar bent.',
+          ),
+        ],
+      ),
       body: SafeArea(
         child: Column(
           children: [
@@ -366,9 +380,11 @@ class _MapCredit extends StatelessWidget {
             color: Colors.white,
             child: Padding(
               padding: EdgeInsets.all(4),
-              child: Text('© OpenStreetMap contributors',
-                  style: TextStyle(fontSize: 11, color: Colors.black87),
-                  textAlign: TextAlign.right),
+              child: Text(
+                '© OpenStreetMap contributors',
+                style: TextStyle(fontSize: 11, color: Colors.black87),
+                textAlign: TextAlign.right,
+              ),
             ),
           ),
         ),

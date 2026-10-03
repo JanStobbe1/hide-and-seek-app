@@ -228,7 +228,8 @@ const route = async (request: Request, env: Env): Promise<Response> => {
       return json({ error: "game_fields_required" }, 400, origin);
     }
     if (startCondition === "participantCount" &&
-        (!Number.isInteger(participantThreshold) || participantThreshold < 1 ||
+        (participantThreshold === null ||
+         !Number.isInteger(participantThreshold) || participantThreshold < 1 ||
          participantThreshold > maxParticipants)) {
       return json({ error: "participant_threshold_invalid" }, 400, origin);
     }

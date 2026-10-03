@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:verstobbertje/data/backend_api_client.dart';
+import 'package:verstobbertje/domain/models.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

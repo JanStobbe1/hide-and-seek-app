@@ -297,10 +297,7 @@ class AppState extends ChangeNotifier {
     }
     if (!backendConnected) {
       final connected = await connectBackend();
-      if (!connected) {
-        publish(game);
-        return false;
-      }
+      if (!connected) return false;
     }
     for (var attempt = 0; attempt < 2; attempt++) {
       try {
@@ -330,7 +327,7 @@ class AppState extends ChangeNotifier {
     if (client == null) return join(id, timestamp);
     if (!backendConnected) {
       final connected = await connectBackend();
-      if (!connected) return join(id, timestamp);
+      if (!connected) return false;
     }
     for (var attempt = 0; attempt < 2; attempt++) {
       try {

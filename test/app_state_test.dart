@@ -33,10 +33,21 @@ void main() {
 
   test('demo games can be created and withdrawn locally', () async {
     final state = AppState();
-    final game = state.repository.availableGames.first.copyWith(
+    final template = state.repository.availableGames.first;
+    final game = Game(
       id: 'demo-created',
       name: 'Demo nieuw spel',
       organizer: state.displayName,
+      description: template.description,
+      area: template.area,
+      status: GameStatus.available,
+      duration: template.duration,
+      participants: 1,
+      maxParticipants: template.maxParticipants,
+      distanceKm: template.distanceKm,
+      startCondition: StartCondition.participantCount,
+      participantThreshold: 2,
+      rules: template.rules,
     );
 
     expect(await state.publishAsync(game), isTrue);

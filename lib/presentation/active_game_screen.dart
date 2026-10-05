@@ -191,7 +191,13 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
                   child: ListView(
                     padding: const EdgeInsets.all(20),
                     children: [
-                      _StatusRow(finished: state.gameFinished),
+                      _StatusRow(
+                        finished: state.gameFinished,
+                        roleLabel:
+                            selectedGame?.rules.gameType == GameType.everyoneHunts
+                                ? 'ROL: ZOEKER + VERSTOPPER'
+                                : 'ROL: ZOEKER',
+                      ),
                       const SizedBox(height: 12),
                       _CountdownCard(state: state),
                     ],
@@ -207,7 +213,11 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
                 activePowerRemaining: _powerEffectRemaining,
                 powerEffectId: _powerEffectId,
               ),
-              _StobbePowersPage(state: state, onActivate: _activatePower),
+              _StobbePowersPage(
+                state: state,
+                onActivate: _activatePower,
+                powersEnabled: selectedGame?.rules.stobbePowersEnabled ?? true,
+              ),
             ],
           ),
           bottomNavigationBar: NavigationBar(
@@ -908,10 +918,15 @@ class _LegendItem extends StatelessWidget {
 }
 
 class _StobbePowersPage extends StatelessWidget {
-  const _StobbePowersPage({required this.state, required this.onActivate});
+  const _StobbePowersPage({
+    required this.state,
+    required this.onActivate,
+    required this.powersEnabled,
+  });
 
   final AppState state;
   final void Function(StobbePowerKind kind, String name) onActivate;
+  final bool powersEnabled;
 
   @override
   Widget build(BuildContext context) => Container(
@@ -930,8 +945,19 @@ class _StobbePowersPage extends StatelessWidget {
               'Verzameld in dit spel • ongebruikte fiches vervallen na afloop',
             ),
             const SizedBox(height: 18),
-            Center(
-              child: Container(
+            if (!powersEnabled)
+              const Card(
+                child: ListTile(
+                  leading: Icon(Icons.auto_awesome_outlined),
+                  title: Text('Deze game speelt zonder Stobbekrachten'),
+                  subtitle: Text(
+                    'In deze ronde zitten er geen fiches in je Stobbetas.',
+                  ),
+                ),
+              ),
+            if (powersEnabled)
+              Center(
+                child: Container(
                 width: 620,
                 padding: const EdgeInsets.fromLTRB(22, 12, 22, 26),
                 decoration: BoxDecoration(
@@ -1244,16 +1270,20 @@ String _formatPowerDuration(Duration duration) {
     };
 
 class _StatusRow extends StatelessWidget {
-  const _StatusRow({required this.finished});
+  const _StatusRow({
+    required this.finished,
+    required this.roleLabel,
+  });
 
   final bool finished;
+  final String roleLabel;
 
   @override
   Widget build(BuildContext context) => Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           const Chip(
-              avatar: Icon(Icons.person_search), label: Text('ROL: ZOEKER')),
+              avatar: Icon(Icons.person_search), label: Text(roleLabel)),
           Chip(
             avatar: const Icon(Icons.circle, size: 12),
             label: Text(finished ? 'AFGEROND' : 'SPEL ACTIEF'),

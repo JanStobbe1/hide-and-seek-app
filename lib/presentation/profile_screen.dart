@@ -458,7 +458,9 @@ class _NearbyGamePushSettingsState extends State<_NearbyGamePushSettings> {
       if (!mounted) return;
       setState(() => _enabled = enabled);
       _message(
-        enabled ? 'Je ontvangt nu startmeldingen voor spellen binnen 25 km.' : 'Startmeldingen zijn uitgezet en je opgeslagen locatie is verwijderd.',
+        enabled
+            ? 'Je ontvangt nu startmeldingen voor spellen binnen 25 km.'
+            : 'Startmeldingen zijn uitgezet en je opgeslagen locatie is verwijderd.',
       );
     } catch (error) {
       if (!mounted) return;

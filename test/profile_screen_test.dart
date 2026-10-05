@@ -22,6 +22,12 @@ void main() {
       expect(find.text('1000'), findsOneWidget);
       expect(find.text('Spelvaluta'), findsNothing);
       expect(find.text('Ranking bij vrienden'), findsOneWidget);
+
+      await tester.scrollUntilVisible(
+        find.text('Punten & ranking'),
+        400,
+        scrollable: find.byType(Scrollable).first,
+      );
       expect(
         find.textContaining('Ik begin je teller op 1.000 punten.'),
         findsOneWidget,

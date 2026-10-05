@@ -36,7 +36,8 @@ class MockGameRepository implements GameRepository {
   @override
   void reset() {
     _joined.clear();
-    final start = DateTime(2026, 10, 25, 16);
+    final now = DateTime.now();
+    final start = DateTime(now.year, now.month, now.day + 20, 16);
     _available = [
       Game(
         id: 'epic',
@@ -117,6 +118,11 @@ class MockGameRepository implements GameRepository {
 
   void removeJoined(String id) {
     _joined.removeWhere((game) => game.id == id);
+  }
+
+  void removeGame(String id) {
+    _joined.removeWhere((game) => game.id == id);
+    _available.removeWhere((game) => game.id == id);
   }
 
   @override

@@ -291,9 +291,10 @@ class AppState extends ChangeNotifier {
   Future<bool> publishAsync(Game game) async {
     final client = backendClient;
     if (client == null) {
-      backendError = 'backend_not_configured';
+      repository.publish(game);
+      backendError = null;
       notifyListeners();
-      return false;
+      return true;
     }
     if (!backendConnected) {
       final connected = await connectBackend();
@@ -368,7 +369,13 @@ class AppState extends ChangeNotifier {
 
   Future<bool> withdrawGame(String gameId) async {
     final client = backendClient;
-    if (client == null || !backendConnected) return false;
+    if (client == null) {
+      repository.removeGame(gameId);
+      backendError = null;
+      notifyListeners();
+      return true;
+    }
+    if (!backendConnected) return false;
     try {
       await client.withdrawGame(gameId);
       repository.removeJoined(gameId);

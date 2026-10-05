@@ -31,6 +31,35 @@ void main() {
     expect(state.playerMarker, PlayerMarker.ghost);
   });
 
+  test('demo games can be created and withdrawn locally', () async {
+    final state = AppState();
+    final game = state.repository.availableGames.first.copyWith(
+      id: 'demo-created',
+      name: 'Demo nieuw spel',
+      organizer: state.displayName,
+    );
+
+    expect(await state.publishAsync(game), isTrue);
+    expect(
+      state.repository.availableGames.any((item) => item.id == game.id),
+      isTrue,
+    );
+    expect(
+      state.repository.joinedGames.any((item) => item.id == game.id),
+      isTrue,
+    );
+
+    expect(await state.withdrawGame(game.id), isTrue);
+    expect(
+      state.repository.availableGames.any((item) => item.id == game.id),
+      isFalse,
+    );
+    expect(
+      state.repository.joinedGames.any((item) => item.id == game.id),
+      isFalse,
+    );
+  });
+
   test('finding a player moves deterministic progress from five to six', () {
     final state = AppState();
 

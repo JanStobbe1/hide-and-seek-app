@@ -757,12 +757,14 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
       builder: (dialogContext) => AlertDialog(
         icon: const Icon(Icons.rocket_launch, size: 46),
         title: Text(
-          persisted ? 'Spel is beschikbaar!' : 'Spel lokaal opgeslagen',
+          widget.state.backendClient == null
+              ? 'Demo-spel aangemaakt!'
+              : 'Spel is beschikbaar!',
         ),
         content: Text(
-          persisted
-              ? '${name.text} staat nu bij Beschikbare spellen.'
-              : '${name.text} staat lokaal opgeslagen. De backendverbinding is niet beschikbaar.',
+          widget.state.backendClient == null
+              ? '${name.text} staat bij Mijn spellen in deze demo. De demo gebruikt voorbeelddata en deelt je wijzigingen niet met productie.'
+              : '${name.text} staat nu bij Beschikbare spellen.',
         ),
         actions: [
           FilledButton(

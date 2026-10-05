@@ -8,8 +8,23 @@ import 'package:verstobbertje/domain/private_questions.dart';
 import 'package:verstobbertje/domain/profile_validation.dart';
 import 'package:verstobbertje/domain/scoring.dart';
 import 'package:verstobbertje/domain/zones.dart';
+import 'package:verstobbertje/domain/game_setup.dart';
 
 void main() {
+  test('play boundary contains interior and edge points, not exterior points', () {
+    const boundary = [
+      AreaPoint(52.0, 4.0),
+      AreaPoint(52.0, 4.1),
+      AreaPoint(52.1, 4.1),
+      AreaPoint(52.1, 4.0),
+    ];
+
+    expect(isInsidePlayBoundary(52.05, 4.05, boundary), isTrue);
+    expect(isInsidePlayBoundary(52.0, 4.05, boundary), isTrue);
+    expect(isInsidePlayBoundary(52.2, 4.05, boundary), isFalse);
+    expect(isInsidePlayBoundary(52.05, 4.05, const []), isFalse);
+  });
+
   test('CFG-04 question marker uses a twenty-meter radius', () {
     expect(AppConfig.questionRangeMeters, 20);
   });

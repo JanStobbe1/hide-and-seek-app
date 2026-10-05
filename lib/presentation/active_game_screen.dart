@@ -160,7 +160,19 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
     state.syncActiveGameClock();
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       state.syncActiveGameClock();
-      if (mounted) setState(() {});
+      final wasEliminated = state.enforceZoneReturnDeadline();
+      if (mounted) {
+        setState(() {});
+        if (wasEliminated) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Je bent uitgeschakeld omdat je buiten het speelgebied bleef.',
+              ),
+            ),
+          );
+        }
+      }
       if (state.activeGame.countdown.isFinished) {
         _timer.cancel();
       }
@@ -189,8 +201,10 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
               const Padding(padding: EdgeInsets.all(12), child: DemoBadge()),
             ],
           ),
-          body: IndexedStack(
-            index: _pageIndex,
+          body: Stack(
+            children: [
+              IndexedStack(
+                index: _pageIndex,
             children: [
               Center(
                 child: ConstrainedBox(
@@ -222,6 +236,16 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
                 onActivate: _activatePower,
                 powersEnabled: selectedGame?.rules.stobbePowersEnabled ?? true,
               ),
+              ],
+              ),
+              if (!state.inActiveZone &&
+                  state.playerActive &&
+                  state.zoneReturnDeadline != null)
+                Positioned.fill(
+                  child: _OutsideZoneWarning(
+                    deadline: state.zoneReturnDeadline!,
+                  ),
+                ),
             ],
           ),
           bottomNavigationBar: NavigationBar(
@@ -479,7 +503,7 @@ class _ActiveMapPageState extends State<_ActiveMapPage>
       locationSubscription = Geolocator.getPositionStream(
         locationSettings: const LocationSettings(
           accuracy: LocationAccuracy.high,
-          distanceFilter: 5,
+          distanceFilter: 1,
         ),
       ).listen(_setRealLocation);
     } catch (_) {
@@ -493,6 +517,16 @@ class _ActiveMapPageState extends State<_ActiveMapPage>
 
   void _setRealLocation(Position position) {
     if (!mounted) return;
+    if (widget.boundary.length >= 3) {
+      widget.state.registerZoneMeasurement(
+        inside: isInsidePlayBoundary(
+          position.latitude,
+          position.longitude,
+          widget.boundary,
+        ),
+        reliable: position.accuracy <= 50,
+      );
+    }
     setState(() {
       locationError = null;
       currentLocation = _PlayerLocation(
@@ -748,6 +782,115 @@ class _ActiveMapPageState extends State<_ActiveMapPage>
           );
         },
       );
+}
+
+class _OutsideZoneWarning extends StatefulWidget {
+  const _OutsideZoneWarning({required this.deadline});
+
+  final DateTime deadline;
+
+  @override
+  State<_OutsideZoneWarning> createState() => _OutsideZoneWarningState();
+}
+
+class _OutsideZoneWarningState extends State<_OutsideZoneWarning>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _pulse;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulse = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _pulse.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final seconds = math.max(0, widget.deadline.difference(DateTime.now()).inSeconds);
+    final minutesLabel = (seconds ~/ 60).toString().padLeft(2, '0');
+    final secondsLabel = (seconds % 60).toString().padLeft(2, '0');
+
+    return IgnorePointer(
+      child: AnimatedBuilder(
+        animation: _pulse,
+        builder: (context, _) {
+          final intensity = .35 + _pulse.value * .65;
+          return Stack(
+            children: [
+              Positioned.fill(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: Color.fromRGBO(255, 32, 32, intensity),
+                      width: 4,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Color.fromRGBO(255, 0, 0, intensity * .45),
+                        blurRadius: 22,
+                        spreadRadius: 3,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SafeArea(
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                    child: Material(
+                      color: const Color(0xee460b0b),
+                      borderRadius: BorderRadius.circular(14),
+                      elevation: 12,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 18,
+                          vertical: 14,
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text(
+                              'Let op! Je bent buiten het speelgebied.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w900,
+                                fontSize: 17,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Kom binnen $minutesLabel.$secondsLabel terug '
+                              'in het gebied, anders word je uitgeschakeld.',
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
 }
 
 class _PowerMapEffect extends StatelessWidget {

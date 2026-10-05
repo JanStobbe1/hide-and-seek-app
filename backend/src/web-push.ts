@@ -139,19 +139,24 @@ export const sendWebPush = async (
   const serverKeys = await crypto.subtle.generateKey({
     name: "ECDH",
     namedCurve: "P-256",
-  }, true, ["deriveBits"]);
-  const serverPublic = new Uint8Array(await crypto.subtle.exportKey("raw", serverKeys.publicKey));
+  }, true, ["deriveBits"]) as CryptoKeyPair;
+  const publicKeyBuffer = await crypto.subtle.exportKey(
+    "raw",
+    serverKeys.publicKey,
+  ) as ArrayBuffer;
+  const serverPublic = new Uint8Array(publicKeyBuffer);
   const receiverPublic = await crypto.subtle.importKey(
     "raw",
     receiverPublicBytes,
     { name: "ECDH", namedCurve: "P-256" },
     false,
     [],
-  );
-  const sharedSecret = new Uint8Array(await crypto.subtle.deriveBits({
+  ) as CryptoKey;
+  const sharedSecretBuffer = await crypto.subtle.deriveBits({
     name: "ECDH",
-    public: receiverPublic,
-  }, serverKeys.privateKey, 256));
+    $public: receiverPublic,
+  }, serverKeys.privateKey, 256);
+  const sharedSecret = new Uint8Array(sharedSecretBuffer);
   const keyInfo = concat(
     encoder.encode("WebPush: info\0"),
     receiverPublicBytes,

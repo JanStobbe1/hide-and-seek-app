@@ -22,6 +22,7 @@ class HideAndSeekApp extends StatefulWidget {
 
 class _HideAndSeekAppState extends State<HideAndSeekApp> {
   final state = AppState(
+    demoMode: AppConfig.demoMode,
     backendClient: AppConfig.demoMode || AppConfig.backendBaseUrl.isEmpty
         ? null
         : BackendApiClient(

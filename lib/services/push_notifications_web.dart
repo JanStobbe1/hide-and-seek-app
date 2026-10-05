@@ -10,6 +10,9 @@ external JSPromise<JSString> _refreshNearbyPushLocation();
 @JS('VerstobbertjePush.hasSubscription')
 external JSPromise<JSBoolean> _hasNearbyPushSubscription();
 
+@JS('VerstobbertjePush.endpoint')
+external JSPromise<JSString> _nearbyPushEndpoint();
+
 @JS('VerstobbertjePush.disable')
 external JSPromise<JSString> _disableNearbyPush();
 
@@ -25,6 +28,11 @@ Future<Map<String, dynamic>> refreshNearbyPushLocation() async {
 
 Future<bool> hasNearbyPushSubscription() async =>
     (await _hasNearbyPushSubscription().toDart).toDart;
+
+Future<String?> nearbyPushEndpoint() async {
+  final value = (await _nearbyPushEndpoint().toDart).toDart;
+  return value.isEmpty ? null : value;
+}
 
 Future<String?> disableNearbyPush() async {
   final value = (await _disableNearbyPush().toDart).toDart;

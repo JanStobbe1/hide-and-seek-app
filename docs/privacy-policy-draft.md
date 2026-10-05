@@ -54,4 +54,4 @@ Een spel loopt na afloop automatisch af. Wanneer een spel niet correct is aangem
 
 ### Pushmeldingen voor spellen in de buurt
 
-Als je startmeldingen aanzet, vraagt Verstobbertje toestemming voor meldingen en je locatie. De locatie wordt afgerond op ongeveer 1 km nauwkeurigheid en bewaard zolang de pushregistratie actief is. Alleen de afstand tot startende spellen wordt hiermee vergeleken; je locatie wordt niet in de melding opgenomen. Je kunt startmeldingen in je profiel uitschakelen. Dan worden de pushregistratie en de opgeslagen locatie verwijderd. De registratie wordt ook verwijderd wanneer je account wordt verwijderd.
+Als je startmeldingen aanzet, vraagt Verstobbertje toestemming voor meldingen en je locatie. Je woonplaats en locatie (afgerond op ongeveer 1 km nauwkeurigheid) worden bewaard zolang de pushregistratie actief is. Daarmee vergelijken we of een spel in dezelfde stad of binnen 25 km start; je exacte locatie wordt niet in de melding opgenomen. Je kunt startmeldingen in je profiel uitschakelen. Dan worden de pushregistratie en de opgeslagen locatie verwijderd. De registratie wordt ook verwijderd wanneer je account wordt verwijderd.

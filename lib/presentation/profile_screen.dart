@@ -111,6 +111,21 @@ class ProfileScreen extends StatelessWidget {
               labelText: 'Mijn kaartmarker',
               prefixIcon: Icon(Icons.location_on_outlined),
             ),
+            selectedItemBuilder: (_) => PlayerMarker.values
+                .map(
+                  (marker) => Row(
+                    children: [
+                      Transform.scale(
+                        key: ValueKey('compact-marker-${marker.name}'),
+                        scale: .78,
+                        child: PlayerMarkerBadge(marker: marker, size: 28),
+                      ),
+                      const SizedBox(width: 10),
+                      Text(_markerLabel(marker)),
+                    ],
+                  ),
+                )
+                .toList(),
             items: PlayerMarker.values
                 .map(
                   (marker) => DropdownMenuItem(

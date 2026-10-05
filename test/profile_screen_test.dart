@@ -72,6 +72,7 @@ void main() {
         matching: find.byType(CustomPaint),
       );
       expect(ghostPainter, findsOneWidget);
+      expect(tester.getSize(ghostPainter), const Size.square(28));
       final badgeCenter = tester.getCenter(ghostBadge);
       final ghostCenter = tester.getCenter(ghostPainter);
       expect((badgeCenter.dx - ghostCenter.dx).abs(), lessThan(1));

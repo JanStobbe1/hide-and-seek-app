@@ -60,4 +60,22 @@ void main() {
     expect(state.inActiveZone, isTrue);
     expect(state.zoneReturnDeadline, isNull);
   });
+
+  test('leaves play area and is eliminated only after the return deadline', () {
+    final state = AppState();
+    final now = DateTime(2026);
+
+    state.registerZoneMeasurement(inside: false, timestamp: now);
+    state.registerZoneMeasurement(
+      inside: false,
+      timestamp: now.add(const Duration(seconds: 1)),
+    );
+    final deadline = state.zoneReturnDeadline!;
+
+    expect(state.enforceZoneReturnDeadline(deadline - const Duration(seconds: 1)),
+        isFalse);
+    expect(state.playerActive, isTrue);
+    expect(state.enforceZoneReturnDeadline(deadline), isTrue);
+    expect(state.playerActive, isFalse);
+  });
 }

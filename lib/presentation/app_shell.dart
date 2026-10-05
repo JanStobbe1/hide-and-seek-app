@@ -196,7 +196,9 @@ class _AppShellState extends State<AppShell> {
           actions: [
             StobbeDetectiveButton(
               pageTitle: helpTitles[index],
-              explanation: index == 0 ? _homeExplanation : helpTexts[index],
+              explanation: index == 0
+                  ? _homeExplanation
+                  : helpTexts[index],
             ),
             const Padding(
               padding: EdgeInsets.only(right: 12),

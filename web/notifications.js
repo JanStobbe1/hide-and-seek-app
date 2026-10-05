@@ -62,6 +62,11 @@ window.VerstobbertjePush = (() => {
         radiusKm: 25,
       });
     },
+    async endpoint() {
+      const registration = await ready();
+      const subscription = await registration.pushManager.getSubscription();
+      return subscription ? subscription.endpoint : "";
+    },
     async disable() {
       const registration = await ready();
       const subscription = await registration.pushManager.getSubscription();

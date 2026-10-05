@@ -21,8 +21,8 @@ class AppState extends ChangeNotifier {
     this.activeGameDuration = const Duration(minutes: 30),
     this.backendClient,
     this.demoMode = false,
-  }) : repository = repository ??
-            MockGameRepository(includeDemoOngoingGames: demoMode) {
+  }) : repository =
+           repository ?? MockGameRepository(includeDemoOngoingGames: demoMode) {
     activeGame = ActiveGameState(
       countdown: GameCountdown.start(activeGameDuration),
     );
@@ -169,14 +169,16 @@ class AppState extends ChangeNotifier {
   HintDecision useHint([DateTime? timestamp]) {
     final elapsed = activeGame.elapsed.inMicroseconds;
     final total = activeGame.countdown.total.inMicroseconds;
-    final quarter =
-        total == 0 ? 4 : (elapsed * 4 ~/ total).clamp(0, 3).toInt() + 1;
+    final quarter = total == 0
+        ? 4
+        : (elapsed * 4 ~/ total).clamp(0, 3).toInt() + 1;
     final decision = const HintService().use(
       state: hintState,
       now: timestamp ?? DateTime.now(),
       quarter: quarter,
-      zoneAllowsHints:
-          ZoneRules.allowsHintsAndQuestions(activeZoneRadiusMeters),
+      zoneAllowsHints: ZoneRules.allowsHintsAndQuestions(
+        activeZoneRadiusMeters,
+      ),
     );
     if (decision.allowed) notifyListeners();
     return decision;
@@ -185,8 +187,9 @@ class AppState extends ChangeNotifier {
   bool startQuestionRound() {
     final started = questionAttempt.start(
       isPrivateGame: true,
-      questionsEnabled:
-          ZoneRules.allowsHintsAndQuestions(activeZoneRadiusMeters),
+      questionsEnabled: ZoneRules.allowsHintsAndQuestions(
+        activeZoneRadiusMeters,
+      ),
       inRange: true,
     );
     if (started) notifyListeners();

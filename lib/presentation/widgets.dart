@@ -221,7 +221,7 @@ class PlayerMarkerBadge extends StatelessWidget {
         ),
         child: marker == PlayerMarker.ghost
             ? SizedBox.square(
-                dimension: size * .72,
+                dimension: size,
                 child: CustomPaint(
                   painter: _GhostMarkerPainter(),
                 ),
@@ -238,37 +238,37 @@ class _GhostMarkerPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final path = Path()
-      ..moveTo(size.width * .2, size.height * .84)
-      ..lineTo(size.width * .2, size.height * .38)
+      ..moveTo(size.width * .1, size.height * .84)
+      ..lineTo(size.width * .1, size.height * .38)
       ..quadraticBezierTo(
-        size.width * .2,
+        size.width * .1,
         size.height * .08,
         size.width * .5,
         size.height * .08,
       )
       ..quadraticBezierTo(
-        size.width * .8,
+        size.width * .9,
         size.height * .08,
-        size.width * .8,
+        size.width * .9,
         size.height * .38,
       )
-      ..lineTo(size.width * .8, size.height * .84)
+      ..lineTo(size.width * .9, size.height * .84)
       ..quadraticBezierTo(
-        size.width * .7,
+        size.width * .77,
         size.height * .72,
-        size.width * .6,
+        size.width * .63,
         size.height * .84,
       )
       ..quadraticBezierTo(
         size.width * .5,
         size.height * .96,
-        size.width * .4,
+        size.width * .237,
         size.height * .84,
       )
       ..quadraticBezierTo(
-        size.width * .3,
+        size.width * .23,
         size.height * .72,
-        size.width * .2,
+        size.width * .1,
         size.height * .84,
       )
       ..close();
@@ -287,12 +287,12 @@ class _GhostMarkerPainter extends CustomPainter {
     );
     final eyePaint = Paint()..color = const Color(0xff18231e);
     canvas.drawCircle(
-      Offset(size.width * .4, size.height * .48),
+      Offset(size.width * .237, size.height * .48),
       size.width * .055,
       eyePaint,
     );
     canvas.drawCircle(
-      Offset(size.width * .6, size.height * .48),
+      Offset(size.width * .63, size.height * .48),
       size.width * .055,
       eyePaint,
     );
@@ -332,9 +332,9 @@ class _AreaPainter extends CustomPainter {
       ..style = PaintingStyle.fill;
     final path = Path()
       ..moveTo(size.width * .18, size.height * .25)
-      ..lineTo(size.width * .75, size.height * .12)
+      ..lineTo(size.width * .775, size.height * .12)
       ..lineTo(size.width * .92, size.height * .72)
-      ..lineTo(size.width * .3, size.height * .88)
+      ..lineTo(size.width * .23, size.height * .88)
       ..close();
     canvas.drawPath(path, paint);
   }

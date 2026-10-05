@@ -9,9 +9,7 @@ void main() {
     tester,
   ) async {
     final state = AppState();
-    await tester.pumpWidget(
-      MaterialApp(home: ActiveGameScreen(state: state)),
-    );
+    await tester.pumpWidget(MaterialApp(home: ActiveGameScreen(state: state)));
     await tester.tap(find.byIcon(Icons.dashboard_outlined));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
@@ -34,12 +32,13 @@ void main() {
       timestamp: now.add(const Duration(seconds: 1)),
     );
 
-    await tester.pumpWidget(
-      MaterialApp(home: ActiveGameScreen(state: state)),
-    );
+    await tester.pumpWidget(MaterialApp(home: ActiveGameScreen(state: state)));
     await tester.pump();
 
-    expect(find.text('Let op! Je bent buiten het speelgebied.'), findsOneWidget);
+    expect(
+      find.text('Let op! Je bent buiten het speelgebied.'),
+      findsOneWidget,
+    );
     expect(find.textContaining('terug in het gebied'), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox());
@@ -49,9 +48,7 @@ void main() {
     tester,
   ) async {
     final state = AppState();
-    await tester.pumpWidget(
-      MaterialApp(home: ActiveGameScreen(state: state)),
-    );
+    await tester.pumpWidget(MaterialApp(home: ActiveGameScreen(state: state)));
     await tester.tap(find.byIcon(Icons.dashboard_outlined));
     await tester.pump();
 
@@ -68,9 +65,7 @@ void main() {
     tester,
   ) async {
     final state = AppState();
-    await tester.pumpWidget(
-      MaterialApp(home: ActiveGameScreen(state: state)),
-    );
+    await tester.pumpWidget(MaterialApp(home: ActiveGameScreen(state: state)));
     await tester.pump();
 
     expect(find.byType(PageView), findsNothing);
@@ -111,9 +106,7 @@ void main() {
 
   testWidgets('Stobbetas shows collected power tokens', (tester) async {
     final state = AppState();
-    await tester.pumpWidget(
-      MaterialApp(home: ActiveGameScreen(state: state)),
-    );
+    await tester.pumpWidget(MaterialApp(home: ActiveGameScreen(state: state)));
 
     await tester.tap(find.byIcon(Icons.auto_awesome_outlined));
     await tester.pump();
@@ -135,16 +128,12 @@ void main() {
     tester,
   ) async {
     final state = AppState();
-    await tester.pumpWidget(
-      MaterialApp(home: ActiveGameScreen(state: state)),
-    );
+    await tester.pumpWidget(MaterialApp(home: ActiveGameScreen(state: state)));
     await tester.tap(find.byIcon(Icons.auto_awesome_outlined));
     await tester.pump();
 
     expect(find.text('×1'), findsNWidgets(2));
-    await tester.tap(
-      find.widgetWithText(FilledButton, 'INZETTEN').first,
-    );
+    await tester.tap(find.widgetWithText(FilledButton, 'INZETTEN').first);
     await tester.pump();
 
     expect(find.text('PAK SPELER'), findsOneWidget);

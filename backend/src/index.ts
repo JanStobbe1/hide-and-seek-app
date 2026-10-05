@@ -367,6 +367,7 @@ const route = async (request: Request, env: Env): Promise<Response> => {
         ? (body.keys as JsonObject).auth : null;
       const latitude = Number(body.latitude);
       const longitude = Number(body.longitude);
+      const city = typeof body.city === "string" ? body.city.trim().slice(0, 80) : "";
       const radiusKm = Number(body.radiusKm ?? 25);
       let endpointUrl: URL;
       try {
@@ -383,20 +384,22 @@ const route = async (request: Request, env: Env): Promise<Response> => {
       }
       await env.DB.prepare(
         `INSERT INTO push_subscriptions
-          (id, player_id, endpoint, p256dh, auth, latitude, longitude, radius_km)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+          (id, player_id, endpoint, p256dh, auth, latitude, longitude, city, radius_km)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
          ON CONFLICT(endpoint) DO UPDATE SET
           player_id = excluded.player_id,
           p256dh = excluded.p256dh,
           auth = excluded.auth,
           latitude = excluded.latitude,
           longitude = excluded.longitude,
+          city = excluded.city,
           radius_km = excluded.radius_km,
           updated_at = CURRENT_TIMESTAMP`,
       ).bind(
         crypto.randomUUID(), authenticatedPlayer, endpoint, p256dh, auth,
         Math.round(latitude * 100) / 100,
         Math.round(longitude * 100) / 100,
+        city,
         radiusKm,
       ).run();
       await touchPlayer(env, authenticatedPlayer);
@@ -573,6 +576,7 @@ interface PushTarget {
   auth: string;
   latitude: number;
   longitude: number;
+  city: string;
   radius_km: number;
 }
 
@@ -587,23 +591,34 @@ const sendNearbyGameStartNotifications = async (env: Env) => {
      ORDER BY starts_at ASC LIMIT 50`,
   ).all<PendingStartGame>();
   const subscriptions = await env.DB.prepare(
-    "SELECT id, endpoint, p256dh, auth, latitude, longitude, radius_km FROM push_subscriptions",
+    "SELECT id, endpoint, p256dh, auth, latitude, longitude, city, radius_km FROM push_subscriptions",
   ).all<PushTarget>();
 
   for (const game of pending.results) {
     const center = gameCenter(game.play_boundary);
-    if (!center) {
+    const gameCity = (game.city ?? "").trim().toLocaleLowerCase();
+    const matchingCityTargets = subscriptions.results.filter((target) =>
+      gameCity.length > 0 &&
+      gameCity === (target.city ?? "").trim().toLocaleLowerCase()
+    );
+    if (!center && matchingCityTargets.length === 0) {
       await env.DB.prepare(
         "UPDATE games SET start_notifications_sent_at = CURRENT_TIMESTAMP WHERE id = ? AND start_notifications_sent_at IS NULL",
       ).bind(game.id).run();
       continue;
     }
+
     let shouldRetry = false;
-    for (const target of subscriptions.results) {
-      const distance = distanceKm(
-        Number(target.latitude), Number(target.longitude), center[0], center[1],
-      );
-      if (distance > Number(target.radius_km)) continue;
+    const targets = center ? subscriptions.results : matchingCityTargets;
+    for (const target of targets) {
+      const distance = center
+        ? distanceKm(
+            Number(target.latitude), Number(target.longitude), center[0], center[1],
+          )
+        : 0;
+      const cityMatches = gameCity.length > 0 &&
+        gameCity === (target.city ?? "").trim().toLocaleLowerCase();
+      if (distance > Number(target.radius_km) && !cityMatches) continue;
       try {
         const response = await sendWebPush(
           target,
@@ -611,7 +626,9 @@ const sendNearbyGameStartNotifications = async (env: Env) => {
             title: game.city
               ? `Er start een spel in ${game.city}`
               : "Er start een spel bij jou in de buurt",
-            body: `${game.name} begint nu, op ongeveer ${Math.round(distance)} km afstand.`,
+            body: center
+              ? `${game.name} begint nu, op ongeveer ${Math.round(distance)} km afstand.`
+              : `${game.name} begint nu in jouw stad.`,
             url: "/",
             tag: `game-start-${game.id}`,
           },

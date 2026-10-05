@@ -262,7 +262,7 @@ class _GhostMarkerPainter extends CustomPainter {
       ..quadraticBezierTo(
         size.width * .5,
         size.height * .96,
-        size.width * .237,
+        size.width * .37,
         size.height * .84,
       )
       ..quadraticBezierTo(
@@ -287,7 +287,7 @@ class _GhostMarkerPainter extends CustomPainter {
     );
     final eyePaint = Paint()..color = const Color(0xff18231e);
     canvas.drawCircle(
-      Offset(size.width * .237, size.height * .48),
+      Offset(size.width * .37, size.height * .48),
       size.width * .055,
       eyePaint,
     );
@@ -332,9 +332,9 @@ class _AreaPainter extends CustomPainter {
       ..style = PaintingStyle.fill;
     final path = Path()
       ..moveTo(size.width * .18, size.height * .25)
-      ..lineTo(size.width * .775, size.height * .12)
+      ..lineTo(size.width * .75, size.height * .12)
       ..lineTo(size.width * .92, size.height * .72)
-      ..lineTo(size.width * .23, size.height * .88)
+      ..lineTo(size.width * .3, size.height * .88)
       ..close();
     canvas.drawPath(path, paint);
   }

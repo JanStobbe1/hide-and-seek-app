@@ -15,6 +15,6 @@
     "ALLOWED_ORIGIN": "https://REPLACE_WITH_LIVE_APP_DOMAIN"
   },
   "triggers": {
-    "crons": ["0 3 * * *"]
+    "crons": ["0 3 * * *", "* * * * *"]
   }
 }

@@ -359,9 +359,6 @@ const route = async (request: Request, env: Env): Promise<Response> => {
       if (!env.VAPID_PUBLIC_KEY || !env.VAPID_PRIVATE_KEY) {
         return json({ error: "push_not_configured" }, 503, origin);
       }
-      if (!env.VAPID_PUBLIC_KEY || !env.VAPID_PRIVATE_KEY) {
-        return json({ error: "push_not_configured" }, 503, origin);
-      }
       const body = await parseBody(request);
       const endpoint = typeof body.endpoint === "string" ? body.endpoint : "";
       const p256dh = typeof body.keys === "object" && body.keys !== null

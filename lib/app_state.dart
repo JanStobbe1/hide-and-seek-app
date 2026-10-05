@@ -21,12 +21,18 @@ class AppState extends ChangeNotifier {
     this.activeGameDuration = const Duration(minutes: 30),
     this.backendClient,
     this.demoMode = false,
-  }) : repository = repository ?? MockGameRepository() {
+  }) : repository = repository ??
+            MockGameRepository(includeDemoOngoingGames: demoMode) {
     activeGame = ActiveGameState(
       countdown: GameCountdown.start(activeGameDuration),
     );
     _lastGameClockUpdate = DateTime.now();
     _initializeV1Demo();
+    if (demoMode) {
+      displayName = 'Testuser 1';
+      profileAge = '28';
+      profileCity = 'Almere';
+    }
     if (backendClient != null) _initializeProductionState();
   }
   final MockGameRepository repository;
@@ -505,9 +511,9 @@ class AppState extends ChangeNotifier {
     gamesPlayed = 5;
     wins = 3;
     points = 1000;
-    displayName = 'Arie';
-    profileCity = '';
-    profileAge = '';
+    displayName = demoMode ? 'Testuser 1' : 'Arie';
+    profileCity = demoMode ? 'Almere' : '';
+    profileAge = demoMode ? '28' : '';
     profileAvatar = 'avatar-1';
     themePreference = ThemePreference.forest;
     playerMarker = PlayerMarker.ghost;

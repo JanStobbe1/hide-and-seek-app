@@ -139,6 +139,13 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
 
   AppState get state => widget.state;
 
+  String get _roleLabel {
+    if (selectedGame?.rules.gameType == GameType.everyoneHunts) {
+      return 'ROL: ZOEKER + VERSTOPPER';
+    }
+    return 'ROL: ZOEKER';
+  }
+
   Game? get selectedGame {
     if (widget.game != null) return widget.game;
     for (final game in state.repository.joinedGames) {
@@ -191,7 +198,10 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
                   child: ListView(
                     padding: const EdgeInsets.all(20),
                     children: [
-                      _StatusRow(finished: state.gameFinished),
+                      _StatusRow(
+                        finished: state.gameFinished,
+                        roleLabel: _roleLabel,
+                      ),
                       const SizedBox(height: 12),
                       _CountdownCard(state: state),
                     ],
@@ -207,7 +217,11 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
                 activePowerRemaining: _powerEffectRemaining,
                 powerEffectId: _powerEffectId,
               ),
-              _StobbePowersPage(state: state, onActivate: _activatePower),
+              _StobbePowersPage(
+                state: state,
+                onActivate: _activatePower,
+                powersEnabled: selectedGame?.rules.stobbePowersEnabled ?? true,
+              ),
             ],
           ),
           bottomNavigationBar: NavigationBar(
@@ -908,10 +922,15 @@ class _LegendItem extends StatelessWidget {
 }
 
 class _StobbePowersPage extends StatelessWidget {
-  const _StobbePowersPage({required this.state, required this.onActivate});
+  const _StobbePowersPage({
+    required this.state,
+    required this.onActivate,
+    required this.powersEnabled,
+  });
 
   final AppState state;
   final void Function(StobbePowerKind kind, String name) onActivate;
+  final bool powersEnabled;
 
   @override
   Widget build(BuildContext context) => Container(
@@ -930,70 +949,82 @@ class _StobbePowersPage extends StatelessWidget {
               'Verzameld in dit spel • ongebruikte fiches vervallen na afloop',
             ),
             const SizedBox(height: 18),
-            Center(
-              child: Container(
-                width: 620,
-                padding: const EdgeInsets.fromLTRB(22, 12, 22, 26),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [Color(0xffa76b35), Color(0xff70431f)],
+            if (!powersEnabled)
+              const Card(
+                child: ListTile(
+                  leading: Icon(Icons.auto_awesome_outlined),
+                  title: Text('Deze game speelt zonder Stobbekrachten'),
+                  subtitle: Text(
+                    'In deze ronde zitten er geen fiches in je Stobbetas.',
                   ),
-                  borderRadius: BorderRadius.circular(28),
-                  border: Border.all(color: const Color(0xff4f2d16), width: 4),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Colors.black26,
-                      blurRadius: 14,
-                      offset: Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    Container(
-                      width: 150,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        color: const Color(0xff4f2d16),
-                        borderRadius: BorderRadius.circular(18),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    GridView.count(
-                      crossAxisCount:
-                          MediaQuery.sizeOf(context).width < 520 ? 2 : 3,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      mainAxisSpacing: 16,
-                      crossAxisSpacing: 16,
-                      childAspectRatio: .72,
-                      children: state.powerInventory.slots.map((slot) {
-                        final details = _powerDetails(slot.definition.kind);
-                        return _PowerToken(
-                          icon: details.icon,
-                          name: slot.definition.name,
-                          description: details.description,
-                          count: slot.quantity,
-                          color: details.color,
-                          cooldownRemaining: slot.cooldownRemaining(),
-                          cooldownUntil: slot.cooldownUntil,
-                          showCooldownTimer: slot.quantity > 0 &&
-                              slot.uses < slot.definition.maxUsesPerGame,
-                          enabled: !state.gameFinished &&
-                              slot.canUse(state.powerInventory.phase),
-                          onActivate: () => onActivate(
-                            slot.definition.kind,
-                            slot.definition.name,
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ],
                 ),
               ),
-            ),
+            if (powersEnabled)
+              Center(
+                child: Container(
+                  width: 620,
+                  padding: const EdgeInsets.fromLTRB(22, 12, 22, 26),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xffa76b35), Color(0xff70431f)],
+                    ),
+                    borderRadius: BorderRadius.circular(28),
+                    border:
+                        Border.all(color: const Color(0xff4f2d16), width: 4),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Colors.black26,
+                        blurRadius: 14,
+                        offset: Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 150,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: const Color(0xff4f2d16),
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      GridView.count(
+                        crossAxisCount:
+                            MediaQuery.sizeOf(context).width < 520 ? 2 : 3,
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        mainAxisSpacing: 16,
+                        crossAxisSpacing: 16,
+                        childAspectRatio: .72,
+                        children: state.powerInventory.slots.map((slot) {
+                          final details = _powerDetails(slot.definition.kind);
+                          return _PowerToken(
+                            icon: details.icon,
+                            name: slot.definition.name,
+                            description: details.description,
+                            count: slot.quantity,
+                            color: details.color,
+                            cooldownRemaining: slot.cooldownRemaining(),
+                            cooldownUntil: slot.cooldownUntil,
+                            showCooldownTimer: slot.quantity > 0 &&
+                                slot.uses < slot.definition.maxUsesPerGame,
+                            enabled: !state.gameFinished &&
+                                slot.canUse(state.powerInventory.phase),
+                            onActivate: () => onActivate(
+                              slot.definition.kind,
+                              slot.definition.name,
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
           ],
         ),
       );
@@ -1244,16 +1275,22 @@ String _formatPowerDuration(Duration duration) {
     };
 
 class _StatusRow extends StatelessWidget {
-  const _StatusRow({required this.finished});
+  const _StatusRow({
+    required this.finished,
+    required this.roleLabel,
+  });
 
   final bool finished;
+  final String roleLabel;
 
   @override
   Widget build(BuildContext context) => Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Chip(
-              avatar: Icon(Icons.person_search), label: Text('ROL: ZOEKER')),
+          Chip(
+            avatar: const Icon(Icons.person_search),
+            label: Text(roleLabel),
+          ),
           Chip(
             avatar: const Icon(Icons.circle, size: 12),
             label: Text(finished ? 'AFGEROND' : 'SPEL ACTIEF'),

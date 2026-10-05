@@ -30,7 +30,7 @@ class _HideAndSeekAppState extends State<HideAndSeekApp> {
           ),
   );
   bool showCover = true;
-  bool onboardingCompleted = false;
+  bool onboardingCompleted = AppConfig.demoMode;
   bool welcomeCompleted = false;
   bool guidedTourRequested = false;
   late Future<bool> _sessionRestore;

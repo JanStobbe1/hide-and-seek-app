@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:verstobbertje/app_state.dart';
+import 'package:verstobbertje/data/backend_api_client.dart';
+import 'package:verstobbertje/domain/models.dart';
+import 'package:verstobbertje/presentation/app_shell.dart';
 import 'package:verstobbertje/presentation/home_screen.dart';
 
 void main() {
@@ -32,7 +35,7 @@ void main() {
     );
   });
 
-  testWidgets('contents page opens its chapters', (tester) async {
+  testWidgets('contents page opens its tiles', (tester) async {
     final state = AppState();
     var destination = -1;
     var createTapped = false;
@@ -50,6 +53,7 @@ void main() {
     );
 
     expect(find.text('INHOUDSOPGAVE'), findsOneWidget);
+    expect(find.text('Kies een tegel'), findsOneWidget);
     expect(find.text('Waar begint jouw\nvolgende avontuur?'), findsOneWidget);
     expect(find.text('VERDER SPELEN'), findsNothing);
 
@@ -58,5 +62,32 @@ void main() {
 
     await tester.tap(find.text('Spellen ontdekken'));
     expect(destination, 2);
+  });
+
+  test('home guidance changes with the player state', () {
+    final newPlayer = AppState(
+      backendClient: BackendApiClient(
+        baseUri: Uri.parse('https://example.test'),
+      ),
+    );
+    expect(
+      homeHelpExplanation(newPlayer),
+      contains('Maak er zelf één aan'),
+    );
+
+    final activePlayer = AppState();
+    final activeGame = activePlayer.repository.availableGames.first.copyWith(
+      status: GameStatus.active,
+    );
+    activePlayer.repository.replaceJoinedGames([activeGame]);
+    expect(
+      homeHelpExplanation(activePlayer),
+      contains('ga direct verder met je actieve spel'),
+    );
+
+    expect(
+      homeHelpExplanation(AppState()),
+      contains('Spellen ontdekken'),
+    );
   });
 }

@@ -148,6 +148,22 @@ class GameCard extends StatelessWidget {
                           _startSummary(game),
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
+                        const SizedBox(height: 6),
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 4,
+                          children: [
+                            Chip(label: Text(game.rules.gameType.label)),
+                            Chip(
+                              avatar: const Icon(Icons.auto_awesome, size: 16),
+                              label: Text(
+                                game.rules.stobbePowersEnabled
+                                    ? 'Met krachten'
+                                    : 'Zonder krachten',
+                              ),
+                            ),
+                          ],
+                        ),
                       ],
                     ),
                   ),
@@ -185,13 +201,7 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
     try {
       final game = widget.game;
       final names = widget.state.backendClient == null
-          ? [
-              game.organizer,
-              ...List<String>.filled(
-                (game.participants - 1).clamp(0, game.maxParticipants),
-                'Deelnemer',
-              ),
-            ]
+          ? _demoParticipantNames(widget.state, game)
           : await widget.state.backendClient!.fetchGameParticipants(game.id);
       if (!mounted) return;
       setState(() {
@@ -277,6 +287,16 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
               _Info(Icons.person, 'Organisator', game.organizer),
               _Info(Icons.schedule, 'Start & einde', _dateRange(game)),
               _Info(Icons.map, 'Zoekgebied', _areaDetails(game.area)),
+              _Info(
+                Icons.sports_kabaddi,
+                'Speltype',
+                game.rules.gameType.label,
+              ),
+              _Info(
+                Icons.auto_awesome,
+                'Stobbekrachten',
+                game.rules.stobbePowersEnabled ? 'Aan' : 'Uit',
+              ),
               if (game.area.boundary.isNotEmpty)
                 PlayAreaMap(boundary: game.area.boundary),
               if (game.rules.questionsEnabled &&
@@ -762,6 +782,29 @@ class _CompletedGameData {
   final String duration;
   final String location;
   final List<String> players;
+}
+
+List<String> _demoParticipantNames(AppState state, Game game) {
+  if (!state.demoMode || !game.id.startsWith('demo-')) {
+    return [
+      game.organizer,
+      ...List<String>.filled(
+        (game.participants - 1).clamp(0, game.maxParticipants),
+        'Deelnemer',
+      ),
+    ];
+  }
+  const samplePlayers = [
+    'Testuser 1',
+    'Mila',
+    'Sam',
+    'Noa',
+    'Youssef',
+    'Fenna',
+    'Omar',
+    'Sara',
+  ];
+  return samplePlayers.take(game.participants).toList(growable: false);
 }
 
 String _startSummary(Game game) {

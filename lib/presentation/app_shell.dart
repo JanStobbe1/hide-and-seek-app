@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../app_state.dart';
+import '../domain/models.dart';
 import '../config/app_config.dart';
 import 'create_game_screen.dart';
 import 'games_screens.dart';
@@ -46,12 +47,14 @@ class _AppShellState extends State<AppShell> {
   ];
 
   static const helpTexts = [
-    'Kies hier welk hoofdstuk je wilt openen of ga direct verder met je actieve spel.',
+    'Kies een tegel om verder te gaan.',
     'Hier staan je actieve en geplande spellen. Tik op een spel om het te openen.',
     'Bekijk spellen in de buurt, sorteer ze en tik erop om de details te lezen of mee te doen.',
     'Open een afgerond spel om je score, eindpositie en medespelers terug te zien.',
     'Beheer hier je naam, vrienden, privacy, kaartmarker en de uitstraling van de app.',
   ];
+
+  String get _homeExplanation => homeHelpExplanation(widget.state);
 
   static const destinations = [
     NavigationDestination(
@@ -115,6 +118,7 @@ class _AppShellState extends State<AppShell> {
                 if (tourActive)
                   _GuidedTourOverlay(
                     step: tourStep,
+                    homeExplanation: _homeExplanation,
                     onNext: _nextTourStep,
                     onSkip: _skipTour,
                   ),
@@ -138,7 +142,7 @@ class _AppShellState extends State<AppShell> {
                     const CircleAvatar(child: Icon(Icons.location_searching)),
                     StobbeDetectiveButton(
                       pageTitle: helpTitles[index],
-                      explanation: helpTexts[index],
+                      explanation: index == 0 ? _homeExplanation : helpTexts[index],
                     ),
                     const DemoBadge(),
                   ],
@@ -186,7 +190,7 @@ class _AppShellState extends State<AppShell> {
           actions: [
             StobbeDetectiveButton(
               pageTitle: helpTitles[index],
-              explanation: helpTexts[index],
+              explanation: index == 0 ? _homeExplanation : helpTexts[index],
             ),
             const Padding(
               padding: EdgeInsets.only(right: 12),
@@ -271,18 +275,40 @@ class _AppShellState extends State<AppShell> {
   }
 }
 
+String homeHelpExplanation(AppState state) {
+  final joinedGames = state.repository.joinedGames;
+  if (joinedGames.any((game) => game.status == GameStatus.active)) {
+    return 'Kies een tegel om te openen of ga direct verder met je actieve spel.';
+  }
+  final joinedIds = joinedGames.map((game) => game.id).toSet();
+  final now = DateTime.now();
+  final discoverableGames = state.repository.availableGames.where(
+    (game) =>
+        !joinedIds.contains(game.id) &&
+        (game.scheduledEnd == null || game.scheduledEnd!.isAfter(now)),
+  );
+  if (discoverableGames.isNotEmpty) {
+    return 'Kies een tegel om verder te gaan. Kijk bij Spellen ontdekken voor een leuk spel.';
+  }
+  if (joinedGames.isNotEmpty) {
+    return 'Je hebt nog geen actief spel. Bekijk Mijn spellen voor je geplande spel.';
+  }
+  return 'Er zijn nog geen spellen beschikbaar in de buurt. Maak er zelf één aan via Nieuw spel.';
+}
+
 class _GuidedTourOverlay extends StatelessWidget {
   const _GuidedTourOverlay({
     required this.step,
+    required this.homeExplanation,
     required this.onNext,
     required this.onSkip,
   });
 
   static const steps = [
     (
-      title: 'Welkom in de inhoudsopgave',
+      title: 'Welkom op het startscherm',
       text:
-          'Hier begin je. Vanuit dit hoofdscherm ga je naar je spellen, ontdek je nieuwe spellen en bekijk je resultaten.',
+          'Kies een tegel om naar je spellen te gaan, spellen te ontdekken of je resultaten te bekijken.',
     ),
     (
       title: 'Je navigatie',
@@ -302,6 +328,7 @@ class _GuidedTourOverlay extends StatelessWidget {
   ];
 
   final int step;
+  final String homeExplanation;
   final VoidCallback onNext;
   final VoidCallback onSkip;
 
@@ -327,6 +354,7 @@ class _GuidedTourOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final current = steps[step];
+    final explanation = step == 0 ? homeExplanation : current.text;
     final target = _targetRect(context);
     return Positioned.fill(
       child: Stack(
@@ -348,7 +376,7 @@ class _GuidedTourOverlay extends StatelessWidget {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        StobbeGuide(explanation: current.text),
+                        StobbeGuide(explanation: explanation),
                         const SizedBox(height: 12),
                         Text(
                           current.title,

@@ -139,7 +139,7 @@ class MapPlaceholder extends StatelessWidget {
                 left: 28,
                 top: 24,
                 child: _Marker(
-                  icon: markerIcon(playerMarker),
+                  marker: playerMarker,
                   color: Theme.of(context).colorScheme.primary,
                   label: 'Jij',
                 ),
@@ -192,17 +192,65 @@ IconData markerIcon(PlayerMarker marker) => switch (marker) {
       PlayerMarker.explorer => Icons.explore,
     };
 
-class _Marker extends StatelessWidget {
-  const _Marker({required this.icon, required this.color, required this.label});
+Color markerAccentColor(PlayerMarker marker) => switch (marker) {
+      PlayerMarker.ghost => const Color(0xffef476f),
+      PlayerMarker.wolf => const Color(0xfff28c28),
+      PlayerMarker.police => const Color(0xff3995e8),
+      PlayerMarker.explorer => const Color(0xff37b36b),
+    };
 
-  final IconData icon;
+class PlayerMarkerBadge extends StatelessWidget {
+  const PlayerMarkerBadge({
+    required this.marker,
+    this.size = 28,
+    super.key,
+  });
+
+  final PlayerMarker marker;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        width: size + 8,
+        height: size + 8,
+        padding: const EdgeInsets.all(4),
+        decoration: const BoxDecoration(
+          color: Color(0xff18231e),
+          shape: BoxShape.circle,
+        ),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Icon(markerIcon(marker), size: size, color: Colors.white),
+            Icon(
+              markerIcon(marker),
+              size: size * .72,
+              color: markerAccentColor(marker),
+            ),
+          ],
+        ),
+      );
+}
+
+class _Marker extends StatelessWidget {
+  const _Marker({
+    this.icon,
+    this.marker,
+    required this.color,
+    required this.label,
+  });
+
+  final IconData? icon;
+  final PlayerMarker? marker;
   final Color color;
   final String label;
 
   @override
   Widget build(BuildContext context) => Tooltip(
         message: label,
-        child: Icon(icon, color: color, size: 40),
+        child: marker == null
+            ? Icon(icon, color: color, size: 40)
+            : PlayerMarkerBadge(marker: marker!, size: 32),
       );
 }
 

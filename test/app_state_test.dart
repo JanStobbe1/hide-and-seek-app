@@ -26,6 +26,7 @@ void main() {
     expect(state.gameFinished, isFalse);
     expect(state.privacy['Deel mijn naam'], isTrue);
     expect(state.displayName, 'Arie');
+    expect(state.points, 1000);
     expect(state.themePreference, ThemePreference.forest);
     expect(state.playerMarker, PlayerMarker.ghost);
   });

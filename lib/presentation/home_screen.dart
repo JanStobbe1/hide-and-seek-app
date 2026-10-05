@@ -91,7 +91,7 @@ class HomeScreen extends StatelessWidget {
                 const SizedBox(height: 28),
               ],
               Text(
-                'Kies je volgende hoofdstuk',
+                'Kies een tegel',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.w900,
                     ),
@@ -157,7 +157,7 @@ class _ContentsHeading extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          'Kies een hoofdstuk en ga meteen verder.',
+          'Kies een tegel en ontdek wat je kunt doen.',
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                 color: colors.onSurfaceVariant,
               ),

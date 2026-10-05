@@ -27,25 +27,29 @@ class ProfileScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      state.displayName,
-                      style: Theme.of(context)
-                          .textTheme
-                          .headlineSmall
-                          ?.copyWith(fontWeight: FontWeight.w900),
-                    ),
-                    const Text('38 jaar • Almere'),
-                    const Chip(label: Text('Beginner')),
-                    Wrap(
-                      spacing: 8,
+                    Row(
                       children: [
-                        TextButton.icon(
+                        Expanded(
+                          child: Text(
+                            state.displayName,
+                            key: const Key('profile-display-name'),
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall
+                                ?.copyWith(fontWeight: FontWeight.w900),
+                          ),
+                        ),
+                        IconButton(
+                          key: const Key('profile-name-edit'),
+                          tooltip: 'Naam wijzigen',
                           onPressed: () => _editName(context),
                           icon: const Icon(Icons.edit),
-                          label: const Text('Wijzig naam'),
                         ),
                       ],
                     ),
+                    if (state.profileAge.isNotEmpty ||
+                        state.profileCity.isNotEmpty)
+                      Text(_profileDetails(state)),
                   ],
                 ),
               ),
@@ -63,6 +67,7 @@ class ProfileScreen extends StatelessWidget {
                   _ProfileMetric('${state.wins}', 'gewonnen'),
                   _ProfileMetric('${state.friends.length}', 'vrienden'),
                   _ProfileMetric('${state.points}', 'punten'),
+                  _ProfileMetric(_friendRank(state), 'ranking bij vrienden'),
                 ],
               ),
             ),
@@ -112,7 +117,7 @@ class ProfileScreen extends StatelessWidget {
                     value: marker,
                     child: Row(
                       children: [
-                        Icon(markerIcon(marker)),
+                        PlayerMarkerBadge(marker: marker, size: 28),
                         const SizedBox(width: 10),
                         Text(_markerLabel(marker)),
                       ],
@@ -132,26 +137,23 @@ class ProfileScreen extends StatelessWidget {
               style: TextStyle(fontSize: 12),
             ),
           ),
-          const SectionTitle('Punten'),
-          const Card(
+          const SectionTitle('Punten & ranking'),
+          Card(
             child: Column(
               children: [
                 ListTile(
-                  leading: Icon(Icons.stars),
-                  title: Text('Puntensaldo'),
-                  trailing: Text('840'),
+                  leading: const Icon(Icons.forest),
+                  title: const Text('Mr. Stobbe zegt'),
+                  subtitle: Text(
+                    state.backendClient != null
+                        ? 'Ik begin je teller op 1.000 punten. Je kunt ze nog niet uitgeven; de ranglijst wordt later gekoppeld.'
+                        : 'Ik begin je teller op 1.000 punten. Ze tellen mee voor je ranking bij vrienden, maar uitgeven kan nog niet.',
+                  ),
                 ),
                 ListTile(
-                  leading: Icon(Icons.info_outline),
-                  title: Text('Spelvaluta'),
-                  trailing: Text('Alleen punten'),
-                ),
-                Padding(
-                  padding: EdgeInsets.all(12),
-                  child: Text(
-                    'Je profielgegevens en voorkeuren.',
-                    style: TextStyle(fontSize: 12),
-                  ),
+                  leading: const Icon(Icons.stars),
+                  title: const Text('Puntensaldo'),
+                  trailing: Text('${state.points}'),
                 ),
               ],
             ),
@@ -350,6 +352,18 @@ class FriendsScreen extends StatelessWidget {
           },
         ),
       );
+}
+
+String _profileDetails(AppState state) => [
+      if (state.profileAge.isNotEmpty) '${state.profileAge} jaar',
+      if (state.profileCity.isNotEmpty) state.profileCity,
+    ].join(' • ');
+
+String _friendRank(AppState state) {
+  if (state.backendClient != null || state.friends.isEmpty) return '—';
+  final playersAhead =
+      state.friends.where((friend) => friend.points > state.points).length;
+  return '#${playersAhead + 1}';
 }
 
 String _markerLabel(PlayerMarker marker) => switch (marker) {

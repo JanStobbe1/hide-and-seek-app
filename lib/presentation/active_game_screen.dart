@@ -9,6 +9,7 @@ import 'package:latlong2/latlong.dart' as latlong;
 
 import '../app_state.dart';
 import '../domain/models.dart';
+import '../domain/profile_models.dart';
 import '../domain/game_setup.dart';
 import 'play_area_editor.dart';
 import '../domain/stobbe_powers.dart';
@@ -32,14 +33,14 @@ class _RealLocationMap extends StatelessWidget {
   const _RealLocationMap({
     required this.location,
     this.boundary = const [],
-    required this.playerIcon,
+    required this.playerMarker,
     required this.avatarId,
     required this.controller,
   });
 
   final _PlayerLocation location;
   final List<AreaPoint> boundary;
-  final IconData playerIcon;
+  final PlayerMarker playerMarker;
   final String avatarId;
   final MapController controller;
 
@@ -81,10 +82,9 @@ class _RealLocationMap extends StatelessWidget {
                             radius: 24,
                             borderColor: const Color(0xff315c46),
                           ),
-                          Icon(
-                            playerIcon,
-                            color: const Color(0xff315c46),
-                            size: 16,
+                          PlayerMarkerBadge(
+                            marker: playerMarker,
+                            size: 18,
                           ),
                         ],
                       ),
@@ -569,7 +569,7 @@ class _ActiveMapPageState extends State<_ActiveMapPage>
                       ? _RealLocationMap(
                           location: currentLocation!,
                           boundary: widget.boundary,
-                          playerIcon: markerIcon(widget.state.playerMarker),
+                          playerMarker: widget.state.playerMarker,
                           avatarId: widget.state.profileAvatar,
                           controller: mapController,
                         )

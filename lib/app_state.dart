@@ -54,7 +54,7 @@ class AppState extends ChangeNotifier {
   int currentAttemptPoints = 0;
   int gamesPlayed = 5;
   int wins = 3;
-  int points = 840;
+  int points = 1000;
   String displayName = 'Arie';
   String profileCity = '';
   String profileAge = '';
@@ -485,7 +485,7 @@ class AppState extends ChangeNotifier {
     currentAttemptPoints = 0;
     gamesPlayed = 5;
     wins = 3;
-    points = 840;
+    points = 1000;
     displayName = 'Arie';
     profileCity = '';
     profileAge = '';
@@ -507,7 +507,7 @@ class AppState extends ChangeNotifier {
     friends = const [];
     gamesPlayed = 0;
     wins = 0;
-    points = 0;
+    points = 1000;
     displayName = '';
     profileCity = '';
     profileAge = '';

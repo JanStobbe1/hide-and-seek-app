@@ -67,7 +67,7 @@ class ProfileScreen extends StatelessWidget {
                   _ProfileMetric('${state.wins}', 'gewonnen'),
                   _ProfileMetric('${state.friends.length}', 'vrienden'),
                   _ProfileMetric('${state.points}', 'punten'),
-                  _ProfileMetric(_friendRank(state), 'ranking bij vrienden'),
+                  _ProfileMetric(_friendRank(state), 'Ranking bij vrienden'),
                 ],
               ),
             ),

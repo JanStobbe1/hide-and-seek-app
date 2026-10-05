@@ -19,7 +19,7 @@ void main() {
 
       expect(find.byKey(const Key('profile-display-name')), findsOneWidget);
       expect(find.byKey(const Key('profile-name-edit')), findsOneWidget);
-      expect(find.text('1000'), findsNWidgets(2));
+      expect(find.text('1000'), findsOneWidget);
       expect(find.text('Spelvaluta'), findsNothing);
       expect(find.text('Ranking bij vrienden'), findsOneWidget);
       expect(

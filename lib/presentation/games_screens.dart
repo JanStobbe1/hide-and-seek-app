@@ -473,7 +473,8 @@ class MyGamesScreen extends StatelessWidget {
               ),
               if ((game.createdBy != null &&
                       game.createdBy == state.backendPlayerId) ||
-                  game.organizer == state.displayName)
+                  game.organizer == state.displayName ||
+                  (state.demoMode && state.localGameIds.contains(game.id)))
                 Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: OutlinedButton.icon(

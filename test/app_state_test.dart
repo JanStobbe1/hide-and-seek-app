@@ -31,6 +31,56 @@ void main() {
     expect(state.playerMarker, PlayerMarker.ghost);
   });
 
+  test('demo games can be created and withdrawn locally', () async {
+    final state = AppState(demoMode: true);
+    final template = state.repository.availableGames.first;
+    final game = Game(
+      id: 'demo-created',
+      name: 'Demo nieuw spel',
+      organizer: state.displayName,
+      description: template.description,
+      area: template.area,
+      status: GameStatus.available,
+      duration: template.duration,
+      participants: 1,
+      maxParticipants: template.maxParticipants,
+      distanceKm: template.distanceKm,
+      startCondition: StartCondition.participantCount,
+      participantThreshold: 2,
+      rules: template.rules,
+    );
+
+    expect(await state.publishAsync(game), isTrue);
+    state.setDisplayName('Nieuwe naam');
+    expect(state.localGameIds, contains(game.id));
+    expect(
+      state.repository.availableGames.any((item) => item.id == game.id),
+      isTrue,
+    );
+    expect(
+      state.repository.joinedGames.any((item) => item.id == game.id),
+      isTrue,
+    );
+
+    expect(await state.withdrawGame(game.id), isTrue);
+    expect(
+      state.repository.availableGames.any((item) => item.id == game.id),
+      isFalse,
+    );
+    expect(
+      state.repository.joinedGames.any((item) => item.id == game.id),
+      isFalse,
+    );
+  });
+
+  test('publishing fails when backend is missing outside demo mode', () async {
+    final state = AppState();
+    final game = state.repository.availableGames.first;
+
+    expect(await state.publishAsync(game), isFalse);
+    expect(state.backendError, 'backend_not_configured');
+  });
+
   test('finding a player moves deterministic progress from five to six', () {
     final state = AppState();
 

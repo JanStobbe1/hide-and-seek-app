@@ -15,6 +15,7 @@ class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({
     required this.playerName,
     this.state,
+    this.demoMode = false,
     required this.backendConnected,
     required this.backendError,
     required this.onRetry,
@@ -25,6 +26,7 @@ class WelcomeScreen extends StatelessWidget {
 
   final String playerName;
   final AppState? state;
+  final bool demoMode;
   final bool backendConnected;
   final String? backendError;
   final Future<void> Function() onRetry;
@@ -77,7 +79,14 @@ class WelcomeScreen extends StatelessWidget {
                     'Je profiel is klaar. Bekijk nu de spellen en kies je volgende avontuur.',
                     textAlign: TextAlign.center,
                   ),
-                  if (backendConnected) ...[
+                  if (demoMode) ...[
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Dit is de demo met voorbeeldspellen. Je wijzigingen zijn alleen zichtbaar in deze demosessie.',
+                      key: Key('demo-mode-message'),
+                      textAlign: TextAlign.center,
+                    ),
+                  ] else if (backendConnected) ...[
                     const SizedBox(height: 12),
                     const Text(
                       'Je profiel is opgeslagen.',

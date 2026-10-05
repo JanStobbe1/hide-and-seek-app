@@ -36,7 +36,7 @@ void main() {
   );
 
   testWidgets(
-    'player markers use a white outline and a color accent',
+    'player markers keep a clear two-tone accent after selection',
     (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
@@ -46,14 +46,30 @@ void main() {
         ),
       );
 
-      final markerIcons = tester.widgetList<Icon>(
-        find.byIcon(markerIcon(PlayerMarker.wolf)),
-      );
-      expect(markerIcons, hasLength(2));
+      final badge = tester.widget<Container>(find.byType(Container));
+      final decoration = badge.decoration! as BoxDecoration;
+      expect(decoration.color, markerAccentColor(PlayerMarker.wolf));
+      expect(decoration.border, isA<Border>());
       expect(
-        markerIcons.map((icon) => icon.color),
-        containsAll([Colors.white, markerAccentColor(PlayerMarker.wolf)]),
+        tester.widget<Icon>(find.byIcon(markerIcon(PlayerMarker.wolf))).color,
+        Colors.white,
       );
+
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: PlayerMarkerBadge(marker: PlayerMarker.ghost),
+          ),
+        ),
+      );
+      expect(
+        find.descendant(
+          of: find.byType(PlayerMarkerBadge),
+          matching: find.byType(CustomPaint),
+        ),
+        findsOneWidget,
+      );
+      expect(find.byIcon(Icons.cruelty_free), findsNothing);
     },
   );
 }

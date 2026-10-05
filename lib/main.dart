@@ -22,7 +22,8 @@ class HideAndSeekApp extends StatefulWidget {
 
 class _HideAndSeekAppState extends State<HideAndSeekApp> {
   final state = AppState(
-    backendClient: AppConfig.backendBaseUrl.isEmpty
+    demoMode: AppConfig.demoMode,
+    backendClient: AppConfig.demoMode || AppConfig.backendBaseUrl.isEmpty
         ? null
         : BackendApiClient(
             baseUri: Uri.parse(AppConfig.backendBaseUrl),
@@ -48,6 +49,7 @@ class _HideAndSeekAppState extends State<HideAndSeekApp> {
   }
 
   Future<void> _connectBackendAfterOnboarding() async {
+    if (AppConfig.demoMode) return;
     final restored = await _sessionRestore;
     if (!restored) {
       await state.connectBackend();
@@ -83,6 +85,7 @@ class _HideAndSeekAppState extends State<HideAndSeekApp> {
                             key: const ValueKey('welcome'),
                             state: state,
                             playerName: state.displayName,
+                            demoMode: AppConfig.demoMode,
                             backendConnected: state.backendConnected,
                             backendError: state.backendError,
                             onRetry: () async {

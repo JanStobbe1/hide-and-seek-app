@@ -3,7 +3,7 @@ abstract final class AppConfig {
   static const demoMode = bool.fromEnvironment('DEMO_MODE');
   static const backendBaseUrl = String.fromEnvironment('BACKEND_BASE_URL');
   static const vapidPublicKey =
-      'BApD0dvRtvencj36u9kLygx2YKVsWmjU-O87G2jyzC0-ZH94Ixsci4nglUOIerDRyFpmLNwuB8vdMqO2DO4FOhg';
+      'BAGbfOvl_TGySBt4xVEWMvtpBQLM39p-xQZv7pnPaIX6lfvJTF_6seGpnTr6WUdVHzh1hfTTCTP78lrj7wmf4WQ';
 
   static const joinGrace = Duration(minutes: 5);
   static const shrinkDuration = Duration(minutes: 5);

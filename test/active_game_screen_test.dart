@@ -23,6 +23,28 @@ void main() {
     await tester.pumpWidget(const SizedBox());
   });
 
+  testWidgets('outside play area shows a pulsing warning and return timer', (
+    tester,
+  ) async {
+    final state = AppState();
+    final now = DateTime.now();
+    state.registerZoneMeasurement(inside: false, timestamp: now);
+    state.registerZoneMeasurement(
+      inside: false,
+      timestamp: now.add(const Duration(seconds: 1)),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(home: ActiveGameScreen(state: state)),
+    );
+    await tester.pump();
+
+    expect(find.text('Let op! Je bent buiten het speelgebied.'), findsOneWidget);
+    expect(find.textContaining('terug in het gebied'), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox());
+  });
+
   testWidgets('overview stays focused on status, score and ranking', (
     tester,
   ) async {

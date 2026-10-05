@@ -211,18 +211,20 @@ class PlayerMarkerBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
+        key: ValueKey('player-marker-badge-${marker.name}'),
         width: size + 8,
         height: size + 8,
-        padding: const EdgeInsets.all(4),
+        alignment: Alignment.center,
         decoration: BoxDecoration(
           color: markerAccentColor(marker),
           shape: BoxShape.circle,
-          border: Border.all(color: const Color(0xff18231e), width: 2),
         ),
         child: marker == PlayerMarker.ghost
-            ? CustomPaint(
-                size: Size.square(size),
-                painter: _GhostMarkerPainter(),
+            ? SizedBox.square(
+                dimension: size * .72,
+                child: CustomPaint(
+                  painter: _GhostMarkerPainter(),
+                ),
               )
             : Icon(
                 markerIcon(marker),

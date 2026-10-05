@@ -142,7 +142,6 @@ class MockGameRepository implements GameRepository {
   }
 }
 
-
 const _demoActiveArea = SearchArea(
   country: 'Nederland',
   province: 'Flevoland',

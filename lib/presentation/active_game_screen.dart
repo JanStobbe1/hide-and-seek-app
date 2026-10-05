@@ -193,10 +193,9 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
                     children: [
                       _StatusRow(
                         finished: state.gameFinished,
-                        roleLabel:
-                            selectedGame?.rules.gameType == GameType.everyoneHunts
-                                ? 'ROL: ZOEKER + VERSTOPPER'
-                                : 'ROL: ZOEKER',
+                        roleLabel: selectedGame?.rules.gameType == GameType.everyoneHunts
+                            ? 'ROL: ZOEKER + VERSTOPPER'
+                            : 'ROL: ZOEKER',
                       ),
                       const SizedBox(height: 12),
                       _CountdownCard(state: state),

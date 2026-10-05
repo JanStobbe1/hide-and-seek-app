@@ -54,3 +54,8 @@ The backend deployment is intentionally manual through
 
 The workflow applies the D1 migration, deploys the separate API Worker and then sets
 the two Worker secrets. It does not run automatically on frontend pushes.
+
+
+## Startmeldingen in de buurt
+
+Browser-push werkt met een opt-in pushregistratie. De speler geeft expliciet toestemming voor browsermeldingen en locatie. De Worker bewaart een afgeronde locatie, woonplaats en push-endpoint om een startgebied in dezelfde stad of binnen de gekozen straal te matchen. Locatie- en pushgegevens worden verwijderd als de speler meldingen uitzet of het account verwijdert. Configureer de Worker secret `VAPID_PRIVATE_KEY` voordat pushinschrijving beschikbaar wordt. De publieke VAPID-sleutel staat in `wrangler.example.jsonc` en in de Flutter app-configuratie.

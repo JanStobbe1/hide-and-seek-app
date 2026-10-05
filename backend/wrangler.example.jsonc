@@ -12,9 +12,10 @@
     }
   ],
   "vars": {
-    "ALLOWED_ORIGIN": "https://REPLACE_WITH_LIVE_APP_DOMAIN"
+    "ALLOWED_ORIGIN": "https://REPLACE_WITH_LIVE_APP_DOMAIN",
+    "VAPID_PUBLIC_KEY": "BApD0dvRtvencj36u9kLygx2YKVsWmjU-O87G2jyzC0-ZH94Ixsci4nglUOIerDRyFpmLNwuB8vdMqO2DO4FOhg"
   },
   "triggers": {
-    "crons": ["0 3 * * *"]
+    "crons": ["0 3 * * *", "* * * * *"]
   }
 }

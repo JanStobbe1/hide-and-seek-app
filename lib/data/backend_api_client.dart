@@ -209,6 +209,42 @@ class BackendApiClient {
     _decode(response);
   }
 
+  Future<void> registerPushSubscription(Map<String, dynamic> value) async {
+    final token = _playerToken;
+    if (token == null) {
+      throw const BackendApiException(401, 'player_session_required');
+    }
+    final response = await _request(
+      client.post(
+        _endpoint('/api/v1/player/push-subscriptions'),
+        headers: {
+          'content-type': 'application/json',
+          'authorization': 'Bearer $token',
+        },
+        body: jsonEncode(value),
+      ),
+    );
+    _decode(response);
+  }
+
+  Future<void> removePushSubscription(String endpoint) async {
+    final token = _playerToken;
+    if (token == null) {
+      throw const BackendApiException(401, 'player_session_required');
+    }
+    final response = await _request(
+      client.delete(
+        _endpoint('/api/v1/player/push-subscriptions'),
+        headers: {
+          'content-type': 'application/json',
+          'authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'endpoint': endpoint}),
+      ),
+    );
+    _decode(response);
+  }
+
   Future<void> deleteAccount() async {
     final token = _playerToken;
     if (token == null) {

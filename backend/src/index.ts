@@ -1,10 +1,13 @@
 import { validateGameSetup } from "./game-setup.js";
+import { distanceKm, gameCenter, sendWebPush } from "./web-push.js";
 
 export interface Env {
   DB: D1Database;
   ADMIN_API_TOKEN: string;
   PLAYER_TOKEN_SECRET: string;
   ALLOWED_ORIGIN?: string;
+  VAPID_PUBLIC_KEY?: string;
+  VAPID_PRIVATE_KEY?: string;
 }
 
 type JsonObject = Record<string, unknown>;
@@ -349,6 +352,71 @@ const route = async (request: Request, env: Env): Promise<Response> => {
     return json({ joined: true, gameId: joinMatch[1] }, 200, origin);
   }
 
+  if (path === "/api/v1/player/push-subscriptions") {
+    const authenticatedPlayer = await playerFromToken(request, env);
+    if (!authenticatedPlayer) return json({ error: "unauthorized" }, 401, origin);
+    if (request.method === "POST") {
+      if (!env.VAPID_PUBLIC_KEY || !env.VAPID_PRIVATE_KEY) {
+        return json({ error: "push_not_configured" }, 503, origin);
+      }
+      const body = await parseBody(request);
+      const endpoint = typeof body.endpoint === "string" ? body.endpoint : "";
+      const p256dh = typeof body.keys === "object" && body.keys !== null
+        ? (body.keys as JsonObject).p256dh : null;
+      const auth = typeof body.keys === "object" && body.keys !== null
+        ? (body.keys as JsonObject).auth : null;
+      const latitude = Number(body.latitude);
+      const longitude = Number(body.longitude);
+      const city = typeof body.city === "string" ? body.city.trim().slice(0, 80) : "";
+      const radiusKm = Number(body.radiusKm ?? 25);
+      let endpointUrl: URL;
+      try {
+        endpointUrl = new URL(endpoint);
+      } catch {
+        return json({ error: "push_endpoint_invalid" }, 400, origin);
+      }
+      if (endpointUrl.protocol !== "https:" || typeof p256dh !== "string" ||
+          typeof auth !== "string" || p256dh.length > 256 || auth.length > 128 ||
+          !Number.isFinite(latitude) || latitude < -90 || latitude > 90 ||
+          !Number.isFinite(longitude) || longitude < -180 || longitude > 180 ||
+          !Number.isFinite(radiusKm) || radiusKm < 1 || radiusKm > 100) {
+        return json({ error: "push_subscription_invalid" }, 400, origin);
+      }
+      await env.DB.prepare(
+        `INSERT INTO push_subscriptions
+          (id, player_id, endpoint, p256dh, auth, latitude, longitude, city, radius_km)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+         ON CONFLICT(endpoint) DO UPDATE SET
+          player_id = excluded.player_id,
+          p256dh = excluded.p256dh,
+          auth = excluded.auth,
+          latitude = excluded.latitude,
+          longitude = excluded.longitude,
+          city = excluded.city,
+          radius_km = excluded.radius_km,
+          updated_at = CURRENT_TIMESTAMP`,
+      ).bind(
+        crypto.randomUUID(), authenticatedPlayer, endpoint, p256dh, auth,
+        Math.round(latitude * 100) / 100,
+        Math.round(longitude * 100) / 100,
+        city,
+        radiusKm,
+      ).run();
+      await touchPlayer(env, authenticatedPlayer);
+      return json({ enabled: true }, 201, origin);
+    }
+    if (request.method === "DELETE") {
+      const body = await parseBody(request);
+      const endpoint = typeof body.endpoint === "string" ? body.endpoint : "";
+      if (!endpoint) return json({ error: "push_endpoint_required" }, 400, origin);
+      await env.DB.prepare(
+        "DELETE FROM push_subscriptions WHERE player_id = ? AND endpoint = ?",
+      ).bind(authenticatedPlayer, endpoint).run();
+      await touchPlayer(env, authenticatedPlayer);
+      return json({ removed: true }, 200, origin);
+    }
+  }
+
   if (request.method === "DELETE" && path === "/api/v1/account") {
     const authenticatedPlayer = await playerFromToken(request, env);
     if (!authenticatedPlayer) return json({ error: "unauthorized" }, 401, origin);
@@ -494,11 +562,103 @@ const route = async (request: Request, env: Env): Promise<Response> => {
   return json({ error: "not_found" }, 404, origin);
 };
 
+interface PendingStartGame {
+  id: string;
+  name: string;
+  city: string;
+  play_boundary: string;
+}
+
+interface PushTarget {
+  id: string;
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+  latitude: number;
+  longitude: number;
+  city: string;
+  radius_km: number;
+}
+
+const sendNearbyGameStartNotifications = async (env: Env) => {
+  if (!env.VAPID_PUBLIC_KEY || !env.VAPID_PRIVATE_KEY) return;
+  const pending = await env.DB.prepare(
+    `SELECT id, name, city, play_boundary FROM games
+     WHERE status IN ('scheduled', 'active')
+       AND datetime(starts_at) <= CURRENT_TIMESTAMP
+       AND (ends_at IS NULL OR datetime(ends_at) > CURRENT_TIMESTAMP)
+       AND start_notifications_sent_at IS NULL
+     ORDER BY starts_at ASC LIMIT 50`,
+  ).all<PendingStartGame>();
+  const subscriptions = await env.DB.prepare(
+    "SELECT id, endpoint, p256dh, auth, latitude, longitude, city, radius_km FROM push_subscriptions",
+  ).all<PushTarget>();
+
+  for (const game of pending.results) {
+    const center = gameCenter(game.play_boundary);
+    const gameCity = (game.city ?? "").trim().toLocaleLowerCase();
+    const matchingCityTargets = subscriptions.results.filter((target) =>
+      gameCity.length > 0 &&
+      gameCity === (target.city ?? "").trim().toLocaleLowerCase()
+    );
+    if (!center && matchingCityTargets.length === 0) {
+      await env.DB.prepare(
+        "UPDATE games SET start_notifications_sent_at = CURRENT_TIMESTAMP WHERE id = ? AND start_notifications_sent_at IS NULL",
+      ).bind(game.id).run();
+      continue;
+    }
+
+    let shouldRetry = false;
+    const targets = center ? subscriptions.results : matchingCityTargets;
+    for (const target of targets) {
+      const distance = center
+        ? distanceKm(
+            Number(target.latitude), Number(target.longitude), center[0], center[1],
+          )
+        : 0;
+      const cityMatches = gameCity.length > 0 &&
+        gameCity === (target.city ?? "").trim().toLocaleLowerCase();
+      if (distance > Number(target.radius_km) && !cityMatches) continue;
+      try {
+        const response = await sendWebPush(
+          target,
+          {
+            title: game.city
+              ? `Er start een spel in ${game.city}`
+              : "Er start een spel bij jou in de buurt",
+            body: center
+              ? `${game.name} begint nu, op ongeveer ${Math.round(distance)} km afstand.`
+              : `${game.name} begint nu in jouw stad.`,
+            url: "/",
+            tag: `game-start-${game.id}`,
+          },
+          env.VAPID_PUBLIC_KEY,
+          env.VAPID_PRIVATE_KEY,
+        );
+        if (response.status === 404 || response.status === 410) {
+          await env.DB.prepare("DELETE FROM push_subscriptions WHERE id = ?")
+            .bind(target.id).run();
+        } else if (!response.ok) {
+          shouldRetry = true;
+        }
+      } catch {
+        shouldRetry = true;
+      }
+    }
+    if (!shouldRetry) {
+      await env.DB.prepare(
+        "UPDATE games SET start_notifications_sent_at = CURRENT_TIMESTAMP WHERE id = ? AND start_notifications_sent_at IS NULL",
+      ).bind(game.id).run();
+    }
+  }
+};
+
 export default {
   fetch(request: Request, env: Env): Promise<Response> {
     return route(request, env);
   },
-  scheduled(_event: ScheduledController, env: Env): Promise<void> {
-    return purgeInactivePlayers(env);
+  async scheduled(event: ScheduledController, env: Env): Promise<void> {
+    if (event.cron === "0 3 * * *") await purgeInactivePlayers(env);
+    await sendNearbyGameStartNotifications(env);
   },
 };

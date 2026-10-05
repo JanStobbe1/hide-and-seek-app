@@ -409,7 +409,11 @@ class MyGamesScreen extends StatelessWidget {
         .where((game) => game.status == GameStatus.active)
         .toList(growable: false);
     final upcomingGames = joinedGames
-        .where((game) => game.status != GameStatus.active)
+        .where(
+          (game) =>
+              game.status == GameStatus.available ||
+              game.status == GameStatus.waiting,
+        )
         .toList(growable: false);
 
     return ListView(

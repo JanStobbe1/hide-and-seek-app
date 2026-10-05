@@ -139,6 +139,13 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
 
   AppState get state => widget.state;
 
+  String get _roleLabel {
+    if (selectedGame?.rules.gameType == GameType.everyoneHunts) {
+      return 'ROL: ZOEKER + VERSTOPPER';
+    }
+    return 'ROL: ZOEKER';
+  }
+
   Game? get selectedGame {
     if (widget.game != null) return widget.game;
     for (final game in state.repository.joinedGames) {
@@ -193,9 +200,7 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
                     children: [
                       _StatusRow(
                         finished: state.gameFinished,
-                        roleLabel: selectedGame?.rules.gameType == GameType.everyoneHunts
-                            ? 'ROL: ZOEKER + VERSTOPPER'
-                            : 'ROL: ZOEKER',
+                        roleLabel: _roleLabel,
                       ),
                       const SizedBox(height: 12),
                       _CountdownCard(state: state),

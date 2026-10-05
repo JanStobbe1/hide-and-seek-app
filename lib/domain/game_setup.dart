@@ -10,6 +10,40 @@ class AreaPoint {
       AreaPoint((value[0] as num).toDouble(), (value[1] as num).toDouble());
 }
 
+/// Returns whether a GPS coordinate lies inside or on the edge of a play area.
+bool isInsidePlayBoundary(
+  double latitude,
+  double longitude,
+  List<AreaPoint> points,
+) {
+  if (points.length < 3) return false;
+
+  var inside = false;
+  for (var i = 0, j = points.length - 1; i < points.length; j = i++) {
+    final a = points[i];
+    final b = points[j];
+    final cross = (longitude - a.longitude) * (b.latitude - a.latitude) -
+        (latitude - a.latitude) * (b.longitude - a.longitude);
+    final onSegment = cross.abs() < 1e-10 &&
+        longitude >= math.min(a.longitude, b.longitude) &&
+        longitude <= math.max(a.longitude, b.longitude) &&
+        latitude >= math.min(a.latitude, b.latitude) &&
+        latitude <= math.max(a.latitude, b.latitude);
+    if (onSegment) return true;
+
+    final crossesLatitude =
+        (a.latitude > latitude) != (b.latitude > latitude);
+    if (crossesLatitude) {
+      final crossingLongitude = (b.longitude - a.longitude) *
+              (latitude - a.latitude) /
+              (b.latitude - a.latitude) +
+          a.longitude;
+      if (longitude < crossingLongitude) inside = !inside;
+    }
+  }
+  return inside;
+}
+
 /// Vertices are stored in walking order, without repeating the first point.
 String? validatePlayBoundary(List<AreaPoint> points) {
   if (points.length < 3 || points.length > 32) {

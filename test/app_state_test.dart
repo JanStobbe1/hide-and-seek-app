@@ -32,7 +32,7 @@ void main() {
   });
 
   test('demo games can be created and withdrawn locally', () async {
-    final state = AppState();
+    final state = AppState(demoMode: true);
     final template = state.repository.availableGames.first;
     final game = Game(
       id: 'demo-created',
@@ -51,6 +51,8 @@ void main() {
     );
 
     expect(await state.publishAsync(game), isTrue);
+    state.setDisplayName('Nieuwe naam');
+    expect(state.localGameIds, contains(game.id));
     expect(
       state.repository.availableGames.any((item) => item.id == game.id),
       isTrue,
@@ -69,6 +71,14 @@ void main() {
       state.repository.joinedGames.any((item) => item.id == game.id),
       isFalse,
     );
+  });
+
+  test('publishing fails when backend is missing outside demo mode', () async {
+    final state = AppState();
+    final game = state.repository.availableGames.first;
+
+    expect(await state.publishAsync(game), isFalse);
+    expect(state.backendError, 'backend_not_configured');
   });
 
   test('finding a player moves deterministic progress from five to six', () {

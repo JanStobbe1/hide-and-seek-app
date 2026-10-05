@@ -236,6 +236,20 @@ class AppState extends ChangeNotifier {
     return outside;
   }
 
+  bool enforceZoneReturnDeadline([DateTime? timestamp]) {
+    final deadline = zoneReturnDeadline;
+    final now = timestamp ?? DateTime.now();
+    if (inActiveZone ||
+        !playerActive ||
+        gameFinished ||
+        deadline == null ||
+        now.isBefore(deadline)) {
+      return false;
+    }
+    playerWasFound();
+    return true;
+  }
+
   void tickActiveGame([Duration amount = const Duration(seconds: 1)]) {
     final next = activeGame.tick(amount);
     if (identical(next, activeGame)) return;

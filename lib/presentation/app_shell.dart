@@ -142,8 +142,9 @@ class _AppShellState extends State<AppShell> {
                     const CircleAvatar(child: Icon(Icons.location_searching)),
                     StobbeDetectiveButton(
                       pageTitle: helpTitles[index],
-                      explanation:
-                          index == 0 ? _homeExplanation : helpTexts[index],
+                      explanation: index == 0
+                          ? _homeExplanation
+                          : helpTexts[index],
                     ),
                     const DemoBadge(),
                   ],

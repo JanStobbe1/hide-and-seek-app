@@ -6,4 +6,6 @@ Future<Map<String, dynamic>> refreshNearbyPushLocation() =>
 
 Future<bool> hasNearbyPushSubscription() async => false;
 
+Future<String?> nearbyPushEndpoint() async => null;
+
 Future<String?> disableNearbyPush() async => null;

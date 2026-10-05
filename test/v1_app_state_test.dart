@@ -4,18 +4,20 @@ import 'package:verstobbertje/domain/models.dart';
 import 'package:verstobbertje/domain/private_questions.dart';
 
 void main() {
-  test('find action applies rewards and cannot process the same hider twice',
-      () {
-    final state = AppState();
-    final before = state.playerValue(PlayerRole.seeker);
+  test(
+    'find action applies rewards and cannot process the same hider twice',
+    () {
+      final state = AppState();
+      final before = state.playerValue(PlayerRole.seeker);
 
-    expect(state.foundPlayer(), isTrue);
-    expect(state.personallyFound, 3);
-    expect(state.playerValue(PlayerRole.seeker), closeTo(before + 80, 1e-9));
-    expect(state.demoScores['seeker-2']!.value, 20);
-    expect(state.demoScores['hider-2']!.value, 110);
-    expect(state.foundPlayer(), isFalse);
-  });
+      expect(state.foundPlayer(), isTrue);
+      expect(state.personallyFound, 3);
+      expect(state.playerValue(PlayerRole.seeker), closeTo(before + 80, 1e-9));
+      expect(state.demoScores['seeker-2']!.value, 20);
+      expect(state.demoScores['hider-2']!.value, 110);
+      expect(state.foundPlayer(), isFalse);
+    },
+  );
 
   test('hint UI state follows free use, cooldown and paid use', () {
     final state = AppState();
@@ -72,8 +74,10 @@ void main() {
     );
     final deadline = state.zoneReturnDeadline!;
 
-    expect(state.enforceZoneReturnDeadline(deadline - const Duration(seconds: 1)),
-        isFalse);
+    expect(
+      state.enforceZoneReturnDeadline(deadline - const Duration(seconds: 1)),
+      isFalse,
+    );
     expect(state.playerActive, isTrue);
     expect(state.enforceZoneReturnDeadline(deadline), isTrue);
     expect(state.playerActive, isFalse);

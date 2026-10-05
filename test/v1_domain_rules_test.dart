@@ -11,90 +11,122 @@ import 'package:verstobbertje/domain/zones.dart';
 import 'package:verstobbertje/domain/game_setup.dart';
 
 void main() {
-  test('play boundary contains interior and edge points, not exterior points', () {
-    const boundary = [
-      AreaPoint(52.0, 4.0),
-      AreaPoint(52.0, 4.1),
-      AreaPoint(52.1, 4.1),
-      AreaPoint(52.1, 4.0),
-    ];
+  test(
+    'play boundary contains interior and edge points, not exterior points',
+    () {
+      const boundary = [
+        AreaPoint(52.0, 4.0),
+        AreaPoint(52.0, 4.1),
+        AreaPoint(52.1, 4.1),
+        AreaPoint(52.1, 4.0),
+      ];
 
-    expect(isInsidePlayBoundary(52.05, 4.05, boundary), isTrue);
-    expect(isInsidePlayBoundary(52.0, 4.05, boundary), isTrue);
-    expect(isInsidePlayBoundary(52.2, 4.05, boundary), isFalse);
-    expect(isInsidePlayBoundary(52.05, 4.05, const []), isFalse);
-  });
+      expect(isInsidePlayBoundary(52.05, 4.05, boundary), isTrue);
+      expect(isInsidePlayBoundary(52.0, 4.05, boundary), isTrue);
+      expect(isInsidePlayBoundary(52.2, 4.05, boundary), isFalse);
+      expect(isInsidePlayBoundary(52.05, 4.05, const []), isFalse);
+    },
+  );
 
   test('CFG-04 question marker uses a twenty-meter radius', () {
     expect(AppConfig.questionRangeMeters, 20);
   });
 
   group('AC-005 scoring', () {
-    test('80% finder, 20% per other seeker, +10 remaining hiders, idempotent',
-        () {
-      final players = <String, ParticipantScore>{
-        'a': ParticipantScore(id: 'a', role: ScoreRole.seeker, value: 0),
-        'b': ParticipantScore(id: 'b', role: ScoreRole.seeker, value: 0),
-        'c': ParticipantScore(id: 'c', role: ScoreRole.seeker, value: 0),
-        'h1': ParticipantScore(id: 'h1', role: ScoreRole.hider, value: 100),
-        'h2': ParticipantScore(id: 'h2', role: ScoreRole.hider, value: 100),
-        'h3': ParticipantScore(id: 'h3', role: ScoreRole.hider, value: 100),
-      };
-      final service = ScoringService();
-      const event = FindEvent(id: 'find-1', finderId: 'a', hiderId: 'h1');
-      final first = service.registerFind(event, players);
-      expect(first.deltas, {'a': 80, 'b': 20, 'c': 20, 'h2': 10, 'h3': 10});
-      expect(players['h1']!.active, isFalse);
-      expect(service.registerFind(event, players).applied, isFalse);
-      expect(players['a']!.value, 80);
-    });
+    test(
+      '80% finder, 20% per other seeker, +10 remaining hiders, idempotent',
+      () {
+        final players = <String, ParticipantScore>{
+          'a': ParticipantScore(id: 'a', role: ScoreRole.seeker, value: 0),
+          'b': ParticipantScore(id: 'b', role: ScoreRole.seeker, value: 0),
+          'c': ParticipantScore(id: 'c', role: ScoreRole.seeker, value: 0),
+          'h1': ParticipantScore(id: 'h1', role: ScoreRole.hider, value: 100),
+          'h2': ParticipantScore(id: 'h2', role: ScoreRole.hider, value: 100),
+          'h3': ParticipantScore(id: 'h3', role: ScoreRole.hider, value: 100),
+        };
+        final service = ScoringService();
+        const event = FindEvent(id: 'find-1', finderId: 'a', hiderId: 'h1');
+        final first = service.registerFind(event, players);
+        expect(first.deltas, {'a': 80, 'b': 20, 'c': 20, 'h2': 10, 'h3': 10});
+        expect(players['h1']!.active, isFalse);
+        expect(service.registerFind(event, players).applied, isFalse);
+        expect(players['a']!.value, 80);
+      },
+    );
   });
 
   group('AC-PNT-DECAY', () {
     const total = Duration(minutes: 60);
     test('four quarter rates and exact zero at 60 minutes', () {
       final boundaries = [0, 15, 30, 45, 60]
-          .map((minutes) => SeekerDecay.valueAt(
+          .map(
+            (minutes) => SeekerDecay.valueAt(
               startValue: 50,
               total: total,
-              elapsed: Duration(minutes: minutes)))
+              elapsed: Duration(minutes: minutes),
+            ),
+          )
           .toList();
       final losses = List.generate(
-          4, (index) => boundaries[index] - boundaries[index + 1]);
+        4,
+        (index) => boundaries[index] - boundaries[index + 1],
+      );
       expect(losses[1] / losses[0], closeTo(1.5, 1e-9));
       expect(losses[2] / losses[1], closeTo(1.5, 1e-9));
       expect(losses[3] / losses[2], closeTo(1.5, 1e-9));
       expect(boundaries.last, 0);
       expect(
-          SeekerDecay.valueAt(
-              startValue: 50, total: total, elapsed: const Duration(hours: 2)),
-          0);
+        SeekerDecay.valueAt(
+          startValue: 50,
+          total: total,
+          elapsed: const Duration(hours: 2),
+        ),
+        0,
+      );
     });
-    test('rank steps add five points',
-        () => expect(SeekerDecay.startValue(base: 50, rankSteps: 2), 60));
+    test(
+      'rank steps add five points',
+      () => expect(SeekerDecay.startValue(base: 50, rankSteps: 2), 60),
+    );
   });
 
   group('AC-008/009 private questions', () {
     test('own marker hidden and score table exact', () {
       expect(QuestionAttempt(playerId: 'a', subjectId: 'a').visible, isFalse);
-      expect(List.generate(6, QuestionScoring.pointsFor),
-          [0, 10, 20, 40, 60, 100]);
+      expect(List.generate(6, QuestionScoring.pointsFor), [
+        0,
+        10,
+        20,
+        40,
+        60,
+        100,
+      ]);
     });
     test('return at five seconds resumes; later failure is permanent', () {
       final start = DateTime(2026);
       final attempt = QuestionAttempt(playerId: 'a', subjectId: 'b');
       expect(
-          attempt.start(
-              isPrivateGame: true, questionsEnabled: true, inRange: true),
-          isTrue);
+        attempt.start(
+          isPrivateGame: true,
+          questionsEnabled: true,
+          inRange: true,
+        ),
+        isTrue,
+      );
       attempt.updateRange(inRange: false, now: start);
       attempt.updateRange(
-          inRange: true, now: start.add(const Duration(seconds: 5)));
+        inRange: true,
+        now: start.add(const Duration(seconds: 5)),
+      );
       expect(attempt.status, QuestionMarkerStatus.inProgress);
       attempt.updateRange(
-          inRange: false, now: start.add(const Duration(seconds: 6)));
+        inRange: false,
+        now: start.add(const Duration(seconds: 6)),
+      );
       attempt.updateRange(
-          inRange: false, now: start.add(const Duration(seconds: 12)));
+        inRange: false,
+        now: start.add(const Duration(seconds: 12)),
+      );
       expect(attempt.status, QuestionMarkerStatus.failed);
       expect(attempt.visible, isFalse);
     });
@@ -102,7 +134,10 @@ void main() {
       final attempts = ['b', 'c'].map((subject) {
         final attempt = QuestionAttempt(playerId: 'a', subjectId: subject);
         attempt.start(
-            isPrivateGame: true, questionsEnabled: true, inRange: true);
+          isPrivateGame: true,
+          questionsEnabled: true,
+          inRange: true,
+        );
         attempt.complete(5);
         return attempt;
       }).toList();
@@ -137,23 +172,31 @@ void main() {
     });
     test('invalid outside candidate is rejected', () {
       expect(
-          () => ZoneRules.shrink(const CircleZone(x: 0, y: 0, radius: 100),
-              offsetX: 20, offsetY: 0),
-          throwsArgumentError);
+        () => ZoneRules.shrink(
+          const CircleZone(x: 0, y: 0, radius: 100),
+          offsetX: 20,
+          offsetY: 0,
+        ),
+        throwsArgumentError,
+      );
     });
     test('return time respects min and max', () {
       expect(
-          ZoneRules.returnTime(
-              distanceMeters: 1,
-              speedMetersPerSecond: 1,
-              gameDuration: const Duration(hours: 1)),
-          const Duration(minutes: 2));
+        ZoneRules.returnTime(
+          distanceMeters: 1,
+          speedMetersPerSecond: 1,
+          gameDuration: const Duration(hours: 1),
+        ),
+        const Duration(minutes: 2),
+      );
       expect(
-          ZoneRules.returnTime(
-              distanceMeters: 100000,
-              speedMetersPerSecond: 1,
-              gameDuration: const Duration(hours: 1)),
-          const Duration(minutes: 6));
+        ZoneRules.returnTime(
+          distanceMeters: 100000,
+          speedMetersPerSecond: 1,
+          gameDuration: const Duration(hours: 1),
+        ),
+        const Duration(minutes: 6),
+      );
     });
     test('one false GPS spike is ignored and return clears countdown', () {
       final tracker = OutsideZoneTracker();
@@ -169,20 +212,30 @@ void main() {
   group('AC-001 lifecycle', () {
     test('join exact 5:00 succeeds and 5:01 fails', () {
       final start = DateTime(2026);
-      final game =
-          GameLifecycle(startsAt: start, duration: const Duration(hours: 1));
+      final game = GameLifecycle(
+        startsAt: start,
+        duration: const Duration(hours: 1),
+      );
       expect(game.canJoin(start.add(const Duration(minutes: 5))), isTrue);
-      expect(game.canJoin(start.add(const Duration(minutes: 5, seconds: 1))),
-          isFalse);
+      expect(
+        game.canJoin(start.add(const Duration(minutes: 5, seconds: 1))),
+        isFalse,
+      );
     });
     test('all three end conditions are idempotent', () {
       final start = DateTime(2026);
-      final game =
-          GameLifecycle(startsAt: start, duration: const Duration(hours: 1));
-      expect(game.finishIfNeeded(now: start, activeHiders: 0, activeSeekers: 1),
-          isTrue);
-      expect(game.finishIfNeeded(now: start, activeHiders: 0, activeSeekers: 1),
-          isFalse);
+      final game = GameLifecycle(
+        startsAt: start,
+        duration: const Duration(hours: 1),
+      );
+      expect(
+        game.finishIfNeeded(now: start, activeHiders: 0, activeSeekers: 1),
+        isTrue,
+      );
+      expect(
+        game.finishIfNeeded(now: start, activeHiders: 0, activeSeekers: 1),
+        isFalse,
+      );
       expect(game.takeAutomaticResultDisplay(), isTrue);
       expect(game.takeAutomaticResultDisplay(), isFalse);
     });
@@ -190,11 +243,15 @@ void main() {
 
   test('AC-013 profile name validation', () {
     expect(ProfileNameValidation.validate('Arie123'), isNull);
-    expect(ProfileNameValidation.validate('ABCDEFGHIJKLMNOPQRSTUVWXYZABCDE'),
-        isNotNull);
+    expect(
+      ProfileNameValidation.validate('ABCDEFGHIJKLMNOPQRSTUVWXYZABCDE'),
+      isNotNull,
+    );
     expect(ProfileNameValidation.validate('ARIE'), isNotNull);
-    expect(ProfileNameValidation.validate('fuck123'),
-        ProfileNameValidation.offensiveMessage);
+    expect(
+      ProfileNameValidation.validate('fuck123'),
+      ProfileNameValidation.offensiveMessage,
+    );
   });
 
   test('AC-007 hint costs are atomic and cooldown enforced', () {
@@ -202,21 +259,24 @@ void main() {
     final state = HintState(points: 10);
     const service = HintService();
     expect(
-        service
-            .use(state: state, now: now, quarter: 1, zoneAllowsHints: true)
-            .cost,
-        0);
+      service
+          .use(state: state, now: now, quarter: 1, zoneAllowsHints: true)
+          .cost,
+      0,
+    );
     expect(
-        service
-            .use(state: state, now: now, quarter: 1, zoneAllowsHints: true)
-            .allowed,
-        isFalse);
+      service
+          .use(state: state, now: now, quarter: 1, zoneAllowsHints: true)
+          .allowed,
+      isFalse,
+    );
     final later = now.add(const Duration(minutes: 10));
     expect(
-        service
-            .use(state: state, now: later, quarter: 1, zoneAllowsHints: true)
-            .cost,
-        5);
+      service
+          .use(state: state, now: later, quarter: 1, zoneAllowsHints: true)
+          .cost,
+      5,
+    );
     expect(state.points, 5);
     expect(service.resultPenalty(state), 1);
   });

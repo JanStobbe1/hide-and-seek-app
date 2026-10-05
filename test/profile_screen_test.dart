@@ -46,10 +46,12 @@ void main() {
         ),
       );
 
-      final badge = tester.widget<Container>(find.byType(Container));
+      final badge = tester.widget<Container>(
+        find.byKey(const ValueKey('player-marker-badge-wolf')),
+      );
       final decoration = badge.decoration! as BoxDecoration;
       expect(decoration.color, markerAccentColor(PlayerMarker.wolf));
-      expect(decoration.border, isA<Border>());
+      expect(decoration.border, isNull);
       expect(
         tester.widget<Icon>(find.byIcon(markerIcon(PlayerMarker.wolf))).color,
         Colors.white,
@@ -62,13 +64,18 @@ void main() {
           ),
         ),
       );
-      expect(
-        find.descendant(
-          of: find.byType(PlayerMarkerBadge),
-          matching: find.byType(CustomPaint),
-        ),
-        findsOneWidget,
+      final ghostBadge = find.byKey(
+        const ValueKey('player-marker-badge-ghost'),
       );
+      final ghostPainter = find.descendant(
+        of: ghostBadge,
+        matching: find.byType(CustomPaint),
+      );
+      expect(ghostPainter, findsOneWidget);
+      final badgeCenter = tester.getCenter(ghostBadge);
+      final ghostCenter = tester.getCenter(ghostPainter);
+      expect((badgeCenter.dx - ghostCenter.dx).abs(), lessThan(1));
+      expect((badgeCenter.dy - ghostCenter.dy).abs(), lessThan(1));
       expect(find.byIcon(Icons.cruelty_free), findsNothing);
     },
   );

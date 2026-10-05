@@ -82,10 +82,7 @@ class _RealLocationMap extends StatelessWidget {
                             radius: 24,
                             borderColor: const Color(0xff315c46),
                           ),
-                          PlayerMarkerBadge(
-                            marker: playerMarker,
-                            size: 18,
-                          ),
+                          PlayerMarkerBadge(marker: playerMarker, size: 18),
                         ],
                       ),
                       const Text(
@@ -188,23 +185,23 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
 
   @override
   Widget build(BuildContext context) => ListenableBuilder(
-        listenable: state,
-        builder: (context, _) => Scaffold(
-          appBar: AppBar(
-            title: Text(selectedGame?.name ?? 'Actief spel'),
-            actions: [
-              IconButton(
-                tooltip: 'Vraag het de Stobbedetective',
-                onPressed: _showDetectiveHelp,
-                icon: const Icon(Icons.support_agent),
-              ),
-              const Padding(padding: EdgeInsets.all(12), child: DemoBadge()),
-            ],
+    listenable: state,
+    builder: (context, _) => Scaffold(
+      appBar: AppBar(
+        title: Text(selectedGame?.name ?? 'Actief spel'),
+        actions: [
+          IconButton(
+            tooltip: 'Vraag het de Stobbedetective',
+            onPressed: _showDetectiveHelp,
+            icon: const Icon(Icons.support_agent),
           ),
-          body: Stack(
-            children: [
-              IndexedStack(
-                index: _pageIndex,
+          const Padding(padding: EdgeInsets.all(12), child: DemoBadge()),
+        ],
+      ),
+      body: Stack(
+        children: [
+          IndexedStack(
+            index: _pageIndex,
             children: [
               Center(
                 child: ConstrainedBox(
@@ -236,42 +233,39 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
                 onActivate: _activatePower,
                 powersEnabled: selectedGame?.rules.stobbePowersEnabled ?? true,
               ),
-              ],
-              ),
-              if (!state.inActiveZone &&
-                  state.playerActive &&
-                  state.zoneReturnDeadline != null)
-                Positioned.fill(
-                  child: _OutsideZoneWarning(
-                    deadline: state.zoneReturnDeadline!,
-                  ),
-                ),
             ],
           ),
-          bottomNavigationBar: NavigationBar(
-            selectedIndex: _pageIndex,
-            onDestinationSelected: (value) =>
-                setState(() => _pageIndex = value),
-            destinations: const [
-              NavigationDestination(
-                icon: Icon(Icons.dashboard_outlined),
-                selectedIcon: Icon(Icons.dashboard),
-                label: 'Overzicht',
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.map_outlined),
-                selectedIcon: Icon(Icons.map),
-                label: 'Kaart',
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.auto_awesome_outlined),
-                selectedIcon: Icon(Icons.auto_awesome),
-                label: 'Krachten',
-              ),
-            ],
+          if (!state.inActiveZone &&
+              state.playerActive &&
+              state.zoneReturnDeadline != null)
+            Positioned.fill(
+              child: _OutsideZoneWarning(deadline: state.zoneReturnDeadline!),
+            ),
+        ],
+      ),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _pageIndex,
+        onDestinationSelected: (value) => setState(() => _pageIndex = value),
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.dashboard_outlined),
+            selectedIcon: Icon(Icons.dashboard),
+            label: 'Overzicht',
           ),
-        ),
-      );
+          NavigationDestination(
+            icon: Icon(Icons.map_outlined),
+            selectedIcon: Icon(Icons.map),
+            label: 'Kaart',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.auto_awesome_outlined),
+            selectedIcon: Icon(Icons.auto_awesome),
+            label: 'Krachten',
+          ),
+        ],
+      ),
+    ),
+  );
 
   void _activatePower(StobbePowerKind kind, String name) {
     if (!state.activateStobbePower(kind)) {
@@ -307,8 +301,9 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
   Duration get _powerEffectRemaining {
     final started = _powerEffectStartedAt;
     if (started == null) return Duration.zero;
-    final remaining =
-        started.add(_powerEffectDuration).difference(DateTime.now());
+    final remaining = started
+        .add(_powerEffectDuration)
+        .difference(DateTime.now());
     return remaining.isNegative ? Duration.zero : remaining;
   }
 
@@ -340,9 +335,7 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
               ),
               Text(
                 titles[_pageIndex],
-                style: Theme.of(context)
-                    .textTheme
-                    .headlineSmall
+                style: Theme.of(context).textTheme.headlineSmall
                     ?.copyWith(fontWeight: FontWeight.w900),
               ),
               const SizedBox(height: 8),
@@ -556,8 +549,10 @@ class _ActiveMapPageState extends State<_ActiveMapPage>
 
   void zoom(double factor) {
     if (currentLocation != null || widget.boundary.isNotEmpty) {
-      mapController.move(mapController.camera.center,
-          mapController.camera.zoom + (factor > 1 ? 1 : -1));
+      mapController.move(
+        mapController.camera.center,
+        mapController.camera.zoom + (factor > 1 ? 1 : -1),
+      );
       return;
     }
     if (viewportSize.isEmpty) return;
@@ -582,10 +577,12 @@ class _ActiveMapPageState extends State<_ActiveMapPage>
       return;
     }
     if (widget.boundary.isNotEmpty) {
-      mapController.fitCamera(CameraFit.bounds(
-        bounds: LatLngBounds.fromPoints(mapPoints(widget.boundary)),
-        padding: const EdgeInsets.all(32),
-      ));
+      mapController.fitCamera(
+        CameraFit.bounds(
+          bounds: LatLngBounds.fromPoints(mapPoints(widget.boundary)),
+          padding: const EdgeInsets.all(32),
+        ),
+      );
       return;
     }
     if (viewportSize.isEmpty) return;
@@ -601,187 +598,193 @@ class _ActiveMapPageState extends State<_ActiveMapPage>
 
   @override
   Widget build(BuildContext context) => LayoutBuilder(
-        builder: (context, constraints) {
-          viewportSize = constraints.biggest;
-          if (!didInitialCenter && !viewportSize.isEmpty) {
-            didInitialCenter = true;
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted) recenter();
-            });
-          }
-          return Stack(
-            children: [
-              Positioned.fill(
-                child: ClipRect(
-                  child: currentLocation != null
-                      ? _RealLocationMap(
-                          location: currentLocation!,
+    builder: (context, constraints) {
+      viewportSize = constraints.biggest;
+      if (!didInitialCenter && !viewportSize.isEmpty) {
+        didInitialCenter = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) recenter();
+        });
+      }
+      return Stack(
+        children: [
+          Positioned.fill(
+            child: ClipRect(
+              child: currentLocation != null
+                  ? _RealLocationMap(
+                      location: currentLocation!,
+                      boundary: widget.boundary,
+                      playerMarker: widget.state.playerMarker,
+                      avatarId: widget.state.profileAvatar,
+                      controller: mapController,
+                    )
+                  : widget.boundary.isNotEmpty
+                  ? Stack(
+                      children: [
+                        PlayAreaMap(
                           boundary: widget.boundary,
-                          playerMarker: widget.state.playerMarker,
-                          avatarId: widget.state.profileAvatar,
+                          height: constraints.maxHeight,
                           controller: mapController,
-                        )
-                      : widget.boundary.isNotEmpty
-                          ? Stack(children: [
-                              PlayAreaMap(
-                                  boundary: widget.boundary,
-                                  height: constraints.maxHeight,
-                                  controller: mapController),
-                              Positioned(
-                                left: 12,
-                                right: 12,
-                                bottom: 100,
-                                child: Card(
-                                    child: ListTile(
-                                  title: Text(locationError ??
-                                      'Je locatie wordt opgehaald…'),
-                                  subtitle: const Text(
-                                      'Het speelgebied is al zichtbaar. Voor jouw positie is locatietoestemming nodig.'),
-                                  trailing: IconButton(
-                                      tooltip: 'Locatie opnieuw ophalen',
-                                      icon: const Icon(Icons.refresh),
-                                      onPressed: _startRealLocation),
-                                )),
+                        ),
+                        Positioned(
+                          left: 12,
+                          right: 12,
+                          bottom: 100,
+                          child: Card(
+                            child: ListTile(
+                              title: Text(
+                                locationError ?? 'Je locatie wordt opgehaald…',
                               ),
-                            ])
-                          : InteractiveViewer(
-                              transformationController: controller,
-                              constrained: false,
-                              alignment: Alignment.center,
-                              minScale: .55,
-                              maxScale: 3,
-                              boundaryMargin: const EdgeInsets.all(300),
-                              child: SizedBox(
-                                width: 1100,
-                                height: 820,
-                                child: DecoratedBox(
-                                  decoration: const BoxDecoration(
-                                    color: Color(0xffe8f0e5),
-                                  ),
-                                  child: Center(
-                                    child: Card(
-                                      margin: const EdgeInsets.all(24),
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(24),
-                                        child: Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            const Icon(Icons.location_off,
-                                                size: 48),
-                                            const SizedBox(height: 12),
-                                            Text(
-                                              locationError ??
-                                                  'Je echte locatie wordt opgehaald…',
-                                              textAlign: TextAlign.center,
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.w700,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 8),
-                                            const Text(
-                                              'Geef in je browser locatietoestemming '
-                                              'en probeer het daarna opnieuw.',
-                                              textAlign: TextAlign.center,
-                                            ),
-                                            const SizedBox(height: 16),
-                                            FilledButton.icon(
-                                              onPressed: _startRealLocation,
-                                              icon: const Icon(Icons.refresh),
-                                              label: const Text(
-                                                  'Opnieuw proberen'),
-                                            ),
-                                          ],
-                                        ),
+                              subtitle: const Text(
+                                'Het speelgebied is al zichtbaar. Voor jouw positie is locatietoestemming nodig.',
+                              ),
+                              trailing: IconButton(
+                                tooltip: 'Locatie opnieuw ophalen',
+                                icon: const Icon(Icons.refresh),
+                                onPressed: _startRealLocation,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  : InteractiveViewer(
+                      transformationController: controller,
+                      constrained: false,
+                      alignment: Alignment.center,
+                      minScale: .55,
+                      maxScale: 3,
+                      boundaryMargin: const EdgeInsets.all(300),
+                      child: SizedBox(
+                        width: 1100,
+                        height: 820,
+                        child: DecoratedBox(
+                          decoration: const BoxDecoration(
+                            color: Color(0xffe8f0e5),
+                          ),
+                          child: Center(
+                            child: Card(
+                              margin: const EdgeInsets.all(24),
+                              child: Padding(
+                                padding: const EdgeInsets.all(24),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.location_off, size: 48),
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      locationError ??
+                                          'Je echte locatie wordt opgehaald…',
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w700,
                                       ),
                                     ),
-                                  ),
+                                    const SizedBox(height: 8),
+                                    const Text(
+                                      'Geef in je browser locatietoestemming '
+                                      'en probeer het daarna opnieuw.',
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    const SizedBox(height: 16),
+                                    FilledButton.icon(
+                                      onPressed: _startRealLocation,
+                                      icon: const Icon(Icons.refresh),
+                                      label: const Text('Opnieuw proberen'),
+                                    ),
+                                  ],
                                 ),
-                              )),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+            ),
+          ),
+          Positioned(
+            top: 16,
+            left: 16,
+            child: Card(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                child: Text(
+                  'Speelveld • '
+                  '${widget.state.findDistanceMeters.toStringAsFixed(0)} m '
+                  'vangafstand',
+                  style: const TextStyle(fontWeight: FontWeight.w800),
                 ),
               ),
-              Positioned(
-                top: 16,
-                left: 16,
-                child: Card(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    child: Text(
-                      'Speelveld • '
-                      '${widget.state.findDistanceMeters.toStringAsFixed(0)} m '
-                      'vangafstand',
-                      style: const TextStyle(fontWeight: FontWeight.w800),
-                    ),
-                  ),
+            ),
+          ),
+          Positioned(
+            top: 16,
+            right: 16,
+            child: Column(
+              children: [
+                _MapButton(
+                  tooltip: 'Inzoomen',
+                  icon: Icons.add,
+                  onPressed: () => zoom(1.3),
+                ),
+                const SizedBox(height: 8),
+                _MapButton(
+                  tooltip: 'Uitzoomen',
+                  icon: Icons.remove,
+                  onPressed: () => zoom(.75),
+                ),
+                const SizedBox(height: 8),
+                _MapButton(
+                  tooltip: 'Terug naar mijn locatie',
+                  icon: Icons.my_location,
+                  onPressed: recenter,
+                ),
+                const SizedBox(height: 8),
+                _MapButton(
+                  tooltip: 'Legenda',
+                  icon: showLegend ? Icons.close : Icons.layers_outlined,
+                  onPressed: () => setState(() => showLegend = !showLegend),
+                ),
+              ],
+            ),
+          ),
+          if (widget.activePowerEffect != null)
+            Positioned.fill(
+              child: IgnorePointer(
+                child: _PowerMapEffect(
+                  kind: widget.activePowerEffect!,
+                  animation: powerAnimation,
+                  remaining: widget.activePowerRemaining,
+                  total: widget.activePowerDuration > Duration.zero
+                      ? widget.activePowerDuration
+                      : const Duration(seconds: 1),
                 ),
               ),
-              Positioned(
-                top: 16,
-                right: 16,
-                child: Column(
-                  children: [
-                    _MapButton(
-                      tooltip: 'Inzoomen',
-                      icon: Icons.add,
-                      onPressed: () => zoom(1.3),
-                    ),
-                    const SizedBox(height: 8),
-                    _MapButton(
-                      tooltip: 'Uitzoomen',
-                      icon: Icons.remove,
-                      onPressed: () => zoom(.75),
-                    ),
-                    const SizedBox(height: 8),
-                    _MapButton(
-                      tooltip: 'Terug naar mijn locatie',
-                      icon: Icons.my_location,
-                      onPressed: recenter,
-                    ),
-                    const SizedBox(height: 8),
-                    _MapButton(
-                      tooltip: 'Legenda',
-                      icon: showLegend ? Icons.close : Icons.layers_outlined,
-                      onPressed: () => setState(() => showLegend = !showLegend),
-                    ),
-                  ],
-                ),
-              ),
-              if (widget.activePowerEffect != null)
-                Positioned.fill(
-                  child: IgnorePointer(
-                    child: _PowerMapEffect(
-                      kind: widget.activePowerEffect!,
-                      animation: powerAnimation,
-                      remaining: widget.activePowerRemaining,
-                      total: widget.activePowerDuration > Duration.zero
-                          ? widget.activePowerDuration
-                          : const Duration(seconds: 1),
-                    ),
-                  ),
-                ),
-              if (showLegend)
-                const Positioned(
-                  left: 16,
-                  right: 82,
-                  bottom: 88,
-                  child: _MapLegend(),
-                ),
-              Positioned(
-                left: 24,
-                right: 24,
-                bottom: 18,
-                child: FilledButton.icon(
-                  onPressed: widget.state.gameFinished ? null : widget.onCatch,
-                  icon: const Icon(Icons.gps_fixed),
-                  label: const Text('PAK SPELER'),
-                ),
-              ),
-            ],
-          );
-        },
+            ),
+          if (showLegend)
+            const Positioned(
+              left: 16,
+              right: 82,
+              bottom: 88,
+              child: _MapLegend(),
+            ),
+          Positioned(
+            left: 24,
+            right: 24,
+            bottom: 18,
+            child: FilledButton.icon(
+              onPressed: widget.state.gameFinished ? null : widget.onCatch,
+              icon: const Icon(Icons.gps_fixed),
+              label: const Text('PAK SPELER'),
+            ),
+          ),
+        ],
       );
+    },
+  );
 }
 
 class _OutsideZoneWarning extends StatefulWidget {
@@ -814,7 +817,10 @@ class _OutsideZoneWarningState extends State<_OutsideZoneWarning>
 
   @override
   Widget build(BuildContext context) {
-    final seconds = math.max(0, widget.deadline.difference(DateTime.now()).inSeconds);
+    final seconds = math.max(
+      0,
+      widget.deadline.difference(DateTime.now()).inSeconds,
+    );
     final minutesLabel = (seconds ~/ 60).toString().padLeft(2, '0');
     final secondsLabel = (seconds % 60).toString().padLeft(2, '0');
 
@@ -908,108 +914,107 @@ class _PowerMapEffect extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => LayoutBuilder(
-        builder: (context, constraints) => AnimatedBuilder(
-          animation: animation,
-          builder: (context, _) {
-            final center = constraints.biggest.center(Offset.zero);
-            final angle = animation.value * math.pi * 4;
-            final isDrone = kind == StobbePowerKind.digitalDrone;
-            final position = isDrone
-                ? center + Offset(math.cos(angle) * 105, math.sin(angle) * 70)
-                : center;
-            final label = switch (kind) {
-              StobbePowerKind.digitalDrone => 'Drone verkent het speelveld',
-              StobbePowerKind.stobbeArm => 'Arm van de Stobbe beschermt je',
-              StobbePowerKind.invisibilityPotion =>
-                'Je bent tijdelijk onzichtbaar',
-              _ => 'Stobbekracht actief',
-            };
-            final icon = switch (kind) {
-              StobbePowerKind.digitalDrone => Icons.flight,
-              StobbePowerKind.stobbeArm => Icons.precision_manufacturing,
-              StobbePowerKind.invisibilityPotion => Icons.visibility_off,
-              _ => Icons.auto_awesome,
-            };
-            final seconds = remaining.inSeconds.clamp(0, 5999);
-            final minutes = seconds ~/ 60;
-            final rest = seconds % 60;
-            final timeLabel =
-                '$minutes:${rest.toString().padLeft(2, '0')} resterend';
-            final progress = (remaining.inMilliseconds / total.inMilliseconds)
-                .clamp(0.0, 1.0)
-                .toDouble();
-            return Stack(
-              children: [
-                Positioned(
-                  left: position.dx - 28,
-                  top: position.dy - 28,
-                  child: Transform.rotate(
-                    angle: isDrone ? angle + math.pi / 2 : 0,
-                    child: Material(
-                      color: const Color(0xff6650a4),
-                      elevation: 8,
-                      shape: const CircleBorder(),
-                      child: Padding(
-                        padding: const EdgeInsets.all(14),
-                        child: Icon(icon, color: Colors.white, size: 28),
-                      ),
-                    ),
+    builder: (context, constraints) => AnimatedBuilder(
+      animation: animation,
+      builder: (context, _) {
+        final center = constraints.biggest.center(Offset.zero);
+        final angle = animation.value * math.pi * 4;
+        final isDrone = kind == StobbePowerKind.digitalDrone;
+        final position = isDrone
+            ? center + Offset(math.cos(angle) * 105, math.sin(angle) * 70)
+            : center;
+        final label = switch (kind) {
+          StobbePowerKind.digitalDrone => 'Drone verkent het speelveld',
+          StobbePowerKind.stobbeArm => 'Arm van de Stobbe beschermt je',
+          StobbePowerKind.invisibilityPotion => 'Je bent tijdelijk onzichtbaar',
+          _ => 'Stobbekracht actief',
+        };
+        final icon = switch (kind) {
+          StobbePowerKind.digitalDrone => Icons.flight,
+          StobbePowerKind.stobbeArm => Icons.precision_manufacturing,
+          StobbePowerKind.invisibilityPotion => Icons.visibility_off,
+          _ => Icons.auto_awesome,
+        };
+        final seconds = remaining.inSeconds.clamp(0, 5999);
+        final minutes = seconds ~/ 60;
+        final rest = seconds % 60;
+        final timeLabel =
+            '$minutes:${rest.toString().padLeft(2, '0')} resterend';
+        final progress = (remaining.inMilliseconds / total.inMilliseconds)
+            .clamp(0.0, 1.0)
+            .toDouble();
+        return Stack(
+          children: [
+            Positioned(
+              left: position.dx - 28,
+              top: position.dy - 28,
+              child: Transform.rotate(
+                angle: isDrone ? angle + math.pi / 2 : 0,
+                child: Material(
+                  color: const Color(0xff6650a4),
+                  elevation: 8,
+                  shape: const CircleBorder(),
+                  child: Padding(
+                    padding: const EdgeInsets.all(14),
+                    child: Icon(icon, color: Colors.white, size: 28),
                   ),
                 ),
-                Align(
-                  alignment: const Alignment(0, -.72),
-                  child: Card(
-                    color: const Color(0xff6650a4),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 8,
-                      ),
-                      child: Column(
+              ),
+            ),
+            Align(
+              alignment: const Alignment(0, -.72),
+              child: Card(
+                color: const Color(0xff6650a4),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 8,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(icon, color: Colors.white, size: 18),
-                              const SizedBox(width: 6),
-                              Text(
-                                label,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
+                          Icon(icon, color: Colors.white, size: 18),
+                          const SizedBox(width: 6),
                           Text(
-                            timeLabel,
+                            label,
                             style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 12,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          SizedBox(
-                            width: 150,
-                            child: LinearProgressIndicator(
-                              value: progress,
-                              minHeight: 3,
-                              backgroundColor: Colors.white24,
                               color: Colors.white,
+                              fontWeight: FontWeight.w800,
                             ),
                           ),
                         ],
                       ),
-                    ),
+                      const SizedBox(height: 4),
+                      Text(
+                        timeLabel,
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      SizedBox(
+                        width: 150,
+                        child: LinearProgressIndicator(
+                          value: progress,
+                          minHeight: 3,
+                          backgroundColor: Colors.white24,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            );
-          },
-        ),
-      );
+              ),
+            ),
+          ],
+        );
+      },
+    ),
+  );
 }
 
 class _MapButton extends StatelessWidget {
@@ -1024,11 +1029,11 @@ class _MapButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => FloatingActionButton.small(
-        heroTag: tooltip,
-        tooltip: tooltip,
-        onPressed: onPressed,
-        child: Icon(icon),
-      );
+    heroTag: tooltip,
+    tooltip: tooltip,
+    onPressed: onPressed,
+    child: Icon(icon),
+  );
 }
 
 class _MapLegend extends StatelessWidget {
@@ -1036,20 +1041,20 @@ class _MapLegend extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => const Card(
-        child: Padding(
-          padding: EdgeInsets.all(12),
-          child: Wrap(
-            spacing: 14,
-            runSpacing: 8,
-            children: [
-              _LegendItem(Icons.person_pin_circle, 'Jij'),
-              _LegendItem(Icons.help_outline, 'Zoekcirkel'),
-              _LegendItem(Icons.auto_awesome, 'Stobbekracht'),
-              _LegendItem(Icons.inventory_2, 'Stobbekist: profielpunten'),
-            ],
-          ),
-        ),
-      );
+    child: Padding(
+      padding: EdgeInsets.all(12),
+      child: Wrap(
+        spacing: 14,
+        runSpacing: 8,
+        children: [
+          _LegendItem(Icons.person_pin_circle, 'Jij'),
+          _LegendItem(Icons.help_outline, 'Zoekcirkel'),
+          _LegendItem(Icons.auto_awesome, 'Stobbekracht'),
+          _LegendItem(Icons.inventory_2, 'Stobbekist: profielpunten'),
+        ],
+      ),
+    ),
+  );
 }
 
 class _LegendItem extends StatelessWidget {
@@ -1059,9 +1064,9 @@ class _LegendItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [Icon(icon, size: 20), const SizedBox(width: 6), Text(label)],
-      );
+    mainAxisSize: MainAxisSize.min,
+    children: [Icon(icon, size: 20), const SizedBox(width: 6), Text(label)],
+  );
 }
 
 class _StobbePowersPage extends StatelessWidget {
@@ -1077,100 +1082,100 @@ class _StobbePowersPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        color: const Color(0xffefe3ca),
-        child: ListView(
-          padding: const EdgeInsets.all(20),
-          children: [
-            Text(
-              'Jouw Stobbetas',
-              style: Theme.of(context)
-                  .textTheme
-                  .headlineSmall
-                  ?.copyWith(fontWeight: FontWeight.w900),
-            ),
-            const Text(
-              'Verzameld in dit spel • ongebruikte fiches vervallen na afloop',
-            ),
-            const SizedBox(height: 18),
-            if (!powersEnabled)
-              const Card(
-                child: ListTile(
-                  leading: Icon(Icons.auto_awesome_outlined),
-                  title: Text('Deze game speelt zonder Stobbekrachten'),
-                  subtitle: Text(
-                    'In deze ronde zitten er geen fiches in je Stobbetas.',
-                  ),
-                ),
-              ),
-            if (powersEnabled)
-              Center(
-                child: Container(
-                  width: 620,
-                  padding: const EdgeInsets.fromLTRB(22, 12, 22, 26),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [Color(0xffa76b35), Color(0xff70431f)],
-                    ),
-                    borderRadius: BorderRadius.circular(28),
-                    border:
-                        Border.all(color: const Color(0xff4f2d16), width: 4),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Colors.black26,
-                        blurRadius: 14,
-                        offset: Offset(0, 8),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      Container(
-                        width: 150,
-                        height: 24,
-                        decoration: BoxDecoration(
-                          color: const Color(0xff4f2d16),
-                          borderRadius: BorderRadius.circular(18),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      GridView.count(
-                        crossAxisCount:
-                            MediaQuery.sizeOf(context).width < 520 ? 2 : 3,
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        mainAxisSpacing: 16,
-                        crossAxisSpacing: 16,
-                        childAspectRatio: .72,
-                        children: state.powerInventory.slots.map((slot) {
-                          final details = _powerDetails(slot.definition.kind);
-                          return _PowerToken(
-                            icon: details.icon,
-                            name: slot.definition.name,
-                            description: details.description,
-                            count: slot.quantity,
-                            color: details.color,
-                            cooldownRemaining: slot.cooldownRemaining(),
-                            cooldownUntil: slot.cooldownUntil,
-                            showCooldownTimer: slot.quantity > 0 &&
-                                slot.uses < slot.definition.maxUsesPerGame,
-                            enabled: !state.gameFinished &&
-                                slot.canUse(state.powerInventory.phase),
-                            onActivate: () => onActivate(
-                              slot.definition.kind,
-                              slot.definition.name,
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-          ],
+    color: const Color(0xffefe3ca),
+    child: ListView(
+      padding: const EdgeInsets.all(20),
+      children: [
+        Text(
+          'Jouw Stobbetas',
+          style: Theme.of(context).textTheme.headlineSmall
+              ?.copyWith(fontWeight: FontWeight.w900),
         ),
-      );
+        const Text(
+          'Verzameld in dit spel • ongebruikte fiches vervallen na afloop',
+        ),
+        const SizedBox(height: 18),
+        if (!powersEnabled)
+          const Card(
+            child: ListTile(
+              leading: Icon(Icons.auto_awesome_outlined),
+              title: Text('Deze game speelt zonder Stobbekrachten'),
+              subtitle: Text(
+                'In deze ronde zitten er geen fiches in je Stobbetas.',
+              ),
+            ),
+          ),
+        if (powersEnabled)
+          Center(
+            child: Container(
+              width: 620,
+              padding: const EdgeInsets.fromLTRB(22, 12, 22, 26),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xffa76b35), Color(0xff70431f)],
+                ),
+                borderRadius: BorderRadius.circular(28),
+                border: Border.all(color: const Color(0xff4f2d16), width: 4),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 14,
+                    offset: Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    width: 150,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      color: const Color(0xff4f2d16),
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  GridView.count(
+                    crossAxisCount: MediaQuery.sizeOf(context).width < 520
+                        ? 2
+                        : 3,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    mainAxisSpacing: 16,
+                    crossAxisSpacing: 16,
+                    childAspectRatio: .72,
+                    children: state.powerInventory.slots.map((slot) {
+                      final details = _powerDetails(slot.definition.kind);
+                      return _PowerToken(
+                        icon: details.icon,
+                        name: slot.definition.name,
+                        description: details.description,
+                        count: slot.quantity,
+                        color: details.color,
+                        cooldownRemaining: slot.cooldownRemaining(),
+                        cooldownUntil: slot.cooldownUntil,
+                        showCooldownTimer:
+                            slot.quantity > 0 &&
+                            slot.uses < slot.definition.maxUsesPerGame,
+                        enabled:
+                            !state.gameFinished &&
+                            slot.canUse(state.powerInventory.phase),
+                        onActivate: () => onActivate(
+                          slot.definition.kind,
+                          slot.definition.name,
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
+            ),
+          ),
+      ],
+    ),
+  );
 }
 
 class _PowerToken extends StatelessWidget {
@@ -1199,81 +1204,81 @@ class _PowerToken extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => InkWell(
+    borderRadius: BorderRadius.circular(18),
+    onTap: () => _showPower(context),
+    child: Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: const Color(0xfff5e9d0),
         borderRadius: BorderRadius.circular(18),
-        onTap: () => _showPower(context),
-        child: Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: const Color(0xfff5e9d0),
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: const Color(0xffd2b98d), width: 2),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+        border: Border.all(color: const Color(0xffd2b98d), width: 2),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Stack(
+            clipBehavior: Clip.none,
             children: [
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Container(
-                    width: 68,
-                    height: 68,
-                    decoration: BoxDecoration(
-                      color: enabled ? color : Colors.grey,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 4),
-                      boxShadow: const [
-                        BoxShadow(color: Colors.black26, blurRadius: 6),
-                      ],
-                    ),
-                    child: Icon(icon, color: Colors.white, size: 34),
-                  ),
-                  Positioned(
-                    right: -8,
-                    top: -8,
-                    child: CircleAvatar(
-                      radius: 15,
-                      backgroundColor: const Color(0xff2d2118),
-                      child: Text(
-                        '×$count',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
+              Container(
+                width: 68,
+                height: 68,
+                decoration: BoxDecoration(
+                  color: enabled ? color : Colors.grey,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 4),
+                  boxShadow: const [
+                    BoxShadow(color: Colors.black26, blurRadius: 6),
+                  ],
+                ),
+                child: Icon(icon, color: Colors.white, size: 34),
+              ),
+              Positioned(
+                right: -8,
+                top: -8,
+                child: CircleAvatar(
+                  radius: 15,
+                  backgroundColor: const Color(0xff2d2118),
+                  child: Text(
+                    '×$count',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              Text(
-                name,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontWeight: FontWeight.w800),
-              ),
-              if (showCooldownTimer && cooldownRemaining > Duration.zero) ...[
-                const SizedBox(height: 2),
-                Text(
-                  'Opnieuw inzetbaar over '
-                  '${_formatPowerDuration(cooldownRemaining)}',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 10, color: Colors.black54),
                 ),
-              ],
-              const SizedBox(height: 6),
-              FilledButton.tonal(
-                onPressed: enabled ? onActivate : null,
-                style: const ButtonStyle(
-                  visualDensity: VisualDensity.compact,
-                  padding: WidgetStatePropertyAll(
-                    EdgeInsets.symmetric(horizontal: 10),
-                  ),
-                ),
-                child: const Text('INZETTEN'),
               ),
             ],
           ),
-        ),
-      );
+          const SizedBox(height: 6),
+          Text(
+            name,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontWeight: FontWeight.w800),
+          ),
+          if (showCooldownTimer && cooldownRemaining > Duration.zero) ...[
+            const SizedBox(height: 2),
+            Text(
+              'Opnieuw inzetbaar over '
+              '${_formatPowerDuration(cooldownRemaining)}',
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 10, color: Colors.black54),
+            ),
+          ],
+          const SizedBox(height: 6),
+          FilledButton.tonal(
+            onPressed: enabled ? onActivate : null,
+            style: const ButtonStyle(
+              visualDensity: VisualDensity.compact,
+              padding: WidgetStatePropertyAll(
+                EdgeInsets.symmetric(horizontal: 10),
+              ),
+            ),
+            child: const Text('INZETTEN'),
+          ),
+        ],
+      ),
+    ),
+  );
 
   void _showPower(BuildContext context) {
     showModalBottomSheet<void>(
@@ -1351,9 +1356,7 @@ class _PowerDetailsSheetState extends State<_PowerDetailsSheet> {
           Icon(widget.icon, color: widget.color, size: 52),
           Text(
             widget.name,
-            style: Theme.of(context)
-                .textTheme
-                .titleLarge
+            style: Theme.of(context).textTheme.titleLarge
                 ?.copyWith(fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 8),
@@ -1390,56 +1393,46 @@ String _formatPowerDuration(Duration duration) {
 
 ({IconData icon, String description, Color color}) _powerDetails(
   StobbePowerKind kind,
-) =>
-    switch (kind) {
-      StobbePowerKind.digitalDrone => (
-          icon: Icons.flight,
-          description:
-              'Geeft je tijdelijk een ruimer zicht op het speelveld en laat meer van de omgeving zien.',
-          color: const Color(0xff3f6f91),
-        ),
-      StobbePowerKind.stobbeArm => (
-          icon: Icons.precision_manufacturing,
-          description:
-              'Verkleint tijdelijk jouw zichtbaarheid en maakt het voor zoekers moeilijker om je te vinden.',
-          color: const Color(0xff477653),
-        ),
-      StobbePowerKind.invisibilityPotion => (
-          icon: Icons.visibility_off,
-          description:
-              'Verbergt jouw digitale positie gedurende een korte periode op de kaart van andere spelers.',
-          color: const Color(0xff74558c),
-        ),
-      _ => (
-          icon: Icons.auto_awesome,
-          description: 'Een tijdelijke Stobbekracht voor dit spel.',
-          color: const Color(0xff6650a4),
-        ),
-    };
+) => switch (kind) {
+  StobbePowerKind.digitalDrone => (
+    icon: Icons.flight,
+    description: 'Geeft je tijdelijk een ruimer zicht op het speelveld en laat meer van de omgeving zien.',
+    color: const Color(0xff3f6f91),
+  ),
+  StobbePowerKind.stobbeArm => (
+    icon: Icons.precision_manufacturing,
+    description: 'Verkleint tijdelijk jouw zichtbaarheid en maakt het voor zoekers moeilijker om je te vinden.',
+    color: const Color(0xff477653),
+  ),
+  StobbePowerKind.invisibilityPotion => (
+    icon: Icons.visibility_off,
+    description: 'Verbergt jouw digitale positie gedurende een korte periode op de kaart van andere spelers.',
+    color: const Color(0xff74558c),
+  ),
+  _ => (
+    icon: Icons.auto_awesome,
+    description: 'Een tijdelijke Stobbekracht voor dit spel.',
+    color: const Color(0xff6650a4),
+  ),
+};
 
 class _StatusRow extends StatelessWidget {
-  const _StatusRow({
-    required this.finished,
-    required this.roleLabel,
-  });
+  const _StatusRow({required this.finished, required this.roleLabel});
 
   final bool finished;
   final String roleLabel;
 
   @override
   Widget build(BuildContext context) => Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Chip(
-            avatar: const Icon(Icons.person_search),
-            label: Text(roleLabel),
-          ),
-          Chip(
-            avatar: const Icon(Icons.circle, size: 12),
-            label: Text(finished ? 'AFGEROND' : 'SPEL ACTIEF'),
-          ),
-        ],
-      );
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    children: [
+      Chip(avatar: const Icon(Icons.person_search), label: Text(roleLabel)),
+      Chip(
+        avatar: const Icon(Icons.circle, size: 12),
+        label: Text(finished ? 'AFGEROND' : 'SPEL ACTIEF'),
+      ),
+    ],
+  );
 }
 
 class _CountdownCard extends StatelessWidget {
@@ -1547,27 +1540,27 @@ class _ScoreStat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-        decoration: BoxDecoration(
-          color: const Color(0x1fffffff),
-          borderRadius: BorderRadius.circular(14),
+    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+    decoration: BoxDecoration(
+      color: const Color(0x1fffffff),
+      borderRadius: BorderRadius.circular(14),
+    ),
+    child: Column(
+      children: [
+        Text(
+          value,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 22,
+            fontWeight: FontWeight.w900,
+          ),
         ),
-        child: Column(
-          children: [
-            Text(
-              value,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 22,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.white70, fontSize: 12),
-            ),
-          ],
+        Text(
+          label,
+          textAlign: TextAlign.center,
+          style: const TextStyle(color: Colors.white70, fontSize: 12),
         ),
-      );
+      ],
+    ),
+  );
 }

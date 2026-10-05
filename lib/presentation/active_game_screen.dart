@@ -1283,8 +1283,10 @@ class _StatusRow extends StatelessWidget {
   Widget build(BuildContext context) => Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Chip(
-              avatar: Icon(Icons.person_search), label: Text(roleLabel)),
+          Chip(
+            avatar: const Icon(Icons.person_search),
+            label: Text(roleLabel),
+          ),
           Chip(
             avatar: const Icon(Icons.circle, size: 12),
             label: Text(finished ? 'AFGEROND' : 'SPEL ACTIEF'),

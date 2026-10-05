@@ -22,19 +22,21 @@ bool isInsidePlayBoundary(
   for (var i = 0, j = points.length - 1; i < points.length; j = i++) {
     final a = points[i];
     final b = points[j];
-    final cross = (longitude - a.longitude) * (b.latitude - a.latitude) -
+    final cross =
+        (longitude - a.longitude) * (b.latitude - a.latitude) -
         (latitude - a.latitude) * (b.longitude - a.longitude);
-    final onSegment = cross.abs() < 1e-10 &&
+    final onSegment =
+        cross.abs() < 1e-10 &&
         longitude >= math.min(a.longitude, b.longitude) &&
         longitude <= math.max(a.longitude, b.longitude) &&
         latitude >= math.min(a.latitude, b.latitude) &&
         latitude <= math.max(a.latitude, b.latitude);
     if (onSegment) return true;
 
-    final crossesLatitude =
-        (a.latitude > latitude) != (b.latitude > latitude);
+    final crossesLatitude = (a.latitude > latitude) != (b.latitude > latitude);
     if (crossesLatitude) {
-      final crossingLongitude = (b.longitude - a.longitude) *
+      final crossingLongitude =
+          (b.longitude - a.longitude) *
               (latitude - a.latitude) /
               (b.latitude - a.latitude) +
           a.longitude;

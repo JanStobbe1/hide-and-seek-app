@@ -451,6 +451,7 @@ class _NearbyGamePushSettingsState extends State<_NearbyGamePushSettings> {
     try {
       if (enabled) {
         final subscription = await enableNearbyPush(AppConfig.vapidPublicKey);
+        subscription['city'] = widget.state.profileCity;
         await client.registerPushSubscription(subscription);
       } else {
         final endpoint = await nearbyPushEndpoint();
@@ -478,6 +479,7 @@ class _NearbyGamePushSettingsState extends State<_NearbyGamePushSettings> {
     setState(() => _busy = true);
     try {
       final subscription = await refreshNearbyPushLocation();
+      subscription['city'] = widget.state.profileCity;
       await client.registerPushSubscription(subscription);
       if (mounted) _message('Je locatie voor startmeldingen is bijgewerkt.');
     } catch (error) {

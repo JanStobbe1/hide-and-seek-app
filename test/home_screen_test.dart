@@ -63,6 +63,7 @@ void main() {
     await tester.tap(find.text('Spellen ontdekken'));
     expect(destination, 2);
   });
+
   test('home guidance changes with the player state', () {
     final newPlayer = AppState(
       backendClient: BackendApiClient(
@@ -89,5 +90,4 @@ void main() {
       contains('Spellen ontdekken'),
     );
   });
-
 }

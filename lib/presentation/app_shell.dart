@@ -142,7 +142,8 @@ class _AppShellState extends State<AppShell> {
                     const CircleAvatar(child: Icon(Icons.location_searching)),
                     StobbeDetectiveButton(
                       pageTitle: helpTitles[index],
-                      explanation: index == 0 ? _homeExplanation : helpTexts[index],
+                      explanation:
+                          index == 0 ? _homeExplanation : helpTexts[index],
                     ),
                     const DemoBadge(),
                   ],
@@ -164,7 +165,11 @@ class _AppShellState extends State<AppShell> {
                 children: [
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                    child: StobbeGuide(explanation: helpTexts[index]),
+                    child: StobbeGuide(
+                      explanation: index == 0
+                          ? _homeExplanation
+                          : helpTexts[index],
+                    ),
                   ),
                   Expanded(child: content),
                 ],

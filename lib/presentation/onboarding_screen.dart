@@ -4,6 +4,7 @@ import '../app_state.dart';
 import '../domain/profile_models.dart';
 import 'seasonal_stobbe.dart';
 import 'stobbe_guide.dart';
+import 'widgets.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({
@@ -159,7 +160,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                     .map(
                                       (value) => DropdownMenuItem(
                                         value: value,
-                                        child: Text(_markerLabel(value)),
+                                        child: Row(
+                                          children: [
+                                            PlayerMarkerBadge(
+                                              marker: value,
+                                              size: 24,
+                                            ),
+                                            const SizedBox(width: 10),
+                                            Text(_markerLabel(value)),
+                                          ],
+                                        ),
                                       ),
                                     )
                                     .toList(),

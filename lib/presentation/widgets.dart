@@ -186,7 +186,7 @@ class MapPlaceholder extends StatelessWidget {
 }
 
 IconData markerIcon(PlayerMarker marker) => switch (marker) {
-      PlayerMarker.ghost => Icons.cruelty_free,
+      PlayerMarker.ghost => Icons.sentiment_satisfied_alt,
       PlayerMarker.wolf => Icons.pets,
       PlayerMarker.police => Icons.local_police,
       PlayerMarker.explorer => Icons.explore,
@@ -214,22 +214,90 @@ class PlayerMarkerBadge extends StatelessWidget {
         width: size + 8,
         height: size + 8,
         padding: const EdgeInsets.all(4),
-        decoration: const BoxDecoration(
-          color: Color(0xff18231e),
+        decoration: BoxDecoration(
+          color: markerAccentColor(marker),
           shape: BoxShape.circle,
+          border: Border.all(color: const Color(0xff18231e), width: 2),
         ),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Icon(markerIcon(marker), size: size, color: Colors.white),
-            Icon(
-              markerIcon(marker),
-              size: size * .72,
-              color: markerAccentColor(marker),
-            ),
-          ],
-        ),
+        child: marker == PlayerMarker.ghost
+            ? CustomPaint(
+                size: Size.square(size),
+                painter: _GhostMarkerPainter(),
+              )
+            : Icon(
+                markerIcon(marker),
+                size: size,
+                color: Colors.white,
+              ),
       );
+}
+
+class _GhostMarkerPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = Path()
+      ..moveTo(size.width * .2, size.height * .84)
+      ..lineTo(size.width * .2, size.height * .38)
+      ..quadraticBezierTo(
+        size.width * .2,
+        size.height * .08,
+        size.width * .5,
+        size.height * .08,
+      )
+      ..quadraticBezierTo(
+        size.width * .8,
+        size.height * .08,
+        size.width * .8,
+        size.height * .38,
+      )
+      ..lineTo(size.width * .8, size.height * .84)
+      ..quadraticBezierTo(
+        size.width * .7,
+        size.height * .72,
+        size.width * .6,
+        size.height * .84,
+      )
+      ..quadraticBezierTo(
+        size.width * .5,
+        size.height * .96,
+        size.width * .4,
+        size.height * .84,
+      )
+      ..quadraticBezierTo(
+        size.width * .3,
+        size.height * .72,
+        size.width * .2,
+        size.height * .84,
+      )
+      ..close();
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = Colors.white
+        ..style = PaintingStyle.fill,
+    );
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = const Color(0xff18231e)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = size.width * .07,
+    );
+    final eyePaint = Paint()..color = const Color(0xff18231e);
+    canvas.drawCircle(
+      Offset(size.width * .4, size.height * .48),
+      size.width * .055,
+      eyePaint,
+    );
+    canvas.drawCircle(
+      Offset(size.width * .6, size.height * .48),
+      size.width * .055,
+      eyePaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class _Marker extends StatelessWidget {

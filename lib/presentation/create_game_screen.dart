@@ -757,12 +757,12 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
       builder: (dialogContext) => AlertDialog(
         icon: const Icon(Icons.rocket_launch, size: 46),
         title: Text(
-          widget.state.backendClient == null
+          widget.state.demoMode
               ? 'Demo-spel aangemaakt!'
               : 'Spel is beschikbaar!',
         ),
         content: Text(
-          widget.state.backendClient == null
+          widget.state.demoMode
               ? '${name.text} staat bij Mijn spellen in deze demo. De demo gebruikt voorbeelddata en deelt je wijzigingen niet met productie.'
               : '${name.text} staat nu bij Beschikbare spellen.',
         ),

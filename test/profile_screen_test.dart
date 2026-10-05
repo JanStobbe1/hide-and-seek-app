@@ -62,7 +62,13 @@ void main() {
           ),
         ),
       );
-      expect(find.byType(CustomPaint), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(PlayerMarkerBadge),
+          matching: find.byType(CustomPaint),
+        ),
+        findsOneWidget,
+      );
       expect(find.byIcon(Icons.cruelty_free), findsNothing);
     },
   );

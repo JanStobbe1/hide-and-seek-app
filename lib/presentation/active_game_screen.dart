@@ -958,68 +958,69 @@ class _StobbePowersPage extends StatelessWidget {
             if (powersEnabled)
               Center(
                 child: Container(
-                width: 620,
-                padding: const EdgeInsets.fromLTRB(22, 12, 22, 26),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [Color(0xffa76b35), Color(0xff70431f)],
-                  ),
-                  borderRadius: BorderRadius.circular(28),
-                  border: Border.all(color: const Color(0xff4f2d16), width: 4),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Colors.black26,
-                      blurRadius: 14,
-                      offset: Offset(0, 8),
+                  width: 620,
+                  padding: const EdgeInsets.fromLTRB(22, 12, 22, 26),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xffa76b35), Color(0xff70431f)],
                     ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    Container(
-                      width: 150,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        color: const Color(0xff4f2d16),
-                        borderRadius: BorderRadius.circular(18),
+                    borderRadius: BorderRadius.circular(28),
+                    border:
+                        Border.all(color: const Color(0xff4f2d16), width: 4),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Colors.black26,
+                        blurRadius: 14,
+                        offset: Offset(0, 8),
                       ),
-                    ),
-                    const SizedBox(height: 20),
-                    GridView.count(
-                      crossAxisCount:
-                          MediaQuery.sizeOf(context).width < 520 ? 2 : 3,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      mainAxisSpacing: 16,
-                      crossAxisSpacing: 16,
-                      childAspectRatio: .72,
-                      children: state.powerInventory.slots.map((slot) {
-                        final details = _powerDetails(slot.definition.kind);
-                        return _PowerToken(
-                          icon: details.icon,
-                          name: slot.definition.name,
-                          description: details.description,
-                          count: slot.quantity,
-                          color: details.color,
-                          cooldownRemaining: slot.cooldownRemaining(),
-                          cooldownUntil: slot.cooldownUntil,
-                          showCooldownTimer: slot.quantity > 0 &&
-                              slot.uses < slot.definition.maxUsesPerGame,
-                          enabled: !state.gameFinished &&
-                              slot.canUse(state.powerInventory.phase),
-                          onActivate: () => onActivate(
-                            slot.definition.kind,
-                            slot.definition.name,
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ],
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 150,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: const Color(0xff4f2d16),
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      GridView.count(
+                        crossAxisCount:
+                            MediaQuery.sizeOf(context).width < 520 ? 2 : 3,
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        mainAxisSpacing: 16,
+                        crossAxisSpacing: 16,
+                        childAspectRatio: .72,
+                        children: state.powerInventory.slots.map((slot) {
+                          final details = _powerDetails(slot.definition.kind);
+                          return _PowerToken(
+                            icon: details.icon,
+                            name: slot.definition.name,
+                            description: details.description,
+                            count: slot.quantity,
+                            color: details.color,
+                            cooldownRemaining: slot.cooldownRemaining(),
+                            cooldownUntil: slot.cooldownUntil,
+                            showCooldownTimer: slot.quantity > 0 &&
+                                slot.uses < slot.definition.maxUsesPerGame,
+                            enabled: !state.gameFinished &&
+                                slot.canUse(state.powerInventory.phase),
+                            onActivate: () => onActivate(
+                              slot.definition.kind,
+                              slot.definition.name,
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
           ],
         ),
       );

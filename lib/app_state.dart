@@ -20,6 +20,7 @@ class AppState extends ChangeNotifier {
     MockGameRepository? repository,
     this.activeGameDuration = const Duration(minutes: 30),
     this.backendClient,
+    this.demoMode = false,
   }) : repository = repository ?? MockGameRepository() {
     activeGame = ActiveGameState(
       countdown: GameCountdown.start(activeGameDuration),
@@ -31,6 +32,8 @@ class AppState extends ChangeNotifier {
   final MockGameRepository repository;
   final Duration activeGameDuration;
   final BackendApiClient? backendClient;
+  final bool demoMode;
+  final Set<String> localGameIds = {};
   String? backendPlayerId;
   bool backendConnected = false;
   String? backendError;
@@ -291,7 +294,13 @@ class AppState extends ChangeNotifier {
   Future<bool> publishAsync(Game game) async {
     final client = backendClient;
     if (client == null) {
+      if (!demoMode) {
+        backendError = 'backend_not_configured';
+        notifyListeners();
+        return false;
+      }
       repository.publish(game);
+      localGameIds.add(game.id);
       backendError = null;
       notifyListeners();
       return true;
@@ -370,7 +379,9 @@ class AppState extends ChangeNotifier {
   Future<bool> withdrawGame(String gameId) async {
     final client = backendClient;
     if (client == null) {
+      if (!demoMode || !localGameIds.contains(gameId)) return false;
       repository.removeGame(gameId);
+      localGameIds.remove(gameId);
       backendError = null;
       notifyListeners();
       return true;
@@ -482,6 +493,7 @@ class AppState extends ChangeNotifier {
 
   void reset() {
     repository.reset();
+    localGameIds.clear();
     activeGame = ActiveGameState(
       countdown: GameCountdown.start(activeGameDuration),
     );

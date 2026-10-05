@@ -56,6 +56,9 @@ class _AppShellState extends State<AppShell> {
 
   String get _homeExplanation => homeHelpExplanation(widget.state);
 
+  String get _currentHelpText =>
+      index == 0 ? _homeExplanation : helpTexts[index];
+
   static const destinations = [
     NavigationDestination(
       icon: Icon(Icons.explore_outlined),
@@ -142,9 +145,7 @@ class _AppShellState extends State<AppShell> {
                     const CircleAvatar(child: Icon(Icons.location_searching)),
                     StobbeDetectiveButton(
                       pageTitle: helpTitles[index],
-                      explanation: index == 0
-                          ? _homeExplanation
-                          : helpTexts[index],
+                      explanation: _currentHelpText,
                     ),
                     const DemoBadge(),
                   ],
@@ -166,11 +167,7 @@ class _AppShellState extends State<AppShell> {
                 children: [
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                    child: StobbeGuide(
-                      explanation: index == 0
-                          ? _homeExplanation
-                          : helpTexts[index],
-                    ),
+                    child: StobbeGuide(explanation: _currentHelpText),
                   ),
                   Expanded(child: content),
                 ],
@@ -196,9 +193,7 @@ class _AppShellState extends State<AppShell> {
           actions: [
             StobbeDetectiveButton(
               pageTitle: helpTitles[index],
-              explanation: index == 0
-                  ? _homeExplanation
-                  : helpTexts[index],
+              explanation: _currentHelpText,
             ),
             const Padding(
               padding: EdgeInsets.only(right: 12),

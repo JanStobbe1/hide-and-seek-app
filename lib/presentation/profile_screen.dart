@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../app_state.dart';
 import '../config/app_theme.dart';
+import '../config/app_config.dart';
+import '../services/push_notifications.dart';
 import '../domain/profile_models.dart';
 import 'avatar_picker.dart';
 import 'widgets.dart';
@@ -182,6 +184,8 @@ class ProfileScreen extends StatelessWidget {
               onChanged: (value) => state.setPrivacy(entry.key, value),
             ),
           ),
+          const SectionTitle('Startmeldingen in de buurt'),
+          _NearbyGamePushSettings(state: state),
           const SectionTitle('Privacy & account'),
           OutlinedButton.icon(
             style: OutlinedButton.styleFrom(
@@ -407,4 +411,158 @@ class _ProfileMetric extends StatelessWidget {
           ],
         ),
       );
+}
+
+
+class _NearbyGamePushSettings extends StatefulWidget {
+  const _NearbyGamePushSettings({required this.state});
+
+  final AppState state;
+
+  @override
+  State<_NearbyGamePushSettings> createState() =>
+      _NearbyGamePushSettingsState();
+}
+
+class _NearbyGamePushSettingsState extends State<_NearbyGamePushSettings> {
+  bool _enabled = false;
+  bool _loading = true;
+  bool _busy = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final enabled = widget.state.backendAvailable &&
+        await hasNearbyPushSubscription();
+    if (mounted) setState(() {
+      _enabled = enabled;
+      _loading = false;
+    });
+  }
+
+  Future<void> _toggle(bool enabled) async {
+    final client = widget.state.backendClient;
+    if (client == null || !widget.state.backendConnected) return;
+    setState(() => _busy = true);
+    try {
+      if (enabled) {
+        final subscription = await enableNearbyPush(AppConfig.vapidPublicKey);
+        await client.registerPushSubscription(subscription);
+      } else {
+        final endpoint = await nearbyPushEndpoint();
+        if (endpoint != null) await client.removePushSubscription(endpoint);
+        await disableNearbyPush();
+      }
+      if (!mounted) return;
+      setState(() => _enabled = enabled);
+      _message(
+        enabled
+            ? 'Je ontvangt nu startmeldingen voor spellen binnen 25 km.'
+            : 'Startmeldingen zijn uitgezet en je opgeslagen locatie is verwijderd.',
+      );
+    } catch (error) {
+      if (!mounted) return;
+      _message(_errorMessage(error));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _refreshLocation() async {
+    final client = widget.state.backendClient;
+    if (client == null || !widget.state.backendConnected) return;
+    setState(() => _busy = true);
+    try {
+      final subscription = await refreshNearbyPushLocation();
+      await client.registerPushSubscription(subscription);
+      if (mounted) _message('Je locatie voor startmeldingen is bijgewerkt.');
+    } catch (error) {
+      if (mounted) _message(_errorMessage(error));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  void _message(String value) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(value)),
+    );
+  }
+
+  String _errorMessage(Object error) {
+    final value = error.toString();
+    if (value.contains('notification_permission_denied')) {
+      return 'Sta meldingen toe in de browserinstellingen om startmeldingen te gebruiken.';
+    }
+    if (value.contains('location_permission_required')) {
+      return 'Sta locatie toe zodat we startgebieden binnen 25 km kunnen herkennen.';
+    }
+    if (value.contains('push_not_configured')) {
+      return 'Pushmeldingen zijn nog niet volledig ingesteld. Probeer het later opnieuw.';
+    }
+    return 'Startmeldingen konden niet worden ingesteld. Controleer je internet- en browserinstellingen.';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.state.demoMode) {
+      return const Card(
+        child: ListTile(
+          leading: Icon(Icons.notifications_off_outlined),
+          title: Text('Niet beschikbaar in de demo'),
+          subtitle: Text(
+            'Startmeldingen werken voor aangemelde spelers in de productieomgeving.',
+          ),
+        ),
+      );
+    }
+    if (!widget.state.backendAvailable) {
+      return const Card(
+        child: ListTile(
+          leading: Icon(Icons.notifications_outlined),
+          title: Text('Meld je aan om meldingen in te stellen'),
+        ),
+      );
+    }
+    return Card(
+      child: Column(
+        children: [
+          SwitchListTile(
+            value: _enabled,
+            onChanged: _loading || _busy ? null : _toggle,
+            title: const Text('Spellen binnen 25 km'),
+            subtitle: Text(
+              _loading
+                  ? 'Instellingen laden…'
+                  : 'Ontvang een pushmelding zodra een spel in jouw omgeving start.',
+            ),
+            secondary: const Icon(Icons.notifications_active_outlined),
+          ),
+          if (_enabled)
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: _busy ? null : _refreshLocation,
+                icon: const Icon(Icons.my_location),
+                label: const Text('Locatie bijwerken'),
+              ),
+            ),
+          const Padding(
+            padding: EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: Text(
+              'Bij inschakelen vraagt je browser om meldings- en locatietoestemming. '
+              'Je locatie wordt afgerond op circa 1 km nauwkeurig opgeslagen, '
+              'alleen om startgebieden binnen 25 km te vinden. Uitschakelen '
+              'verwijdert je pushregistratie en opgeslagen locatie.',
+              style: TextStyle(fontSize: 12),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

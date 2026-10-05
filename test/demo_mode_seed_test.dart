@@ -27,8 +27,8 @@ void main() {
       ]),
     );
 
-    final powersGame = activeGames
-        .firstWhere((game) => game.id == 'demo-powers-classic');
+    final powersGame =
+        activeGames.firstWhere((game) => game.id == 'demo-powers-classic');
     final noPowersGame =
         activeGames.firstWhere((game) => game.id == 'demo-no-powers');
     final everyoneHunts =

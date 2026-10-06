@@ -162,6 +162,7 @@ const route = async (request: Request, env: Env): Promise<Response> => {
     const games = await env.DB.prepare(
       `SELECT g.id, g.name, g.description,
         CASE WHEN g.status = 'scheduled'
+          AND g.start_condition = 'scheduled'
           AND datetime(g.starts_at) <= CURRENT_TIMESTAMP
           AND datetime(g.ends_at) > CURRENT_TIMESTAMP
           THEN 'active' ELSE g.status END AS status,
@@ -180,7 +181,7 @@ const route = async (request: Request, env: Env): Promise<Response> => {
          ON all_players.game_id = g.id AND all_players.left_at IS NULL
        WHERE mine.player_id = ? AND mine.left_at IS NULL
          AND g.status IN ('scheduled', 'active')
-         AND (g.ends_at IS NULL OR datetime(g.ends_at) > CURRENT_TIMESTAMP)
+         AND ((g.start_condition = 'participantCount' AND g.status = 'scheduled') OR g.ends_at IS NULL OR datetime(g.ends_at) > CURRENT_TIMESTAMP)
        GROUP BY g.id
        ORDER BY g.starts_at ASC
        LIMIT 100`,
@@ -190,7 +191,7 @@ const route = async (request: Request, env: Env): Promise<Response> => {
 
   if (request.method === "GET" && path === "/api/v1/games") {
     const games = await env.DB.prepare(
-      `SELECT g.id, g.name, g.description,\n        CASE WHEN g.status = 'scheduled'\n          AND datetime(g.starts_at) <= CURRENT_TIMESTAMP\n          AND datetime(g.ends_at) > CURRENT_TIMESTAMP\n          THEN 'active' ELSE g.status END AS status,\n        g.starts_at, g.ends_at,
+      `SELECT g.id, g.name, g.description,\n        CASE WHEN g.status = 'scheduled'\n          AND g.start_condition = 'scheduled'\n          AND datetime(g.starts_at) <= CURRENT_TIMESTAMP\n          AND datetime(g.ends_at) > CURRENT_TIMESTAMP\n          THEN 'active' ELSE g.status END AS status,\n        g.starts_at, g.ends_at,
         g.created_at, g.created_by, g.country, g.province, g.city,
         g.neighbourhood, g.specific_area, g.duration_minutes,
         g.max_participants, g.distance_km, g.start_condition,
@@ -202,7 +203,7 @@ const route = async (request: Request, env: Env): Promise<Response> => {
        LEFT JOIN game_players gp ON gp.game_id = g.id AND gp.left_at IS NULL
        WHERE g.is_public = 1
          AND g.status IN ('scheduled', 'active')
-         AND (g.ends_at IS NULL OR datetime(g.ends_at) > CURRENT_TIMESTAMP)
+         AND ((g.start_condition = 'participantCount' AND g.status = 'scheduled') OR g.ends_at IS NULL OR datetime(g.ends_at) > CURRENT_TIMESTAMP)
        GROUP BY g.id
        ORDER BY g.starts_at ASC
        LIMIT 100`,
@@ -220,10 +221,25 @@ const route = async (request: Request, env: Env): Promise<Response> => {
     const startsAt = typeof body.startsAt === "string" ? body.startsAt : "";
     const maxParticipants = Number(body.maxParticipants);
     const durationMinutes = Number(body.durationMinutes);
-    if (!name || !startsAt || !Number.isFinite(maxParticipants) ||
-        !Number.isFinite(durationMinutes)) {
+    const startCondition = body.startCondition === "participantCount"
+      ? "participantCount" : "scheduled";
+    const participantThreshold = body.participantThreshold == null
+      ? null : Number(body.participantThreshold);
+    const startsAtTimestamp = Date.parse(startsAt);
+    if (!name || !Number.isFinite(startsAtTimestamp) ||
+        !Number.isFinite(maxParticipants) || !Number.isFinite(durationMinutes)) {
       return json({ error: "game_fields_required" }, 400, origin);
     }
+    if (startCondition === "participantCount" &&
+        (participantThreshold === null ||
+         !Number.isInteger(participantThreshold) || participantThreshold < 1 ||
+         participantThreshold > maxParticipants)) {
+      return json({ error: "participant_threshold_invalid" }, 400, origin);
+    }
+    const startsImmediately =
+      startCondition === "participantCount" && participantThreshold === 1;
+    const effectiveStartsAt = startsImmediately
+      ? new Date().toISOString() : startsAt;
     const gameId = typeof body.id === "string" && body.id.trim()
       ? body.id.trim()
       : crypto.randomUUID();
@@ -231,9 +247,11 @@ const route = async (request: Request, env: Env): Promise<Response> => {
       id: gameId,
       name,
       description: typeof body.description === "string" ? body.description : "",
-      status: "scheduled",
-      starts_at: startsAt,
-      ends_at: new Date(Date.parse(startsAt) + durationMinutes * 60000).toISOString(),
+      status: startsImmediately ? "active" : "scheduled",
+      starts_at: effectiveStartsAt,
+      ends_at: startCondition === "participantCount" && !startsImmediately
+        ? null
+        : new Date(Date.parse(effectiveStartsAt) + durationMinutes * 60000).toISOString(),
       created_by: authenticatedPlayer,
       country: typeof body.country === "string" ? body.country : "",
       province: typeof body.province === "string" ? body.province : "",
@@ -243,10 +261,8 @@ const route = async (request: Request, env: Env): Promise<Response> => {
       duration_minutes: durationMinutes,
       max_participants: maxParticipants,
       distance_km: Number(body.distanceKm) || 0,
-      start_condition: typeof body.startCondition === "string"
-        ? body.startCondition : "scheduled",
-      participant_threshold: body.participantThreshold == null
-        ? null : Number(body.participantThreshold),
+      start_condition: startCondition,
+      participant_threshold: participantThreshold,
       is_public: body.isPublic === false ? 0 : 1,
       hints_enabled: body.hintsEnabled === false ? 0 : 1,
       questions_enabled: body.questionsEnabled === false ? 0 : 1,
@@ -293,6 +309,7 @@ const route = async (request: Request, env: Env): Promise<Response> => {
     const game = await env.DB.prepare(
       `SELECT g.id, g.name, g.description,
         CASE WHEN g.status = 'scheduled'
+          AND g.start_condition = 'scheduled'
           AND datetime(g.starts_at) <= CURRENT_TIMESTAMP
           AND datetime(g.ends_at) > CURRENT_TIMESTAMP
           THEN 'active' ELSE g.status END AS status,
@@ -330,13 +347,21 @@ const route = async (request: Request, env: Env): Promise<Response> => {
     const authenticatedPlayer = await playerFromToken(request, env);
     if (!authenticatedPlayer) return json({ error: "unauthorized" }, 401, origin);
     const game = await env.DB.prepare(
-      "SELECT id, status, starts_at, max_participants, is_public FROM games WHERE id = ?",
+      "SELECT id, status, starts_at, max_participants, is_public, "
+        + "start_condition FROM games WHERE id = ?",
     ).bind(joinMatch[1]).first();
     if (!game || Number(game.is_public) !== 1) {
       return json({ error: "game_not_found" }, 404, origin);
     }
+    if (!["scheduled", "active"].includes(String(game.status))) {
+      return json({ error: "game_not_joinable" }, 409, origin);
+    }
+    const waitingForParticipants =
+      String(game.start_condition) === "participantCount" &&
+      String(game.status) === "scheduled";
     const startsAt = Date.parse(String(game.starts_at));
-    if (!Number.isFinite(startsAt) || Date.now() > startsAt + 5 * 60 * 1000) {
+    if (!waitingForParticipants &&
+        (!Number.isFinite(startsAt) || Date.now() > startsAt + 5 * 60 * 1000)) {
       return json({ error: "join_window_closed" }, 409, origin);
     }
     const count = await env.DB.prepare(
@@ -345,9 +370,27 @@ const route = async (request: Request, env: Env): Promise<Response> => {
     if (Number(count?.count ?? 0) >= Number(game.max_participants)) {
       return json({ error: "game_full" }, 409, origin);
     }
-    await env.DB.prepare(
-      "INSERT OR IGNORE INTO game_players (game_id, player_id, role) VALUES (?, ?, 'player')",
-    ).bind(joinMatch[1], authenticatedPlayer).run();
+    await env.DB.batch([
+      env.DB.prepare(
+        "INSERT OR IGNORE INTO game_players (game_id, player_id, role) "
+          + "VALUES (?, ?, 'player')",
+      ).bind(joinMatch[1], authenticatedPlayer),
+      env.DB.prepare(
+        `UPDATE games
+         SET status = 'active',
+             starts_at = CURRENT_TIMESTAMP,
+             ends_at = datetime(
+               CURRENT_TIMESTAMP,
+               '+' || duration_minutes || ' minutes'
+             )
+         WHERE id = ? AND status = 'scheduled'
+           AND start_condition = 'participantCount'
+           AND (
+             SELECT COUNT(*) FROM game_players
+             WHERE game_id = ? AND left_at IS NULL
+           ) >= COALESCE(participant_threshold, 1)`,
+      ).bind(joinMatch[1], joinMatch[1]),
+    ]);
     await touchPlayer(env, authenticatedPlayer);
     return json({ joined: true, gameId: joinMatch[1] }, 200, origin);
   }
@@ -433,7 +476,8 @@ const route = async (request: Request, env: Env): Promise<Response> => {
     const authenticatedPlayer = await playerFromToken(request, env);
     if (!authenticatedPlayer) return json({ error: "unauthorized" }, 401, origin);
     const game = await env.DB.prepare(
-      "SELECT id, status, starts_at, created_by FROM games WHERE id = ?",
+      "SELECT id, status, starts_at, created_by, start_condition "
+        + "FROM games WHERE id = ?",
     ).bind(withdrawMatch[1]).first();
     if (!game) return json({ error: "game_not_found" }, 404, origin);
     if (String(game.created_by) !== authenticatedPlayer) {
@@ -442,9 +486,12 @@ const route = async (request: Request, env: Env): Promise<Response> => {
     if (String(game.status) !== "scheduled") {
       return json({ error: "game_not_withdrawable" }, 409, origin);
     }
-    const startsAt = Date.parse(String(game.starts_at));
-    if (!Number.isFinite(startsAt) || Date.now() > startsAt - 5 * 60 * 1000) {
-      return json({ error: "withdrawal_window_closed" }, 409, origin);
+    if (String(game.start_condition) !== "participantCount") {
+      const startsAt = Date.parse(String(game.starts_at));
+      if (!Number.isFinite(startsAt) ||
+          Date.now() > startsAt - 5 * 60 * 1000) {
+        return json({ error: "withdrawal_window_closed" }, 409, origin);
+      }
     }
     await env.DB.prepare(
       "UPDATE games SET status = 'stopped', stopped_at = CURRENT_TIMESTAMP WHERE id = ?",

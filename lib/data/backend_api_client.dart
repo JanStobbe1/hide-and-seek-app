@@ -334,7 +334,8 @@ class BackendApiClient {
       maxParticipants: maxParticipants,
       distanceKm: asDouble(value['distance_km'], 0),
       startCondition: startCondition,
-      scheduledStart: startValue,
+      scheduledStart:
+          startCondition == StartCondition.scheduled ? startValue : null,
       participantThreshold: value['participant_threshold'] == null
           ? null
           : asInt(value['participant_threshold'], 1),

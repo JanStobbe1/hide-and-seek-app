@@ -23,6 +23,24 @@ const json = (body: unknown, status = 200, origin = "*") =>
     },
   });
 
+const adminPage = () => new Response(`<!doctype html>
+<html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Verstobbertje beheer</title><style>
+:root{color-scheme:light;--g:#285b43;--bg:#f4f7f4;--ink:#18231d;--muted:#65736a;--line:#dce5de}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,sans-serif}main{max-width:1000px;margin:auto;padding:28px 18px 52px}
+h1{margin:0;font-size:clamp(24px,4vw,34px)}h2{font-size:19px;margin:0 0 12px}.muted{color:var(--muted)}.panel,.metric{background:white;border:1px solid var(--line);border-radius:16px;padding:18px;margin:0 0 14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:12px}.metric{margin:0}.metric strong{display:block;font-size:30px;color:var(--g)}.metric span{color:var(--muted)}
+input,button{font:inherit;border-radius:9px;padding:10px 13px}input{border:1px solid #bdcbbf;width:min(100%,420px)}button{border:0;background:var(--g);color:white;font-weight:700;cursor:pointer}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:space-between}
+table{border-collapse:collapse;width:100%}th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line)}th{color:var(--muted);font-size:13px}.hide{display:none}.error{color:#a63131}
+@media(max-width:560px){main{padding:18px 12px}.panel{padding:14px}th,td{font-size:14px;padding:8px 4px}}
+</style></head><body><main><header style="margin-bottom:22px"><h1>Verstobbertje beheer</h1><div class="muted">Gebruikers, spelactiviteit en feedback</div></header>
+<section class="panel" id="login"><h2>Beheerlogin</h2><p class="muted">Vul de ADMIN_API_TOKEN uit je beveiligde productieomgeving in. De sleutel blijft alleen in het geheugen van dit tabblad.</p>
+<form id="loginForm" class="row" style="justify-content:flex-start"><input id="token" type="password" autocomplete="off" placeholder="Beheertoken" required><button>Inloggen</button></form><p id="error" class="error" role="alert"></p></section>
+<section id="report" class="hide"><div class="row"><p class="muted">Aantallen en deelnamegroepen; geen locatiegeschiedenis of spelinhoud.</p><button id="refresh">Vernieuwen</button></div><div class="grid" id="metrics"></div>
+<section class="panel"><h2>Deelnamegedrag</h2><div id="participation"></div></section><section class="panel"><h2>Spelgebeurtenissen</h2><div id="events"></div></section><section class="panel"><h2>Feedback per mijlpaal</h2><div id="feedback"></div></section><section class="panel"><h2>Spelstatus</h2><div id="games"></div></section></section></main>
+<script>let bearer='';const el=id=>document.getElementById(id);const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const table=(h,r)=>r.length?'<div style="overflow:auto"><table><thead><tr>'+h.map(x=>'<th>'+esc(x)+'</th>').join('')+'</tr></thead><tbody>'+r.map(a=>'<tr>'+a.map(x=>'<td>'+esc(x)+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>':'<p class="muted">Nog geen gegevens.</p>';
+async function load(){el('error').textContent='';try{const r=await fetch('/api/admin/analytics',{headers:{authorization:'Bearer '+bearer},cache:'no-store'});if(r.status===401)throw Error('Beheertoken niet geldig.');if(!r.ok)throw Error('Rapportage kon niet worden geladen.');const d=await r.json();el('metrics').innerHTML=[['Gebruikers',d.players.total],['Actief afgelopen 30 dagen',d.players.active30d],['Nieuw afgelopen 7 dagen',d.players.new7d],['Uitgebreide deelnames',d.participation.extendedTotal],['Feedback ingestuurd',d.feedback.submitted]].map(x=>'<div class="metric"><strong>'+esc(x[1])+'</strong><span>'+esc(x[0])+'</span></div>').join('');const b=d.participation.buckets;el('participation').innerHTML=table(['Afgeronde deelnames per speler','Gebruikers'],[['0',b.none],['1',b.one],['2–9',b.twoToNine],['10–49',b.tenToFortyNine],['50+',b.fiftyPlus]]);el('events').innerHTML=table(['Gebeurtenis','Aantal'],d.events.map(x=>[x.eventType,x.count]));el('feedback').innerHTML=table(['Mijlpaal','Gevraagd','Ingestuurd','Overgeslagen','Gem. score'],d.feedback.byMilestone.map(x=>[x.milestone,x.asked,x.responses,x.skipped,x.averageRating??'—']));el('games').innerHTML=table(['Status','Aantal'],d.games.map(x=>[x.status,x.count]));el('login').classList.add('hide');el('report').classList.remove('hide')}catch(e){el('error').textContent=e.message;if(bearer){bearer='';el('login').classList.remove('hide');el('report').classList.add('hide')}}}el('loginForm').addEventListener('submit',e=>{e.preventDefault();bearer=el('token').value;el('token').value='';load()});el('refresh').addEventListener('click',load);</script></body></html>`, {headers:{"content-type":"text/html; charset=utf-8","cache-control":"no-store","x-content-type-options":"nosniff","content-security-policy":"default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'"}});
+
 const parseBody = async (request: Request): Promise<JsonObject> => {
   try {
     const value = await request.json();
@@ -135,6 +153,7 @@ const route = async (request: Request, env: Env): Promise<Response> => {
   const path = url.pathname;
 
   if (request.method === "OPTIONS") return json({}, 204, origin);
+  if (request.method === "GET" && path === "/admin") return adminPage();
   if (request.method === "GET" && path === "/api/health") {
     return json({ ok: true, service: "verstobbertje-api" }, 200, origin);
   }
@@ -452,6 +471,68 @@ const route = async (request: Request, env: Env): Promise<Response> => {
     return json({ withdrawn: true, gameId: withdrawMatch[1] }, 200, origin);
   }
 
+  const completionMatch = path.match(/^\/api\/v1\/games\/([^/]+)\/complete$/);
+  if (request.method === "POST" && completionMatch) {
+    const playerId = await playerFromToken(request, env);
+    if (!playerId) return json({ error: "unauthorized" }, 401, origin);
+    const membership = await env.DB.prepare(
+      `SELECT gp.extended_completed_at,
+       MAX(0, unixepoch('now') - MAX(unixepoch(gp.joined_at), unixepoch(g.starts_at))) AS elapsed_seconds
+       FROM game_players gp JOIN games g ON g.id = gp.game_id
+       WHERE gp.game_id = ? AND gp.player_id = ? AND gp.left_at IS NULL`,
+    ).bind(completionMatch[1], playerId).first();
+    if (!membership) return json({ error: "participation_not_found" }, 404, origin);
+    if (Number(membership.elapsed_seconds ?? 0) < 600) {
+      return json({ error: "extended_participation_required" }, 409, origin);
+    }
+    if (!membership.extended_completed_at) {
+      await env.DB.prepare(
+        `UPDATE game_players SET completed_at = CURRENT_TIMESTAMP,
+         extended_completed_at = CURRENT_TIMESTAMP
+         WHERE game_id = ? AND player_id = ? AND extended_completed_at IS NULL`,
+      ).bind(completionMatch[1], playerId).run();
+    }
+    await touchPlayer(env, playerId);
+    const count = await env.DB.prepare(
+      "SELECT COUNT(*) AS count FROM game_players WHERE player_id = ? AND extended_completed_at IS NOT NULL",
+    ).bind(playerId).first();
+    const completedCount = Number(count?.count ?? 0);
+    let feedbackMilestone: number | null = null;
+    for (const milestone of [2, 10, 50]) {
+      if (completedCount < milestone) continue;
+      const existing = await env.DB.prepare(
+        "SELECT 1 FROM player_feedback WHERE player_id = ? AND milestone = ?",
+      ).bind(playerId, milestone).first();
+      if (!existing) { feedbackMilestone = milestone; break; }
+    }
+    return json({ completedCount, feedbackMilestone }, 200, origin);
+  }
+
+  if (request.method === "POST" && path === "/api/v1/feedback") {
+    const playerId = await playerFromToken(request, env);
+    if (!playerId) return json({ error: "unauthorized" }, 401, origin);
+    const body = await parseBody(request);
+    const milestone = Number(body.milestone);
+    const skipped = body.skipped === true;
+    const rating = typeof body.rating === "number" ? body.rating : null;
+    const topic = typeof body.topic === "string" ? body.topic : null;
+    if (![2, 10, 50].includes(milestone)) return json({ error: "milestone_invalid" }, 400, origin);
+    if (!skipped && (rating === null || !Number.isInteger(rating) || rating < 1 || rating > 5 ||
+        !["gameplay", "map", "powers", "other"].includes(topic ?? ""))) {
+      return json({ error: "feedback_invalid" }, 400, origin);
+    }
+    const count = await env.DB.prepare(
+      "SELECT COUNT(*) AS count FROM game_players WHERE player_id = ? AND extended_completed_at IS NOT NULL",
+    ).bind(playerId).first();
+    if (Number(count?.count ?? 0) < milestone) return json({ error: "milestone_not_reached" }, 409, origin);
+    await env.DB.prepare(
+      `INSERT OR IGNORE INTO player_feedback (player_id, milestone, status, rating, topic)
+       VALUES (?, ?, ?, ?, ?)`,
+    ).bind(playerId, milestone, skipped ? "skipped" : "submitted", skipped ? null : rating, skipped ? null : topic).run();
+    await touchPlayer(env, playerId);
+    return json({ saved: true }, 201, origin);
+  }
+
   const eventMatch = path.match(/^\/api\/v1\/games\/([^/]+)\/events$/);
   if (request.method === "POST" && eventMatch) {
     const authenticatedPlayer = await playerFromToken(request, env);
@@ -484,6 +565,68 @@ const route = async (request: Request, env: Env): Promise<Response> => {
   if (!isAdmin(request, env)) return json({ error: "unauthorized" }, 401, origin);
 
   const adminId = "bootstrap-admin";
+  if (request.method === "GET" && path === "/api/admin/analytics") {
+    const [players, games, extendedTotal, events, feedback, feedbackCount, buckets] = await Promise.all([
+      env.DB.prepare(
+        `SELECT COUNT(*) AS total,
+         SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) AS active,
+         SUM(CASE WHEN created_at >= datetime('now', '-7 days') THEN 1 ELSE 0 END) AS new7d,
+         SUM(CASE WHEN COALESCE(last_activity_at, created_at) >= datetime('now', '-30 days') THEN 1 ELSE 0 END) AS active30d
+         FROM players`,
+      ).first(),
+      env.DB.prepare("SELECT status, COUNT(*) AS count FROM games GROUP BY status ORDER BY status").all(),
+      env.DB.prepare("SELECT COUNT(*) AS count FROM game_players WHERE extended_completed_at IS NOT NULL").first(),
+      env.DB.prepare("SELECT event_type, COUNT(*) AS count FROM game_events GROUP BY event_type ORDER BY count DESC LIMIT 12").all(),
+      env.DB.prepare(
+        `SELECT milestone, COUNT(*) AS asked,
+         SUM(CASE WHEN status = 'submitted' THEN 1 ELSE 0 END) AS responses,
+         SUM(CASE WHEN status = 'skipped' THEN 1 ELSE 0 END) AS skipped,
+         ROUND(AVG(CASE WHEN status = 'submitted' THEN rating END), 1) AS averageRating
+         FROM player_feedback GROUP BY milestone ORDER BY milestone`,
+      ).all(),
+      env.DB.prepare("SELECT COUNT(*) AS count FROM player_feedback WHERE status = 'submitted'").first(),
+      env.DB.prepare(
+        `WITH participation AS (
+          SELECT p.id, COUNT(gp.extended_completed_at) AS completed
+          FROM players p LEFT JOIN game_players gp ON gp.player_id = p.id
+          GROUP BY p.id
+        ) SELECT
+          SUM(CASE WHEN completed = 0 THEN 1 ELSE 0 END) AS none,
+          SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) AS one,
+          SUM(CASE WHEN completed BETWEEN 2 AND 9 THEN 1 ELSE 0 END) AS twoToNine,
+          SUM(CASE WHEN completed BETWEEN 10 AND 49 THEN 1 ELSE 0 END) AS tenToFortyNine,
+          SUM(CASE WHEN completed >= 50 THEN 1 ELSE 0 END) AS fiftyPlus
+        FROM participation`,
+      ).first(),
+    ]);
+    return json({
+      players: {
+        total: Number(players?.total ?? 0),
+        active: Number(players?.active ?? 0),
+        new7d: Number(players?.new7d ?? 0),
+        active30d: Number(players?.active30d ?? 0),
+      },
+      participation: {
+        extendedTotal: Number(extendedTotal?.count ?? 0),
+        buckets: Object.fromEntries(["none", "one", "twoToNine", "tenToFortyNine", "fiftyPlus"]
+          .map((key) => [key, Number(buckets?.[key] ?? 0)])),
+      },
+      events: events.results.map((row) => ({ eventType: row.event_type, count: Number(row.count) })),
+      feedback: {
+        submitted: Number(feedbackCount?.count ?? 0),
+        byMilestone: feedback.results.map((row) => ({
+          milestone: Number(row.milestone),
+          asked: Number(row.asked),
+          responses: Number(row.responses),
+          skipped: Number(row.skipped),
+          averageRating: row.averageRating,
+        })),
+      },
+      games: games.results.map((row) => ({ status: row.status, count: Number(row.count) })),
+      extendedParticipationDefinition: "A completed session qualifies after at least ten minutes from the later of joining or scheduled start.",
+    }, 200, origin);
+  }
+
   if (request.method === "GET" && path === "/api/admin/dashboard") {
     const [games, players, signals, subscriptions] = await Promise.all([
       env.DB.prepare("SELECT status, COUNT(*) AS count FROM games GROUP BY status").all(),

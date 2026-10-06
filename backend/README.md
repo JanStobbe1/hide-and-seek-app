@@ -27,6 +27,11 @@ Copy `backend/wrangler.example.jsonc` to a local `wrangler.jsonc`, fill in the D
 
 ## API foundation
 
+- `GET /admin` — management dashboard; sign in with `ADMIN_API_TOKEN`.
+- `GET /api/admin/analytics` — aggregate user, participation and feedback report.
+- `POST /api/v1/games/:id/complete` — records an extended completed participation.
+- `POST /api/v1/feedback` — records a milestone rating/topic or a skip.
+
 - `GET /api/health`
 - `GET /api/v1/games/:id`
 - `POST /api/v1/games/:id/events`
@@ -54,6 +59,9 @@ The backend deployment is intentionally manual through
 
 The workflow applies the D1 migration, deploys the separate API Worker and then sets
 the two Worker secrets. It does not run automatically on frontend pushes.
+
+Production management page: https://verstobbertje-api.dry-leaf-6021.workers.dev/admin.
+The dashboard accepts the admin token only in memory and shows aggregate activity, not locations or event contents. A completed participation qualifies after ten minutes from the later of joining or the scheduled game start. Feedback is requested at 2, 10 and 50 qualifying participations; account deletion removes linked feedback.
 
 
 ## Startmeldingen in de buurt

@@ -88,6 +88,58 @@ void main() {
       ),
     );
   });
+  test('completes a participation and returns its feedback milestone', () async {
+    final client = QueueClient([
+      http.Response(
+        '{"player":{"id":"p1","profileName":"Noor"},"token":"token-1"}',
+        201,
+      ),
+      http.Response('{"completedCount":2,"feedbackMilestone":2}', 200),
+    ]);
+    final api = BackendApiClient(
+      baseUri: Uri.parse('https://api.example.test'),
+      client: client,
+    );
+    await api.registerPlayer('Noor');
+
+    final milestone = await api.completeGameParticipation('game-2');
+
+    expect(milestone, 2);
+    expect(client.requests[1].url.path, '/api/v1/games/game-2/complete');
+    expect(client.requests[1].headers['authorization'], 'Bearer token-1');
+  });
+
+  test('submits the rating and selected topic for a milestone', () async {
+    final client = QueueClient([
+      http.Response(
+        '{"player":{"id":"p1","profileName":"Noor"},"token":"token-1"}',
+        201,
+      ),
+      http.Response('{"saved":true}', 201),
+    ]);
+    final api = BackendApiClient(
+      baseUri: Uri.parse('https://api.example.test'),
+      client: client,
+    );
+    await api.registerPlayer('Noor');
+
+    await api.submitMilestoneFeedback(
+      milestone: 2,
+      skipped: false,
+      rating: 5,
+      topic: 'map',
+    );
+
+    expect(client.requests[1].url.path, '/api/v1/feedback');
+    expect(client.requests[1].headers['authorization'], 'Bearer token-1');
+    final request = client.requests[1] as http.Request;
+    expect(jsonDecode(request.body), {
+      'milestone': 2,
+      'skipped': false,
+      'rating': 5,
+      'topic': 'map',
+    });
+  });
 }
 
 class QueueClient extends http.BaseClient {

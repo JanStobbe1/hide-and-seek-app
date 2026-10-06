@@ -133,6 +133,7 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
   int _pageIndex = 1;
   StobbePowerKind? _activePowerEffect;
   int _powerEffectId = 0;
+  bool _completionSent = false;
 
   AppState get state => widget.state;
 
@@ -154,7 +155,9 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
   @override
   void initState() {
     super.initState();
+    state.addListener(_handleGameStateChanged);
     state.syncActiveGameClock();
+    if (state.gameFinished) _scheduleCompletionReport();
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       state.syncActiveGameClock();
       final wasEliminated = state.enforceZoneReturnDeadline();
@@ -178,9 +181,109 @@ class _ActiveGameScreenState extends State<ActiveGameScreen> {
 
   @override
   void dispose() {
+    state.removeListener(_handleGameStateChanged);
     _timer.cancel();
     _powerEffectTimer?.cancel();
     super.dispose();
+  }
+
+  void _handleGameStateChanged() {
+    if (state.gameFinished) _scheduleCompletionReport();
+  }
+
+  void _scheduleCompletionReport() {
+    final gameId = selectedGame?.id;
+    if (_completionSent || gameId == null || !state.backendConnected) {
+      return;
+    }
+    _completionSent = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _recordCompletionAndAskForFeedback(gameId);
+    });
+  }
+
+  Future<void> _recordCompletionAndAskForFeedback(String gameId) async {
+    final milestone = await state.completeBackendParticipation(gameId);
+    if (!mounted || milestone == null) return;
+    var rating = 0;
+    var topic = 'gameplay';
+    final submitted = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          icon: const Icon(Icons.rate_review_outlined, size: 36),
+          title: const Text('Mag ik je om feedback vragen?'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Je hebt nu $milestone keer uitgebreid meegespeeld.'),
+              const SizedBox(height: 16),
+              const Text('Hoe was je ervaring?'),
+              const SizedBox(height: 4),
+              Wrap(
+                spacing: 2,
+                children: List.generate(5, (index) {
+                  final value = index + 1;
+                  return IconButton(
+                    tooltip: '$value van 5',
+                    onPressed: () => setDialogState(() => rating = value),
+                    icon: Icon(
+                      value <= rating ? Icons.star : Icons.star_border,
+                    ),
+                  );
+                }),
+              ),
+              DropdownButtonFormField<String>(
+                initialValue: topic,
+                decoration: const InputDecoration(
+                  labelText: 'Waar gaat je feedback vooral over?',
+                ),
+                items: const [
+                  DropdownMenuItem(
+                    value: 'gameplay',
+                    child: Text('Het spelverloop'),
+                  ),
+                  DropdownMenuItem(value: 'map', child: Text('De kaart')),
+                  DropdownMenuItem(
+                    value: 'powers',
+                    child: Text('De Stobbekrachten'),
+                  ),
+                  DropdownMenuItem(value: 'other', child: Text('Iets anders')),
+                ],
+                onChanged: (value) =>
+                    setDialogState(() => topic = value ?? 'gameplay'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Overslaan'),
+            ),
+            FilledButton(
+              onPressed: rating == 0
+                  ? null
+                  : () => Navigator.pop(dialogContext, true),
+              child: const Text('Verstuur'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (!mounted) return;
+    final saved = await state.submitParticipationFeedback(
+      milestone: milestone,
+      skipped: submitted != true,
+      rating: submitted == true ? rating : null,
+      topic: submitted == true ? topic : null,
+    );
+    if (!saved && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Feedback opslaan is niet gelukt.')),
+      );
+    }
   }
 
   @override

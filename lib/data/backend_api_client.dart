@@ -393,6 +393,50 @@ class BackendApiClient {
     _decode(response);
   }
 
+  Future<int?> completeGameParticipation(String gameId) async {
+    final token = _playerToken;
+    if (token == null) {
+      throw const BackendApiException(401, 'player_session_required');
+    }
+    final response = await _request(
+      client.post(
+        _endpoint('/api/v1/games/$gameId/complete'),
+        headers: {'authorization': 'Bearer $token'},
+      ),
+    );
+    final data = _decode(response);
+    final milestone = data['feedbackMilestone'];
+    return milestone is int ? milestone : null;
+  }
+
+  Future<void> submitMilestoneFeedback({
+    required int milestone,
+    required bool skipped,
+    int? rating,
+    String? topic,
+  }) async {
+    final token = _playerToken;
+    if (token == null) {
+      throw const BackendApiException(401, 'player_session_required');
+    }
+    final response = await _request(
+      client.post(
+        _endpoint('/api/v1/feedback'),
+        headers: {
+          'content-type': 'application/json',
+          'authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'milestone': milestone,
+          'skipped': skipped,
+          if (rating != null) 'rating': rating,
+          if (topic != null) 'topic': topic,
+        }),
+      ),
+    );
+    _decode(response);
+  }
+
   Map<String, dynamic> _decode(http.Response response) {
     Map<String, dynamic> data = {};
     if (response.body.isNotEmpty) {

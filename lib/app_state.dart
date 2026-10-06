@@ -423,6 +423,49 @@ class AppState extends ChangeNotifier {
     }
   }
 
+  Future<int?> completeBackendParticipation(String gameId) async {
+    final client = backendClient;
+    if (client == null || !backendConnected) return null;
+    try {
+      return await client.completeGameParticipation(gameId);
+    } on BackendApiException catch (error) {
+      backendError = error.code;
+      notifyListeners();
+      return null;
+    } catch (_) {
+      backendError = 'connection_failed';
+      notifyListeners();
+      return null;
+    }
+  }
+
+  Future<bool> submitParticipationFeedback({
+    required int milestone,
+    required bool skipped,
+    int? rating,
+    String? topic,
+  }) async {
+    final client = backendClient;
+    if (client == null || !backendConnected) return false;
+    try {
+      await client.submitMilestoneFeedback(
+        milestone: milestone,
+        skipped: skipped,
+        rating: rating,
+        topic: topic,
+      );
+      return true;
+    } on BackendApiException catch (error) {
+      backendError = error.code;
+      notifyListeners();
+      return false;
+    } catch (_) {
+      backendError = 'connection_failed';
+      notifyListeners();
+      return false;
+    }
+  }
+
   Future<bool> restoreBackendSession() async {
     final client = backendClient;
     if (client == null) return false;
